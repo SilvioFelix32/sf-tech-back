@@ -6,6 +6,10 @@
     {
       "src": "src/main.ts",
       "use": "@vercel/node"
+    },
+    {
+      "src": "src/shared/app.headers.dto.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
