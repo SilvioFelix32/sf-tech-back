@@ -1,5 +1,7 @@
 {
+  "name": "sf-tech-backend",
   "version": 2,
+  "public": true,
   "builds": [
     {
       "src": "src/main.ts",
