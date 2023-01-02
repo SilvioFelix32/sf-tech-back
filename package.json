@@ -2,8 +2,8 @@
   "name": "sf-tech-backend",
   "version": "0.0.1",
   "description": "",
-  "author": "",
-  "private": true,
+  "author": "sf-tech",
+  "private": false,
   "license": "UNLICENSED",
   "scripts": {
     "dbpush": "npx prisma db push && npx prisma db seed",
