@@ -9,10 +9,10 @@ import {
   Patch,
   Post,
   UseInterceptors,
+  Headers,
 } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
 import { IsPublic } from '../..//auth/decorators/is-public.decorator';
-import { RequestHeaders } from '../../shared/app.headers.dto';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { FindUserDto } from '../dto/query-user.dto';
@@ -31,7 +31,7 @@ export class UsersController {
     type: User,
   })
   @IsPublic()
-  create(header: IHeaders, @Body() createUserDto: CreateUserDto) {
+  create(@Headers() header: IHeaders, @Body() createUserDto: CreateUserDto) {
     const { company_id } = header;
 
     if (!company_id) {
@@ -44,7 +44,7 @@ export class UsersController {
   @Get()
   @IsPublic()
   @ApiResponse({ status: 200, type: [User] })
-  findAll(header: IHeaders, @Param() param: FindUserDto) {
+  findAll(@Headers() header: IHeaders, @Param() param: FindUserDto) {
     const { company_id } = header;
 
     if (!company_id) {
@@ -70,7 +70,7 @@ export class UsersController {
   @Patch(':id')
   @ApiResponse({ status: 200, type: User })
   update(
-    @RequestHeaders() header: IHeaders,
+    @Headers() header: IHeaders,
     @Param('id') user_id: string,
     @Body() updateUserDto: UpdateUserDto,
   ) {

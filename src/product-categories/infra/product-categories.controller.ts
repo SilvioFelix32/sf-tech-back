@@ -6,10 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  Headers,
   BadRequestException,
 } from '@nestjs/common';
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
-import { RequestHeaders } from '../../shared/app.headers.dto';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
@@ -23,10 +23,7 @@ export class ProductCategoriesController {
 
   @Post()
   @IsPublic()
-  create(
-    @RequestHeaders() header: IHeaders,
-    @Body() dto: CreateProductCategoryDto,
-  ) {
+  create(@Headers() header: IHeaders, @Body() dto: CreateProductCategoryDto) {
     const { company_id } = header;
 
     if (!company_id) {
@@ -38,7 +35,7 @@ export class ProductCategoriesController {
 
   @Get()
   @IsPublic()
-  findAll(@RequestHeaders() header: IHeaders, @Param() dto: any) {
+  findAll(@Headers() header: IHeaders, @Param() dto: any) {
     const { company_id } = header;
 
     if (!company_id) {
@@ -55,7 +52,7 @@ export class ProductCategoriesController {
 
   @Patch(':id')
   update(
-    @RequestHeaders() header: IHeaders,
+    @Headers() header: IHeaders,
     @Param('id') category_id: string,
     @Body() dto: UpdateProductCategoryDto,
   ) {
