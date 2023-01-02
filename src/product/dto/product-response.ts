@@ -1,0 +1,16 @@
+export const productReponse = {
+  product_id: true,
+  category_id: true,
+  company_id: true,
+  sku: true,
+  title: true,
+  subtitle: true,
+  description: true,
+  url_banner: true,
+  value: true,
+  discount: true,
+  active: true,
+  combo: true,
+  highlighted: true,
+  for_sale: true,
+};

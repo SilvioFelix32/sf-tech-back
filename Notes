@@ -1,0 +1,31 @@
+//# install nest on global form
+//# NPM I -g nest
+
+//# CREATE MIGRATIONS
+npx prisma migrate dev --name "init"
+
+//# START PRISMA ON PORT 5556
+npx prisma studio
+
+#NEST GENERATE OPTIONS
+Generate a module (nest g mo) to keep code organized and establish clear boundaries (grouping related components)
+Generate a controller (nest g co) to define CRUD routes (or queries/mutations for GraphQL applications)
+Generate a service (nest g s) to implement & isolate business logic
+Generate an entity class/interface to represent the resource data shape
+Generate Data Transfer Objects (or inputs for GraphQL applications) to define how the data will be sent over the network
+nest g resource
+
+# GENEREATE A SERVICE PRISMA 
+///nest	g 'table-name' Generates and/or modifies files based on a schematic.
+nest g s prisma
+
+/# START INDEX.TS IN PORT 3003
+yarn dev
+
+# GENERATE SEED ON DB
+npx prisma db push 
+npx prisma db seed --preview-feature
+
+//Authentication
+https://fabricadesinapse.gitbook.io/sinapse-book/nestjs/autenticacao-sistema-de-login-com-token-jwt
+https://www.youtube.com/watch?v=3z6Cs_PtYc0
