@@ -47,7 +47,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, customOptions);
 
   app.enableCors();
-  await app.listen(3003);
+  await app.listen('https://sf-tech-back.vercel.app/');
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
 
