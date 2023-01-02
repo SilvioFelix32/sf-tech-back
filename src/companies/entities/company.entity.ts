@@ -1,6 +1,3 @@
-import { ProductCategory } from 'src/product-categories/entities/product-category.entity';
-import { Product } from 'src/product/entities/product.entity';
-import { User } from 'src/users/entities/user.entity';
 import { CompanyParams } from './company-params.entity';
 export class Company {
   id?: string;

@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { CompaniesService } from 'src/companies/services/companies.service';
-import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { CompaniesService } from '../../companies/services/companies.service';
+import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { productCategoryReponse } from '../dto/product-category-response';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
@@ -78,7 +78,7 @@ export class ProductCategoriesService {
   ): Promise<ProductCategory | unknown> {
     delete dto.category_id;
     delete dto.products;
-    
+
     return this.prisma.productCategory.update({
       where: {
         category_id,

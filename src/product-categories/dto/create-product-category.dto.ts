@@ -8,7 +8,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { ProductType } from 'src/product/entities/product-type.entity';
+import { ProductType } from '../../product/entities/product-type.entity';
 
 export class CreateProductCategoryDto {
   @IsString()

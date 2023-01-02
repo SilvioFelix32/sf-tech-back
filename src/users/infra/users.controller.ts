@@ -11,9 +11,9 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
-import { IsPublic } from 'src/auth/decorators/is-public.decorator';
-import { RequestHeaders } from 'src/shared/app.headers.dto';
-import { IHeaders } from 'src/shared/IHeaders';
+import { IsPublic } from '../..//auth/decorators/is-public.decorator';
+import { RequestHeaders } from '../../shared/app.headers.dto';
+import { IHeaders } from '../../shared/IHeaders';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { FindUserDto } from '../dto/query-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';

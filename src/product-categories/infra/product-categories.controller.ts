@@ -8,9 +8,9 @@ import {
   Delete,
   BadRequestException,
 } from '@nestjs/common';
-import { IsPublic } from 'src/auth/decorators/is-public.decorator';
-import { RequestHeaders } from 'src/shared/app.headers.dto';
-import { IHeaders } from 'src/shared/IHeaders';
+import { IsPublic } from '../../auth/decorators/is-public.decorator';
+import { RequestHeaders } from '../../shared/app.headers.dto';
+import { IHeaders } from '../../shared/IHeaders';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
 import { ProductCategoriesService } from '../services/product-categories.service';

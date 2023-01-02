@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { IsPublic } from 'src/auth/decorators/is-public.decorator';
+import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { CreateCompanyDto } from '../dto/create-company.dto';
 import { UpdateCompanyDto } from '../dto/update-company.dto';
 import { CompaniesService } from '../services/companies.service';

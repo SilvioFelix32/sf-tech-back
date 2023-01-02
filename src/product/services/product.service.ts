@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/shared/prisma/prisma.service';
+import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { FindProductDto } from '../dto/find-product.dto';
 import { productReponse } from '../dto/product-response';

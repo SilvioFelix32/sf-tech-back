@@ -1,5 +1,5 @@
-import { ProductType } from 'src/product/entities/product-type.entity';
-import { Product } from 'src/product/entities/product.entity';
+import { ProductType } from '../../product/entities/product-type.entity';
+import { Product } from '../../product/entities/product.entity';
 
 export class ProductCategory {
   category_id?: string;
