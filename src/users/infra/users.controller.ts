@@ -31,10 +31,7 @@ export class UsersController {
     type: User,
   })
   @IsPublic()
-  create(
-    @RequestHeaders() header: IHeaders,
-    @Body() createUserDto: CreateUserDto,
-  ) {
+  create(header: IHeaders, @Body() createUserDto: CreateUserDto) {
     const { company_id } = header;
 
     if (!company_id) {
@@ -47,7 +44,7 @@ export class UsersController {
   @Get()
   @IsPublic()
   @ApiResponse({ status: 200, type: [User] })
-  findAll(@RequestHeaders() header: IHeaders, @Param() param: FindUserDto) {
+  findAll(header: IHeaders, @Param() param: FindUserDto) {
     const { company_id } = header;
 
     if (!company_id) {
