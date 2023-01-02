@@ -2,6 +2,9 @@
   "name": "sf-tech-backend",
   "version": 2,
   "public": true,
+  "env": {
+    "DATABASE_URL": "mongodb+srv://sf-tech:ThtoTtV6iA0INT2h@sf-tech.k6lsm.mongodb.net/sf-tech"
+  },
   "builds": [
     {
       "src": "src/main.ts",
