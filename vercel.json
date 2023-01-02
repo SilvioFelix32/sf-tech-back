@@ -1,15 +1,16 @@
 {
-  "version": 1,
+  "version": 2,
   "builds": [
     {
-      "src": "main.ts",
-      "use": "@now/node"
+      "src": "src/main.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "main.ts"
+      "dest": "src/main.ts",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
     }
   ]
 }
