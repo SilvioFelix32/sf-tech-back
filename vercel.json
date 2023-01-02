@@ -1,13 +1,5 @@
 {
   "version": 2,
-  "env": {
-    "MONGODB_USER": "sf-tech",
-    "MONGODB_PASSWORD": "ThtoTtV6iA0INT2h",
-    "MONGODB_DBNAME": "sf-tech",
-    "JWT_SECRET": "af3fe660-686f-4e5e-9f95-89f6caac0fd7",
-
-    "DATABASE_URL": "mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@sf-tech.k6lsm.mongodb.net/${MONGODB_DBNAME}"
-  },
   "builds": [
     {
       "src": "src/main.ts",
