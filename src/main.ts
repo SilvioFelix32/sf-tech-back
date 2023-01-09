@@ -7,11 +7,9 @@ import {
   SwaggerModule,
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
-import cors from 'cors';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.use(cors());
+  const app = await NestFactory.create(AppModule, { cors: true });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -48,13 +46,7 @@ async function bootstrap() {
 
   SwaggerModule.setup('api', app, document, customOptions);
 
-  app.enableCors({
-    allowedHeaders: [
-      'Access-Control-Allow-Origin: *',
-      'Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token',
-    ],
-  });
+  app.enableCors();
   await app.listen('https://0.0.0.0/0 ');
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
