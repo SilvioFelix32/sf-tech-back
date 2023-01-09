@@ -50,10 +50,9 @@ async function bootstrap() {
 
   app.enableCors({
     allowedHeaders: [
-      'Access-Control-Allow-Credentials',
-      'Access-Control-Allow-Origin',
-      'Access-Control-Allow-Methods',
-      'Access-Control-Allow-Headers',
+      'Access-Control-Allow-Origin: *',
+      'Access-Control-Allow-Methods: GET, POST, PATCH, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers: Origin, Content-Type, X-Auth-Token',
     ],
   });
   await app.listen('https://0.0.0.0/0 ');
