@@ -7,7 +7,6 @@ import {
   SwaggerModule,
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
-import cors from 'cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -48,11 +47,6 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, customOptions);
 
   app.enableCors();
-  app.use(
-    cors({
-      origin: 'https://sf-tech-front.vercel.app/',
-    }),
-  );
   await app.listen(3003);
   console.log(`Application is running on: ${await app.getUrl()}`);
 }
