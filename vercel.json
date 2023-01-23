@@ -18,8 +18,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "src/main.ts",
-      "methods": ["GET", "POST", "OPTIONS", "PUT", "DELETE"]
+      "destination": "src/main.ts"
     }
   ],
   "headers": [
