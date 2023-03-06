@@ -9,6 +9,7 @@ export enum Sex {
 export enum Role {
   USER = 'USER',
   ADMIN = 'ADMIN',
+  MASTER = 'MASTER',
 }
 export class User {
   user_id?: string;

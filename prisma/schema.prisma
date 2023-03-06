@@ -58,6 +58,7 @@ model CompanyParams {
 enum Role {
   USER
   ADMIN
+  MASTER
 }
 
 enum Sex {
