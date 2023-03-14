@@ -32,6 +32,7 @@ export class AuthService {
         last_name: dbUser.last_name,
         role: dbUser.role,
         email: dbUser.email,
+        user_id: dbUser.user_id,
         password: undefined,
       },
     };
