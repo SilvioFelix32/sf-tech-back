@@ -1,5 +1,5 @@
 import { IsDate, IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
-import { QueryPaginateDto } from 'src/shared/paginator/query-paginate.dto';
+import { QueryPaginateDto } from '../../shared/paginator/query-paginate.dto';
 import { Sex } from '../entities/user.entity';
 
 export class FindUserDto extends QueryPaginateDto {

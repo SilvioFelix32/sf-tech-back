@@ -10,7 +10,7 @@ import {
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import { IPaginateDto } from 'src/shared/paginator/paginate.interface.dto';
+import { IPaginateDto } from '../../shared/paginator/paginate.interface.dto';
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';

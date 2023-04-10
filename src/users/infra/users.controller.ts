@@ -13,8 +13,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
-import { IPaginateDto } from 'src/shared/paginator/paginate.interface.dto';
-import { IsPublic } from '../..//auth/decorators/is-public.decorator';
+import { IPaginateDto } from '../../shared/paginator/paginate.interface.dto';
+import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { FindUserDto } from '../dto/find-user.dto';

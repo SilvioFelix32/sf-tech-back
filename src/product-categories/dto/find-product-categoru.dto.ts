@@ -7,7 +7,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { QueryPaginateDto } from 'src/shared/paginator/query-paginate.dto';
+import { QueryPaginateDto } from '../../shared/paginator/query-paginate.dto';
 import { ProductType } from '../../product/entities/product-type.entity';
 
 export class FindProductCategoryDto extends QueryPaginateDto {
