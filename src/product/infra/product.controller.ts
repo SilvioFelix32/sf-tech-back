@@ -8,6 +8,7 @@ import {
   Delete,
   Headers,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
@@ -47,14 +48,14 @@ export class ProductController {
 
   @Get()
   @IsPublic()
-  findAll(@Headers() header: IHeaders, @Param() dto: FindProductDto) {
+  findAll(@Headers() header: IHeaders, @Query() query: FindProductDto) {
     const { company_id } = header;
 
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }
 
-    return this.productService.findAll(company_id, dto);
+    return this.productService.findAll(company_id, query);
   }
 
   @Get(':id')

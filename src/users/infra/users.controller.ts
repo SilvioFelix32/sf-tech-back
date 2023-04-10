@@ -10,12 +10,14 @@ import {
   Post,
   UseInterceptors,
   Headers,
+  Query,
 } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
+import { IPaginateDto } from 'src/shared/paginator/paginate.interface.dto';
 import { IsPublic } from '../..//auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { FindUserDto } from '../dto/query-user.dto';
+import { FindUserDto } from '../dto/find-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { User } from '../entities/user.entity';
 import { UsersService } from '../services/users.service';
@@ -44,14 +46,17 @@ export class UsersController {
   @Get()
   @IsPublic()
   @ApiResponse({ status: 200, type: [User] })
-  findAll(@Headers() header: IHeaders, @Param() param: FindUserDto) {
+  findAll(
+    @Headers() header: IHeaders,
+    @Query() query: FindUserDto,
+  ): Promise<IPaginateDto | unknown> {
     const { company_id } = header;
 
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }
 
-    return this.usersService.findAll(company_id, param);
+    return this.usersService.findAll(company_id, query);
   }
 
   @Get('email')

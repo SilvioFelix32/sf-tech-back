@@ -6,9 +6,10 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
+import { QueryPaginateDto } from 'src/shared/paginator/query-paginate.dto';
 import { ProductType } from '../entities/product-type.entity';
 
-export class FindProductDto {
+export class FindProductDto extends QueryPaginateDto {
   @IsString()
   @IsUUID()
   @IsOptional()

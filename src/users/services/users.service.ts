@@ -8,7 +8,7 @@ import { Prisma, User } from '@prisma/client';
 import { CompaniesService } from '../../companies/services/companies.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
-import { FindUserDto } from '../dto/query-user.dto';
+import { FindUserDto } from '../dto/find-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { userAuthResponse, userResponse } from '../dto/user-response.dto';
 export interface IUser {
@@ -181,12 +181,15 @@ export class UsersService {
     if (!company) {
       throw new NotFoundException('Company not found');
     }
+    const { page, limit } = dto;
+    const offset: number = (page - 1) * limit;
 
     return this.prisma.user.findMany({
       where: {
         company_id,
-        ...dto,
       },
+      skip: offset,
+      take: limit,
       select: {
         ...userResponse,
       },

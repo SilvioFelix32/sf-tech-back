@@ -50,11 +50,15 @@ export class ProductCategoriesService {
     company_id: string,
     dto: any,
   ): Promise<ProductCategory[] | unknown> {
+    const { page, limit } = dto;
+    const offset: number = (page - 1) * limit;
+
     return this.prisma.productCategory.findMany({
       where: {
         company_id,
-        ...dto,
       },
+      skip: offset,
+      take: limit,
       select: {
         ...productCategoryReponse,
       },

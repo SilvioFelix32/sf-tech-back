@@ -8,10 +8,13 @@ import {
   Delete,
   Headers,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
+import { IPaginateDto } from 'src/shared/paginator/paginate.interface.dto';
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
+import { FindProductCategoryDto } from '../dto/find-product-categoru.dto';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
 import { ProductCategoriesService } from '../services/product-categories.service';
 
@@ -35,14 +38,17 @@ export class ProductCategoriesController {
 
   @Get()
   @IsPublic()
-  findAll(@Headers() header: IHeaders, @Param() dto: any) {
+  findAll(
+    @Headers() header: IHeaders,
+    @Query() query: FindProductCategoryDto,
+  ): Promise<IPaginateDto | unknown> {
     const { company_id } = header;
 
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }
 
-    return this.productCategoriesService.findAll(company_id, dto);
+    return this.productCategoriesService.findAll(company_id, query);
   }
 
   @Get(':id')
