@@ -4,12 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { createPaginator } from 'prisma-pagination';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateProductDto } from '../dto/create-product.dto';
-import { FindProductDto } from '../dto/find-product.dto';
 import { productReponse } from '../dto/product-response';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { Product } from '../entities/product.entity';
+import { FindProductDto } from '../dto/find-product.dto';
 
 @Injectable()
 export class ProductService {
@@ -39,23 +40,24 @@ export class ProductService {
     });
   }
 
-  findAll(
-    company_id: string,
-    dto: FindProductDto,
-  ): Promise<Product[] | unknown> {
-    const { page, limit } = dto;
-    const offset: number = (page - 1) * limit;
+  async findAll(company_id: string, query: FindProductDto) {
+    const { page, limit } = query;
+    const paginate = createPaginator({ perPage: limit });
 
-    return this.prisma.product.findMany({
-      where: {
-        company_id,
+    const response = await paginate<Product, Prisma.ProductFindManyArgs>(
+      this.prisma.product,
+      {
+        where: {
+          company_id,
+        },
+        select: {
+          ...productReponse,
+        },
       },
-      skip: offset,
-      take: limit,
-      select: {
-        ...productReponse,
-      },
-    });
+      { page: page },
+    );
+
+    return response;
   }
 
   findOne(product_id: string): Promise<Product | unknown> {

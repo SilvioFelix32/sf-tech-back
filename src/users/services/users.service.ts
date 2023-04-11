@@ -11,6 +11,7 @@ import { CreateUserDto } from '../dto/create-user.dto';
 import { FindUserDto } from '../dto/find-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { userAuthResponse, userResponse } from '../dto/user-response.dto';
+import { createPaginator } from 'prisma-pagination';
 export interface IUser {
   findOneByUserName(user_name: string): Promise<User | undefined>;
 }
@@ -172,7 +173,7 @@ export class UsersService {
 
   async findAll(
     company_id: string,
-    dto: FindUserDto,
+    query: FindUserDto,
   ): Promise<User[] | unknown> {
     const company = this.prisma.company.findUnique({
       where: { id: company_id },
@@ -181,19 +182,24 @@ export class UsersService {
     if (!company) {
       throw new NotFoundException('Company not found');
     }
-    const { page, limit } = dto;
-    const offset: number = (page - 1) * limit;
+    const { page, limit } = query;
 
-    return this.prisma.user.findMany({
-      where: {
-        company_id,
+    const paginate = createPaginator({ perPage: limit });
+
+    const response = await paginate<User, Prisma.UserFindManyArgs>(
+      this.prisma.user,
+      {
+        where: {
+          company_id,
+        },
+        select: {
+          ...userResponse,
+        },
       },
-      skip: offset,
-      take: limit,
-      select: {
-        ...userResponse,
-      },
-    });
+      { page: page },
+    );
+
+    return response;
   }
 
   async update(

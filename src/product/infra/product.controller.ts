@@ -50,7 +50,6 @@ export class ProductController {
   @IsPublic()
   findAll(@Headers() header: IHeaders, @Query() query: FindProductDto) {
     const { company_id } = header;
-
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }

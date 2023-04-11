@@ -4,12 +4,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { createPaginator } from 'prisma-pagination';
 import { CompaniesService } from '../../companies/services/companies.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { productCategoryReponse } from '../dto/product-category-response';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
 import { ProductCategory } from '../entities/product-category.entity';
+import { IPaginateDto } from 'src/shared/paginator/paginate.interface.dto';
+import { FindProductCategoryDto } from '../dto/find-product-categoru.dto';
 
 @Injectable()
 export class ProductCategoriesService {
@@ -46,23 +49,27 @@ export class ProductCategoriesService {
     return this.prisma.productCategory.create({ data });
   }
 
-  async findAll(
-    company_id: string,
-    dto: any,
-  ): Promise<ProductCategory[] | unknown> {
-    const { page, limit } = dto;
-    const offset: number = (page - 1) * limit;
+  async findAll(company_id: string, query: FindProductCategoryDto) {
+    const { page, limit } = query;
+    const paginate = createPaginator({ perPage: limit });
 
-    return this.prisma.productCategory.findMany({
-      where: {
-        company_id,
+    const response = await paginate<
+      ProductCategory,
+      Prisma.ProductCategoryFindManyArgs
+    >(
+      this.prisma.productCategory,
+      {
+        where: {
+          company_id,
+        },
+        select: {
+          ...productCategoryReponse,
+        },
       },
-      skip: offset,
-      take: limit,
-      select: {
-        ...productCategoryReponse,
-      },
-    });
+      { page: page },
+    );
+
+    return response;
   }
 
   async findOne(category_id: string): Promise<ProductCategory | unknown> {

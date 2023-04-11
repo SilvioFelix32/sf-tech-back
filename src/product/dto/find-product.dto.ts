@@ -73,6 +73,18 @@ export class FindProductDto extends QueryPaginateDto {
   @IsOptional()
   for_sale?: boolean | null;
 
+  @IsOptional()
+  items: any;
+
+  @IsOptional()
+  product_combo: any;
+
+  @IsOptional()
+  item_sales: any;
+
+  @IsOptional()
+  total_sales: any;
+
   @IsDate()
   @IsOptional()
   created_at?: Date | string;

@@ -24,8 +24,8 @@ export interface IPaginateDto {
     limit: number;
   };
 
-  current_count_per_page: number;
-  range: number;
+  current_count_per_page?: number;
+  range?: number;
 
   paginated_data: any;
 }
