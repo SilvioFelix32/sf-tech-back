@@ -60,6 +60,20 @@ export class ProductService {
     return response;
   }
 
+  async search(company_id: string, query: string) {
+    const products = await this.prisma.product.findMany({
+      where: {
+        company_id,
+        title: {
+          contains: query, //o operador contains do Prisma para pesquisar por uma correspondência parcial do nome do produto
+          //equals: query, //Se você quiser uma correspondência exata, pode usar o operador equals
+          mode: 'insensitive',
+        },
+      },
+    });
+    return products;
+  }
+
   findOne(product_id: string): Promise<Product | unknown> {
     return this.prisma.product.findUnique({
       where: {

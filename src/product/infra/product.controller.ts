@@ -16,6 +16,7 @@ import { CreateProductDto } from '../dto/create-product.dto';
 import { FindProductDto } from '../dto/find-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { ProductService } from '../services/product.service';
+import { Product } from '../entities/product.entity';
 
 @Controller('products')
 export class ProductController {
@@ -55,6 +56,16 @@ export class ProductController {
     }
 
     return this.productService.findAll(company_id, query);
+  }
+
+  @Get()
+  async search(
+    @Headers() header: IHeaders,
+    @Query('q') query: string,
+  ): Promise<Product[]> {
+    const { company_id } = header;
+
+    return this.productService.search(company_id, query);
   }
 
   @Get(':id')
