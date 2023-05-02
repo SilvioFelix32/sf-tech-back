@@ -69,6 +69,7 @@ export class ProductController {
   }
 
   @Get(':id')
+  @IsPublic()
   findOne(@Param('id') product_id: string) {
     return this.productService.findOne(product_id);
   }
