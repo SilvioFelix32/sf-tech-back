@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { companySeed } from './seeds.ts/companies';
+import { companiesSeed } from './seeds.ts/companies';
 
 const prisma = new PrismaClient();
 
@@ -10,7 +10,7 @@ async function main() {
   await prisma.user.deleteMany({});
 
   await Promise.all(
-    companySeed.map(async (company) => {
+    companiesSeed.map(async (company) => {
       await prisma.company.create({
         data: company,
       });

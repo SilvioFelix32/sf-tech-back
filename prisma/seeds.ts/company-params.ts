@@ -1,10 +1,12 @@
+import { faker } from '@faker-js/faker';
+
 export const companyParamsSeed = {
   environment: 'HOMOLOGATION',
-  url_banner: 'url_banner',
-  url_site: 'url_site',
-  url_facebook: 'url_facebook',
-  url_instagram: 'url_instagram',
-  url_linkedin: 'url_linkedin',
-  obs_email: 'obs_email',
-  privacy_policy: 'privacy_policy',
+  url_banner: faker.image.technics(),
+  url_site: faker.image.technics(),
+  url_facebook: faker.image.technics(),
+  url_instagram: faker.image.technics(),
+  url_linkedin: faker.image.technics(),
+  obs_email: faker.image.technics(),
+  privacy_policy: faker.image.technics(),
 };
