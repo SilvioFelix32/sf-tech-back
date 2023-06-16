@@ -9,7 +9,9 @@ import {
   Headers,
   BadRequestException,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager'
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -20,7 +22,8 @@ import { Product } from '../entities/product.entity';
 
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(
+    private readonly productService: ProductService) { }
 
   @Post(':category_id')
   @IsPublic()
@@ -49,7 +52,9 @@ export class ProductController {
 
   @Get()
   @IsPublic()
-  findAll(@Headers() header: IHeaders, @Query() query: FindProductDto) {
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(1800) // Tempo de expiração do cache em segundos (1800 = 30min)
+  async findAll(@Headers() header: IHeaders, @Query() query: FindProductDto) {
     const { company_id } = header;
     if (!company_id) {
       throw new BadRequestException('No Company informed');
