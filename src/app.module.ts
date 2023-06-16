@@ -22,7 +22,7 @@ import * as redisStore from 'cache-manager-redis-store';
     }),
     CacheModule.register({
       store: redisStore as unknown as CacheStore,
-      url: 'https://sf-tech-back.vercel.app/v1',
+      url: 'redis://redis:6379',
       isGlobal: true
     }),
     HttpModule,
