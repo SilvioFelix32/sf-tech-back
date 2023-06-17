@@ -6,7 +6,7 @@
 
 ## Demonstração:
 
-  <img src="public/images/sf-tech-front.vercel.app_.png"  alt="demonstration"  />
+  <img src="public/sf-tech-front.vercel.app_.png"  alt="demonstration"  />
   
 ###
 
