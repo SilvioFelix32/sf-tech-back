@@ -1,42 +1,47 @@
-version: '3.9'
-services:
-  dev:
-    container_name: sf-tech
-    image: server-dev:1.0.0
-    build:
-      context: .
-      target: development
-      dockerfile: ./Dockerfile
-    command: yarn start:debug
-    ports:
-      - 3001:3001
-      - 9229:9229
-    networks:
-      - server-network
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    restart: unless-stopped
-    depends_on:
-      - mongodb
-    environment:
-      MONGO_URL: process.env.DATABASE_URL
+version: "3.9"
 
-  mongodb:
-    image: mongo:5.0.0
-    container_name: sf-tech
-    environment:  
-      - MONGO_INITDB_ROOT_USERNAME=<process.env.MONGODB_USER>
-      - MONGO_INITDB_ROOT_PASSWORD=<process.env.MONGODB_PASSWORD>
-    networks:
-      - server-network
+services:
+  database:
+    image: mongo
+    container_name: sf-tech-mongo
     ports:
       - 27017:27017
-    healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongo localhost:27017/test --quiet
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
+    volumes:
+      - ./mongo-data:/data/db
+    restart: always
+    networks:
+      - mongo-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - ./redis-data:/data
+    command: redis-server
+    restart: always
+    networks:
+      - mongo-network
+
+  app:
+    build: .
+    container_name: sf-tech
+    ports:
+      - 3001:3001
+    networks:
+      - mongo-network
+    depends_on:
+      - database
+      - redis
+    restart: always
+
+volumes:
+  mongo-data:
+    driver: local
+  redis-data:
+    driver: local
+
 networks:
-  server-network:
+  mongo-network:
+    driver: bridge

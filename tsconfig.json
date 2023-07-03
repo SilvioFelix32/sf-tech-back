@@ -14,5 +14,5 @@
     "strict": false,
     "skipLibCheck": true
   },
-  "include": ["src/**/*", "**/*.ts", "src/shared/app.headers.dto"]
+  "include": ["src/**/*", "**/*.ts", "src/shared/app.headers.dto", "src/main.ts", "src/main.js"]
 }

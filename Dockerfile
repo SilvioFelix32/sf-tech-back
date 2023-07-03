@@ -1,7 +1,9 @@
 FROM node:latest
-WORKDIR /usr/src
+WORKDIR /usr/app
+COPY package.json yarn.lock ./
 COPY . .
 RUN yarn
 RUN yarn build
 EXPOSE 3001
-CMD [ "yarn", "start:prod" ]
+CMD ["yarn", "start:prod"]
+
