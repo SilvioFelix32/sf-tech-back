@@ -6,7 +6,7 @@ import { ProductService } from '../../product/services/product.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { RedisService } from '../../shared/cache/redis';
 @Module({
-  imports: [RedisService],
+  imports: [],
   controllers: [ProductCategoriesController],
   providers: [
     ProductCategoriesService,
