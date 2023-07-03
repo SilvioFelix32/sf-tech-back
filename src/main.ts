@@ -7,9 +7,21 @@ import {
   SwaggerModule,
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
+import Redis from 'ioredis'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
+  const redisClient = new Redis(process.env.EXTERNAL_REDIS);
+
+  redisClient.on('error', (err) => {
+    console.log('Error on Redis');
+    console.log(err);
+    process.exit(1);
+  })
+
+  redisClient.on('connect', () => {
+    console.log('Redis connected with db!');
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
