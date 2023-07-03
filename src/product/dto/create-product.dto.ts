@@ -1,4 +1,3 @@
-import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
@@ -10,7 +9,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ProductTotalSales } from '../entities/product-total-sales.entity';
-import { ProductType } from '../entities/product-type.entity';
 
 export class CreateProductDto {
   @IsUUID()

@@ -11,7 +11,6 @@ import {
   Query,
   UseInterceptors,
 } from '@nestjs/common';
-import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager'
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -52,8 +51,6 @@ export class ProductController {
 
   @Get()
   @IsPublic()
-  @UseInterceptors(CacheInterceptor)
-  @CacheTTL(1800) // Tempo de expiração do cache em segundos (1800 = 30min)
   async findAll(@Headers() header: IHeaders, @Query() query: FindProductDto) {
     const { company_id } = header;
     if (!company_id) {

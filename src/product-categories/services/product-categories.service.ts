@@ -11,15 +11,16 @@ import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { productCategoryReponse } from '../dto/product-category-response';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
 import { ProductCategory } from '../entities/product-category.entity';
-import { IPaginateDto } from 'src/shared/paginator/paginate.interface.dto';
 import { FindProductCategoryDto } from '../dto/find-product-categoru.dto';
+import { RedisService } from '../../shared/cache/redis';
 
 @Injectable()
 export class ProductCategoriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
-  ) {}
+    private readonly redis: RedisService
+  ) { }
 
   private async validateProduct(company_id: string) {
     const company = await this.companiesService.findOne(company_id);
@@ -53,23 +54,31 @@ export class ProductCategoriesService {
     const { page, limit } = query;
     const paginate = createPaginator({ perPage: limit });
 
-    const response = await paginate<
-      ProductCategory,
-      Prisma.ProductCategoryFindManyArgs
-    >(
-      this.prisma.productCategory,
-      {
-        where: {
-          company_id,
+    const cachedProductCategories = await this.redis.get('productCategory');
+    if (!cachedProductCategories) {
+      const response = await paginate<
+        ProductCategory,
+        Prisma.ProductCategoryFindManyArgs
+      >(
+        this.prisma.productCategory,
+        {
+          where: {
+            company_id,
+          },
+          select: {
+            ...productCategoryReponse,
+          },
         },
-        select: {
-          ...productCategoryReponse,
-        },
-      },
-      { page: page },
-    );
+        { page: page },
+      );
 
-    return response;
+      await this.redis.set('productCategory', JSON.stringify(response))
+
+      return response;
+    }
+
+    return JSON.parse(cachedProductCategories);
+
   }
 
   async findOne(category_id: string): Promise<ProductCategory | unknown> {

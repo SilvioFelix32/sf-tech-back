@@ -12,6 +12,7 @@ import { FindUserDto } from '../dto/find-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { userAuthResponse, userResponse } from '../dto/user-response.dto';
 import { createPaginator } from 'prisma-pagination';
+import { RedisService } from '../../shared/cache/redis';
 export interface IUser {
   findOneByUserName(user_name: string): Promise<User | undefined>;
 }
@@ -20,7 +21,8 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
-  ) {}
+    private readonly redis: RedisService
+  ) { }
 
   private async validateCreateLocalUser(
     company_id: string,
@@ -183,23 +185,32 @@ export class UsersService {
       throw new NotFoundException('Company not found');
     }
     const { page, limit } = query;
-
     const paginate = createPaginator({ perPage: limit });
 
-    const response = await paginate<User, Prisma.UserFindManyArgs>(
-      this.prisma.user,
-      {
-        where: {
-          company_id,
-        },
-        select: {
-          ...userResponse,
-        },
-      },
-      { page: page },
-    );
+    const cachedUsers = await this.redis.get('user');
 
-    return response;
+    if (!cachedUsers) {
+      const response = await paginate<User, Prisma.UserFindManyArgs>(
+        this.prisma.user,
+        {
+          where: {
+            company_id,
+          },
+          select: {
+            ...userResponse,
+          },
+        },
+        { page: page },
+      );
+
+      await this.redis.set(
+        'user',
+        JSON.stringify(response),
+        'EX', 1800)
+      return response;
+    }
+
+    return JSON.parse(cachedUsers)
   }
 
   async update(

@@ -1,14 +1,11 @@
 import { Controller, Get, Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { AppService } from './app.service';
-import Cache from 'cache-manager';
 import { CurrentUser } from './auth/decorators/current-user.decorator';
 import { User } from './users/entities/user.entity';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache) { }
+  constructor(private readonly appService: AppService) { }
 
   @Get()
   getHello(): string {

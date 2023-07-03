@@ -11,15 +11,29 @@ import { productReponse } from '../dto/product-response';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { Product } from '../entities/product.entity';
 import { FindProductDto } from '../dto/find-product.dto';
+import { RedisService } from '../../shared/cache/redis'
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+    private readonly redis: RedisService) { }
 
   private async validateProduct(company_id: string) {
     if (!company_id) {
       throw new BadRequestException('No company ID informed');
     }
+  }
+
+  private async updateCacheOnDb(cachedProducts: string) {
+    JSON.parse(cachedProducts)
+
+    const cachedData = await this.redis.get('product',);
+
+    if (!cachedData) {
+      await this.redis.set('product', JSON.stringify(cachedData))
+    }
+
+    return JSON.parse(cachedData)
   }
 
   async create(
@@ -44,20 +58,31 @@ export class ProductService {
     const { page, limit } = query;
     const paginate = createPaginator({ perPage: limit });
 
-    const response = await paginate<Product, Prisma.ProductFindManyArgs>(
-      this.prisma.product,
-      {
-        where: {
-          company_id,
-        },
-        select: {
-          ...productReponse,
-        },
-      },
-      { page: page },
-    );
+    const cachedProducts = await this.redis.get('product');
 
-    return response;
+    if (!cachedProducts) {
+      const response = await paginate<Product, Prisma.ProductFindManyArgs>(
+        this.prisma.product,
+        {
+          where: {
+            company_id,
+          },
+          select: {
+            ...productReponse,
+          },
+        },
+        { page: page },
+      );
+
+      await this.redis.set(
+        'product',
+        JSON.stringify(response),
+        'EX', 1800
+      )
+      return response;
+    };
+
+    return JSON.parse(cachedProducts);
   }
 
   async search(company_id: string, query: string) {
