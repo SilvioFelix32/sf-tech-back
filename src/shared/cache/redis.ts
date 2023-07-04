@@ -6,13 +6,13 @@ export class RedisService extends Redis {
         super()
 
         super.on('error', (err) => {
-            console.log('Error on Redis');
+            console.log('Error on Redis Service');
             console.log(err);
             process.exit(1);
         });
 
         super.on('connect', () => {
-            console.log('Redis connected!');
+            console.log('Redis Service connected!');
         });
     }
 }
