@@ -4,6 +4,7 @@
 .env
 env
 /env
+mongo-data
 
 # Logs
 logs

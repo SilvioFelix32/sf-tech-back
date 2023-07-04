@@ -35,6 +35,8 @@ services:
       - database
       - redis
     restart: always
+    env_file:
+      - .env
 
 volumes:
   mongo-data:
