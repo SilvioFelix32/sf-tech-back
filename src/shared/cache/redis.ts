@@ -3,7 +3,11 @@ import Redis from 'ioredis'
 @Injectable()
 export class RedisService extends Redis {
     constructor() {
-        super()
+        super({
+            host: process.env.REDIS_PORT,
+            username: process.env.REDIS_USER,
+            port: 6379
+        })
 
         super.on('error', (err) => {
             console.log('Error on Redis Service');
