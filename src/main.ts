@@ -12,7 +12,8 @@ import Redis from 'ioredis'
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   //const redisClient = new Redis(process.env.EXTERNAL_REDIS);
-  const redisClient = new Redis('rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379');
+  //const redisClient = new Redis('rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379');
+  const redisClient = new Redis('redis://red-cihe8v5gkuvojje31ta0:6379');
 
   redisClient.on('error', (err) => {
     console.log('Error on Redis');
