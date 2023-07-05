@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis'
+import fs from 'fs'
 @Injectable()
 export class RedisService extends Redis {
     constructor() {
         super({
-            host: process.env.REDIS_PORT,
+            host: process.env.REDIS_HOST,
             username: process.env.REDIS_USER,
-            port: 6379
+            password: process.env.REDIS_PASSWORD,
+            port: 6379,
+            connectTimeout: 5000, // tempo limite de conexão (em milissegundos),
+            tls: {
+                ca: '/redis.crt',
+                rejectUnauthorized: false,
+            },
         })
 
         super.on('error', (err) => {

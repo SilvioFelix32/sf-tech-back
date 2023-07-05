@@ -41,6 +41,8 @@ services:
     restart: always
     env_file:
       - .env
+    volumes:
+      - ./redis.crt:/usr/src/redis.crt
 
 volumes:
   mongo-data:
