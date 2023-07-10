@@ -4,7 +4,12 @@ import fs from 'fs'
 @Injectable()
 export class RedisService extends Redis {
     constructor() {
-        super({ host: process.env.EXTERNAL_REDIS })
+        super({
+            host: process.env.REDIS_HOST,
+            username: process.env.REDIS_USER,
+            password: process.env.REDIS_PASSWORD,
+            port: 6379
+        })
 
         super.on('error', (err) => {
             console.log('Error on Redis Service');

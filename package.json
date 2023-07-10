@@ -5,6 +5,9 @@
   "author": "sf-tech",
   "private": false,
   "license": "UNLICENSED",
+  "engines": {
+    "node": "18"
+  },
   "scripts": {
     "dbpush": "npx prisma db push && npx prisma db seed",
     "prebuild": "rimraf dist",
