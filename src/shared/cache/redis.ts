@@ -8,7 +8,11 @@ export class RedisService extends Redis {
             host: process.env.REDIS_HOST,
             username: process.env.REDIS_USER,
             password: process.env.REDIS_PASSWORD,
-            port: 6379
+            port: 6379,
+            tls: {
+                ca: ['/usr/src/redis.crt'],
+                rejectUnauthorized: false,
+            },
         })
 
         super.on('error', (err) => {

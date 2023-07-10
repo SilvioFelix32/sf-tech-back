@@ -39,6 +39,13 @@ services:
       - database
       - redis
     restart: always
+    environment:
+      - JWT_SECRET=af3fe660-686f-4e5e-9f95-89f6caac0fd7
+      - REDIS_HOST=oregon-redis.render.com
+      - REDIS_USER=red-cihe8v5gkuvojje31ta0
+      - REDIS_PASSWORD=WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn
+      - EXTERNAL_REDIS=rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379
+      - DATABASE_URL=mongodb+srv://sf-tech:ThtoTtV6iA0INT2h@sf-tech.k6lsm.mongodb.net/sf-tech
     env_file:
       - .env
     volumes:
