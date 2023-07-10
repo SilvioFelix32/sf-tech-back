@@ -11,7 +11,7 @@ import Redis from 'ioredis'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
-  const redisClient = new Redis(process.env.EXTERNAL_REDIS);
+  const redisClient = new Redis(process.env.INTERNAL_REDIS);
 
   redisClient.on('error', (err) => {
     console.log('Error while connecting with Redis db!');
