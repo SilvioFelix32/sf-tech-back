@@ -21,8 +21,8 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
-    private readonly redis: RedisService
-  ) { }
+    private readonly redis: RedisService,
+  ) {}
 
   private async validateCreateLocalUser(
     company_id: string,
@@ -203,14 +203,11 @@ export class UsersService {
         { page: page },
       );
 
-      await this.redis.set(
-        'user',
-        JSON.stringify(response),
-        'EX', 1800)
+      await this.redis.set('user', JSON.stringify(response), 'EX', 1800);
       return response;
     }
 
-    return JSON.parse(cachedUsers)
+    return JSON.parse(cachedUsers);
   }
 
   async update(

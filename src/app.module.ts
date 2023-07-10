@@ -38,4 +38,4 @@ import { RedisService } from './shared/cache/redis';
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

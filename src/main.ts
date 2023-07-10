@@ -7,7 +7,7 @@ import {
   SwaggerModule,
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
-import Redis from 'ioredis'
+import Redis from 'ioredis';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -17,7 +17,7 @@ async function bootstrap() {
     console.log('Error while connecting with Redis db!');
     console.log(err);
     process.exit(1);
-  })
+  });
 
   redisClient.on('connect', () => {
     console.log('Redis connected with db!');

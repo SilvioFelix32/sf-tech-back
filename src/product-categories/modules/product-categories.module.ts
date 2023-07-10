@@ -13,8 +13,8 @@ import { RedisService } from '../../shared/cache/redis';
     PrismaService,
     CompaniesService,
     ProductService,
-    RedisService
+    RedisService,
   ],
   exports: [ProductCategoriesService],
 })
-export class ProductCategoriesModule { }
+export class ProductCategoriesModule {}

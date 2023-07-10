@@ -11,12 +11,14 @@ import { productReponse } from '../dto/product-response';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { Product } from '../entities/product.entity';
 import { FindProductDto } from '../dto/find-product.dto';
-import { RedisService } from '../../shared/cache/redis'
+import { RedisService } from '../../shared/cache/redis';
 
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService,
-    private readonly redis: RedisService) { }
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   private async validateProduct(company_id: string) {
     if (!company_id) {
@@ -25,15 +27,15 @@ export class ProductService {
   }
 
   private async updateCacheOnDb(cachedProducts: string) {
-    JSON.parse(cachedProducts)
+    JSON.parse(cachedProducts);
 
-    const cachedData = await this.redis.get('product',);
+    const cachedData = await this.redis.get('product');
 
     if (!cachedData) {
-      await this.redis.set('product', JSON.stringify(cachedData))
+      await this.redis.set('product', JSON.stringify(cachedData));
     }
 
-    return JSON.parse(cachedData)
+    return JSON.parse(cachedData);
   }
 
   async create(
@@ -74,13 +76,9 @@ export class ProductService {
         { page: page },
       );
 
-      await this.redis.set(
-        'product',
-        JSON.stringify(response),
-        'EX', 1800
-      )
+      await this.redis.set('product', JSON.stringify(response), 'EX', 1800);
       return response;
-    };
+    }
 
     return JSON.parse(cachedProducts);
   }

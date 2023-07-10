@@ -11,4 +11,4 @@ import { RedisService } from '../../shared/cache/redis';
   providers: [ProductService, PrismaService, RedisService, CompaniesService],
   exports: [ProductService],
 })
-export class ProductModule { }
+export class ProductModule {}

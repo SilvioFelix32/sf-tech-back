@@ -19,8 +19,8 @@ export class ProductCategoriesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
-    private readonly redis: RedisService
-  ) { }
+    private readonly redis: RedisService,
+  ) {}
 
   private async validateProduct(company_id: string) {
     const company = await this.companiesService.findOne(company_id);
@@ -72,13 +72,12 @@ export class ProductCategoriesService {
         { page: page },
       );
 
-      await this.redis.set('productCategory', JSON.stringify(response))
+      await this.redis.set('productCategory', JSON.stringify(response));
 
       return response;
     }
 
     return JSON.parse(cachedProductCategories);
-
   }
 
   async findOne(category_id: string): Promise<ProductCategory | unknown> {
