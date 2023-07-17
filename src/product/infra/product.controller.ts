@@ -21,7 +21,7 @@ import { Product } from '../entities/product.entity';
 
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+  constructor(private readonly productService: ProductService) { }
 
   @Post(':category_id')
   @IsPublic()
@@ -52,6 +52,7 @@ export class ProductController {
   @IsPublic()
   async findAll(@Headers() header: IHeaders, @Query() query: FindProductDto) {
     const { company_id } = header;
+
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }
@@ -62,7 +63,7 @@ export class ProductController {
   @Get()
   async search(
     @Headers() header: IHeaders,
-    @Query('q') query: string,
+    @Query('query') query: string,
   ): Promise<Product[]> {
     const { company_id } = header;
 

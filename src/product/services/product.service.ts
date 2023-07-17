@@ -18,7 +18,7 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
-  ) {}
+  ) { }
 
   private async validateProduct(company_id: string) {
     if (!company_id) {
@@ -62,7 +62,7 @@ export class ProductService {
 
     const cachedProducts = await this.redis.get('product');
 
-    if (!cachedProducts) {
+    if (!cachedProducts || cachedProducts === null || undefined || []) {
       const response = await paginate<Product, Prisma.ProductFindManyArgs>(
         this.prisma.product,
         {
@@ -76,7 +76,11 @@ export class ProductService {
         { page: page },
       );
 
-      await this.redis.set('product', JSON.stringify(response), 'EX', 1800);
+      await this.redis.set(
+        'product',
+        JSON.stringify(response),
+        'EX',
+        1800);
       return response;
     }
 

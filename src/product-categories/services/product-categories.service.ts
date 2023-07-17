@@ -20,7 +20,7 @@ export class ProductCategoriesService {
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
     private readonly redis: RedisService,
-  ) {}
+  ) { }
 
   private async validateProduct(company_id: string) {
     const company = await this.companiesService.findOne(company_id);
@@ -55,7 +55,8 @@ export class ProductCategoriesService {
     const paginate = createPaginator({ perPage: limit });
 
     const cachedProductCategories = await this.redis.get('productCategory');
-    if (!cachedProductCategories) {
+
+    if (!cachedProductCategories || cachedProductCategories === null || undefined || []) {
       const response = await paginate<
         ProductCategory,
         Prisma.ProductCategoryFindManyArgs
@@ -72,7 +73,12 @@ export class ProductCategoriesService {
         { page: page },
       );
 
-      await this.redis.set('productCategory', JSON.stringify(response));
+      await this.redis.set(
+        'productCategory',
+        JSON.stringify(response),
+        'EX',
+        1800
+      );
 
       return response;
     }

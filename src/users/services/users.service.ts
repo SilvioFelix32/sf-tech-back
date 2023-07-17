@@ -22,7 +22,7 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
     private readonly redis: RedisService,
-  ) {}
+  ) { }
 
   private async validateCreateLocalUser(
     company_id: string,
@@ -189,7 +189,7 @@ export class UsersService {
 
     const cachedUsers = await this.redis.get('user');
 
-    if (!cachedUsers) {
+    if (!cachedUsers || cachedUsers === null || undefined || []) {
       const response = await paginate<User, Prisma.UserFindManyArgs>(
         this.prisma.user,
         {
@@ -203,7 +203,11 @@ export class UsersService {
         { page: page },
       );
 
-      await this.redis.set('user', JSON.stringify(response), 'EX', 1800);
+      await this.redis.set(
+        'user',
+        JSON.stringify(response),
+        'EX',
+        1800);
       return response;
     }
 
