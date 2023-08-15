@@ -57,6 +57,7 @@ export class ProductCategoriesController {
   }
 
   @Patch(':id')
+  @IsPublic()
   update(
     @Headers() header: IHeaders,
     @Param('id') category_id: string,

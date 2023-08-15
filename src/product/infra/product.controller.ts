@@ -21,7 +21,7 @@ import { Product } from '../entities/product.entity';
 
 @Controller('products')
 export class ProductController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
   @Post(':category_id')
   @IsPublic()
@@ -77,6 +77,7 @@ export class ProductController {
   }
 
   @Patch(':id')
+  @IsPublic()
   update(
     @Headers() header: IHeaders,
     @Param('id') product_id: string,
