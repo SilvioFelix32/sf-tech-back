@@ -19,41 +19,49 @@ export class AuthService {
       user.email,
     );
 
-    const payload: UserPayload = {
-      sub: dbUser.user_id,
-      email: dbUser.email,
-      name: dbUser.name,
-    };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: {
-        name: dbUser.name,
-        last_name: dbUser.last_name,
-        role: dbUser.role,
+    await this.validatePassword(user.password, dbUser.password);
+    if (dbUser) {
+      const payload: UserPayload = {
+        sub: dbUser.user_id,
         email: dbUser.email,
-        user_id: dbUser.user_id,
-        password: undefined,
-      },
-    };
+        name: dbUser.name,
+      };
+
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: {
+          name: dbUser.name,
+          last_name: dbUser.last_name,
+          role: dbUser.role,
+          email: dbUser.email,
+          user_id: dbUser.user_id,
+        },
+      };
+    }
   }
 
-  async validateUser(email: string, dbPassword: string): Promise<User> {
-    const user: any = await this.userService.findByEmail(email);
+  async validateUser(email: string, dbPassword: string): Promise<User | null> {
+    const user: Partial<User> | null = await this.userService.findByEmail(
+      email,
+    );
 
+    await this.validatePassword(user.password, dbPassword);
     if (user) {
-      const isPasswordValid = bcrypt.compare(user.password, dbPassword);
-
-      if (isPasswordValid) {
-        return {
-          ...user,
-          password: undefined,
-        };
-      }
+      delete user.password;
+      return { ...(user as User) };
     }
 
     throw new UnauthorizedError(
       'Email address or password provided is incorrect.',
     );
+  }
+
+  private async validatePassword(
+    plainPassword: string,
+    hashedPassword: string,
+  ) {
+    if (plainPassword != hashedPassword) {
+      throw new UnauthorizedError('Password provided is incorrect.');
+    }
   }
 }

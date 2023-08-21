@@ -15,15 +15,30 @@ Generate an entity class/interface to represent the resource data shape
 Generate Data Transfer Objects (or inputs for GraphQL applications) to define how the data will be sent over the network
 nest g resource
 
-# GENEREATE A SERVICE PRISMA 
-///nest	g 'table-name' Generates and/or modifies files based on a schematic.
+# REDIS
+
+// initiate redis server
+redis-server
+
+# LINUX PORTS
+
+// Descubra o PID (Process ID) do serviço:
+lsof -i :PORTA
+
+// Em seguida Elimine o serviço usando o comando kill:
+kill -15 PID
+
+# GENEREATE A SERVICE PRISMA
+
+///nest g 'table-name' Generates and/or modifies files based on a schematic.
 nest g s prisma
 
 /# START INDEX.TS IN PORT 3003
 yarn dev
 
 # GENERATE SEED ON DB
-npx prisma db push 
+
+npx prisma db push
 npx prisma db seed --preview-feature
 
 //Authentication
