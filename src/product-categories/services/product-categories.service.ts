@@ -11,8 +11,8 @@ import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { productCategoryReponse } from '../dto/product-category-response';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
 import { ProductCategory } from '../entities/product-category.entity';
-import { FindProductCategoryDto } from '../dto/find-product-categoru.dto';
 import { RedisService } from '../../shared/cache/redis';
+import { FindProductCategoryDto } from '../dto/find-product-categoru.dto';
 
 @Injectable()
 export class ProductCategoriesService {
@@ -20,7 +20,7 @@ export class ProductCategoriesService {
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
     private readonly redis: RedisService,
-  ) { }
+  ) {}
 
   private async validateProduct(company_id: string) {
     const company = await this.companiesService.findOne(company_id);
@@ -56,7 +56,7 @@ export class ProductCategoriesService {
 
     const cachedProductCategories = await this.redis.get('productCategory');
 
-    if (!cachedProductCategories || cachedProductCategories === null || undefined || []) {
+    if (!cachedProductCategories || cachedProductCategories.length === 0) {
       const response = await paginate<
         ProductCategory,
         Prisma.ProductCategoryFindManyArgs
@@ -70,14 +70,14 @@ export class ProductCategoriesService {
             ...productCategoryReponse,
           },
         },
-        { page: page },
+        { page },
       );
 
       await this.redis.set(
         'productCategory',
         JSON.stringify(response),
         'EX',
-        1800
+        3600,
       );
 
       return response;
@@ -101,16 +101,13 @@ export class ProductCategoriesService {
     category_id: string,
     dto: UpdateProductCategoryDto,
   ): Promise<ProductCategory | unknown> {
-    delete dto.category_id;
-    delete dto.products;
+    const { category_id: dtoCategoryId, products, ...updateData } = dto;
 
     return this.prisma.productCategory.update({
       where: {
         category_id,
       },
-      data: {
-        ...dto,
-      },
+      data: updateData,
     });
   }
 

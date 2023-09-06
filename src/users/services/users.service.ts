@@ -1,7 +1,7 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Prisma, User } from '@prisma/client';
@@ -13,16 +13,36 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { userAuthResponse, userResponse } from '../dto/user-response.dto';
 import { createPaginator } from 'prisma-pagination';
 import { RedisService } from '../../shared/cache/redis';
-export interface IUser {
-  findOneByUserName(user_name: string): Promise<User | undefined>;
-}
+
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly companiesService: CompaniesService,
     private readonly redis: RedisService,
-  ) { }
+  ) {}
+
+  private async isEmailTakenInCompany(company_id: string, email: string) {
+    const usersWithEmail = await this.prisma.user.findMany({
+      where: {
+        company_id,
+        email,
+      },
+    });
+
+    return usersWithEmail.length > 0;
+  }
+
+  private async isDocumentTakenInCompany(company_id: string, document: string) {
+    const usersWithDocument = await this.prisma.user.findMany({
+      where: {
+        company_id,
+        document,
+      },
+    });
+
+    return usersWithDocument.length > 0;
+  }
 
   private async validateCreateLocalUser(
     company_id: string,
@@ -34,93 +54,52 @@ export class UsersService {
       throw new BadRequestException('User needs a company ID');
     }
 
-    const validateUserEmail = await this.prisma.company.findMany({
-      where: {
-        id: company_id,
-        users: {
-          some: {
-            email,
-          },
-        },
-      },
-    });
-
-    if (validateUserEmail.length > 0) {
+    if (await this.isEmailTakenInCompany(company_id, email)) {
       throw new BadRequestException(
-        'User with email already informed in this company',
+        'User with this email already exists in this company',
       );
     }
-    const validateUserDocument = await this.prisma.company.findMany({
-      where: {
-        id: company_id,
-        users: {
-          some: {
-            document,
-          },
-        },
-      },
-    });
 
-    if (validateUserDocument.length > 0) {
+    if (await this.isDocumentTakenInCompany(company_id, document)) {
       throw new BadRequestException(
-        'User with document already informed in this company',
+        'User with this document already exists in this company',
       );
     }
   }
 
   private async validateUpdateLocalUser(
     company_id: string,
-    data: UpdateUserDto,
-    updateUser: User,
+    dto: UpdateUserDto,
+    updateUser: User | null,
   ) {
     if (!updateUser) {
       throw new NotFoundException('User not found');
     }
 
-    const company = await this.companiesService.findOne(company_id);
-
-    if (!company) {
-      throw new NotFoundException('Company not found');
+    if (updateUser.company_id !== company_id) {
+      throw new BadRequestException('User does not belong to this company');
     }
 
-    const { email, document } = data;
+    const { email, document } = dto;
 
-    if (email) {
-      const validateUserEmail = await this.prisma.company.findMany({
-        where: {
-          id: company_id,
-          users: {
-            some: {
-              email,
-            },
-          },
-        },
-      });
-
-      if (validateUserEmail.length > 0) {
-        throw new BadRequestException(
-          'User with email already informed in this company',
-        );
-      }
+    if (
+      email &&
+      email !== updateUser.email &&
+      (await this.isEmailTakenInCompany(company_id, email))
+    ) {
+      throw new BadRequestException(
+        'User with this email already exists in this company',
+      );
     }
 
-    if (document) {
-      const validateUserDocument = await this.prisma.company.findMany({
-        where: {
-          id: company_id,
-          users: {
-            some: {
-              document,
-            },
-          },
-        },
-      });
-
-      if (validateUserDocument.length > 0) {
-        throw new BadRequestException(
-          'User with document already informed in this company',
-        );
-      }
+    if (
+      document &&
+      document !== updateUser.document &&
+      (await this.isDocumentTakenInCompany(company_id, document))
+    ) {
+      throw new BadRequestException(
+        'User with this document already exists in this company',
+      );
     }
   }
 
@@ -130,21 +109,19 @@ export class UsersService {
   ): Promise<User | unknown> {
     await this.validateCreateLocalUser(company_id, dto);
 
-    const encriptedPassword = bcrypt.hash(dto.password, 10);
+    const encryptedPassword = await bcrypt.hash(dto.password, 10);
 
     const data: Prisma.UserCreateInput = {
       company_id,
-      password: encriptedPassword,
+      password: encryptedPassword,
       ...dto,
     };
 
-    return this.prisma.user.create({
-      data,
-    });
+    return this.prisma.user.create({ data });
   }
 
   async findByEmail(email: string): Promise<User | unknown> {
-    const user = this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email },
       select: {
         ...userAuthResponse,
@@ -152,14 +129,14 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new BadRequestException('User not Found');
+      throw new NotFoundException('User not found');
     }
 
     return user;
   }
 
   async findOne(user_id: string): Promise<User | unknown> {
-    const user = this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { user_id },
       select: {
         ...userResponse,
@@ -167,7 +144,7 @@ export class UsersService {
     });
 
     if (!user) {
-      throw new BadRequestException('User not Found');
+      throw new NotFoundException('User not found');
     }
 
     return user;
@@ -177,19 +154,14 @@ export class UsersService {
     company_id: string,
     query: FindUserDto,
   ): Promise<User[] | unknown> {
-    const company = this.prisma.company.findUnique({
-      where: { id: company_id },
-    });
+    await this.companiesService.findOne(company_id); // Ensure the company exists
 
-    if (!company) {
-      throw new NotFoundException('Company not found');
-    }
     const { page, limit } = query;
     const paginate = createPaginator({ perPage: limit });
 
     const cachedUsers = await this.redis.get('user');
 
-    if (!cachedUsers || cachedUsers === null || undefined || []) {
+    if (!cachedUsers || cachedUsers === null) {
       const response = await paginate<User, Prisma.UserFindManyArgs>(
         this.prisma.user,
         {
@@ -200,14 +172,10 @@ export class UsersService {
             ...userResponse,
           },
         },
-        { page: page },
+        { page },
       );
 
-      await this.redis.set(
-        'user',
-        JSON.stringify(response),
-        'EX',
-        1800);
+      await this.redis.set('user', JSON.stringify(response), 'EX', 3600);
       return response;
     }
 
@@ -218,8 +186,9 @@ export class UsersService {
     company_id: string,
     user_id: string,
     dto: UpdateUserDto,
-  ): Promise<User> {
+  ): Promise<User | unknown> {
     const updateUser = await this.findOne(user_id);
+
     await this.validateUpdateLocalUser(company_id, dto, updateUser as User);
 
     return this.prisma.user.update({
@@ -230,7 +199,9 @@ export class UsersService {
     });
   }
 
-  async remove(user_id: string): Promise<User> {
+  async remove(user_id: string): Promise<User | unknown> {
+    const user = await this.findOne(user_id); // Ensure the user exists
+
     return this.prisma.user.delete({
       where: { user_id },
     });

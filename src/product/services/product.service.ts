@@ -7,9 +7,9 @@ import { Prisma } from '@prisma/client';
 import { createPaginator } from 'prisma-pagination';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateProductDto } from '../dto/create-product.dto';
-import { productReponse } from '../dto/product-response';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { Product } from '../entities/product.entity';
+import { productResponse } from '../dto/product-response';
 import { FindProductDto } from '../dto/find-product.dto';
 import { RedisService } from '../../shared/cache/redis';
 
@@ -18,24 +18,31 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly redis: RedisService,
-  ) { }
+  ) {}
 
-  private async validateProduct(company_id: string) {
+  private validateCompany(company_id: string) {
     if (!company_id) {
       throw new BadRequestException('No company ID informed');
     }
   }
 
-  private async updateCacheOnDb(cachedProducts: string) {
-    JSON.parse(cachedProducts);
-
-    const cachedData = await this.redis.get('product');
+  private async updateCacheOnDb(
+    key: string,
+    data: any,
+    expirationInSeconds: number,
+  ) {
+    const cachedData = await this.redis.get(key);
 
     if (!cachedData) {
-      await this.redis.set('product', JSON.stringify(cachedData));
+      await this.redis.set(
+        key,
+        JSON.stringify(data),
+        'EX',
+        expirationInSeconds,
+      );
     }
 
-    return JSON.parse(cachedData);
+    return JSON.parse(cachedData || JSON.stringify(data));
   }
 
   async create(
@@ -43,7 +50,7 @@ export class ProductService {
     category_id: string,
     dto: CreateProductDto,
   ): Promise<Product | unknown> {
-    await this.validateProduct(company_id);
+    this.validateCompany(company_id);
 
     const data: Prisma.ProductCreateInput = {
       company_id,
@@ -60,9 +67,10 @@ export class ProductService {
     const { page, limit } = query;
     const paginate = createPaginator({ perPage: limit });
 
-    const cachedProducts = await this.redis.get('product');
+    const key = 'product';
+    const cachedProducts = await this.updateCacheOnDb(key, [], 3600);
 
-    if (!cachedProducts || cachedProducts === null || undefined || []) {
+    if (cachedProducts.length === 0) {
       const response = await paginate<Product, Prisma.ProductFindManyArgs>(
         this.prisma.product,
         {
@@ -70,44 +78,41 @@ export class ProductService {
             company_id,
           },
           select: {
-            ...productReponse,
+            ...productResponse,
           },
         },
-        { page: page },
+        { page },
       );
 
-      await this.redis.set(
-        'product',
-        JSON.stringify(response),
-        'EX',
-        1800);
+      await this.updateCacheOnDb(key, response, 3600);
+
       return response;
     }
 
-    return JSON.parse(cachedProducts);
+    return cachedProducts;
   }
 
   async search(company_id: string, query: string) {
-    const products = await this.prisma.product.findMany({
+    this.validateCompany(company_id);
+
+    return this.prisma.product.findMany({
       where: {
         company_id,
         title: {
-          contains: query, //o operador contains do Prisma para pesquisar por uma correspondência parcial do nome do produto
-          //equals: query, //Se você quiser uma correspondência exata, pode usar o operador equals
+          contains: query,
           mode: 'insensitive',
         },
       },
     });
-    return products;
   }
 
-  findOne(product_id: string): Promise<Product | unknown> {
+  async findOne(product_id: string): Promise<Product | unknown> {
     return this.prisma.product.findUnique({
       where: {
         product_id,
       },
       select: {
-        ...productReponse,
+        ...productResponse,
       },
     });
   }

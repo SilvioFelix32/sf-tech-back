@@ -1,4 +1,4 @@
-export const productReponse = {
+export const productResponse = {
   product_id: true,
   category_id: true,
   company_id: true,
