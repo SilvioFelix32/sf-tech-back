@@ -68,9 +68,9 @@ export class ProductService {
     const paginate = createPaginator({ perPage: limit });
 
     const key = 'product';
-    const cachedProducts = await this.updateCacheOnDb(key, [], 3600);
+    const cachedProducts = await this.redis.get(key);
 
-    if (cachedProducts.length === 0) {
+    if (!cachedProducts || cachedProducts.length === 0) {
       const response = await paginate<Product, Prisma.ProductFindManyArgs>(
         this.prisma.product,
         {
@@ -84,7 +84,7 @@ export class ProductService {
         { page },
       );
 
-      await this.updateCacheOnDb(key, response, 3600);
+      await this.redis.set(key, JSON.stringify(response), 'EX', 3600);
 
       return response;
     }

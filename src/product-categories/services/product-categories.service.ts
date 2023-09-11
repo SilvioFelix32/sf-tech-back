@@ -54,7 +54,8 @@ export class ProductCategoriesService {
     const { page, limit } = query;
     const paginate = createPaginator({ perPage: limit });
 
-    const cachedProductCategories = await this.redis.get('productCategory');
+    const key = 'productCategory';
+    const cachedProductCategories = await this.redis.get(key);
 
     if (!cachedProductCategories || cachedProductCategories.length === 0) {
       const response = await paginate<
@@ -73,12 +74,7 @@ export class ProductCategoriesService {
         { page },
       );
 
-      await this.redis.set(
-        'productCategory',
-        JSON.stringify(response),
-        'EX',
-        3600,
-      );
+      await this.redis.set(key, JSON.stringify(response), 'EX', 3600);
 
       return response;
     }
