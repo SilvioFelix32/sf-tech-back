@@ -51,7 +51,7 @@ export class ProductService {
     const key = 'product';
     const cachedProducts = await this.redis.get(key);
 
-    if (!cachedProducts || cachedProducts.length === 0) {
+    if (!cachedProducts) {
       const response = await paginate<Product, Prisma.ProductFindManyArgs>(
         this.prisma.product,
         {
@@ -74,8 +74,6 @@ export class ProductService {
   }
 
   async search(company_id: string, query: string) {
-    this.validateCompany(company_id);
-
     return this.prisma.product.findMany({
       where: {
         company_id,

@@ -57,7 +57,7 @@ export class ProductCategoriesService {
     const key = 'productCategory';
     const cachedProductCategories = await this.redis.get(key);
 
-    if (!cachedProductCategories || cachedProductCategories.length === 0) {
+    if (!cachedProductCategories) {
       const response = await paginate<
         ProductCategory,
         Prisma.ProductCategoryFindManyArgs

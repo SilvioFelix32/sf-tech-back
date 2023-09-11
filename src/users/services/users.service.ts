@@ -160,7 +160,7 @@ export class UsersService {
     const key = 'user';
     const cachedUsers = await this.redis.get(key);
 
-    if (!cachedUsers || cachedUsers.length === 0) {
+    if (!cachedUsers) {
       const response = await paginate<User, Prisma.UserFindManyArgs>(
         this.prisma.user,
         {
