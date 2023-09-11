@@ -154,14 +154,13 @@ export class UsersService {
     company_id: string,
     query: FindUserDto,
   ): Promise<User[] | unknown> {
-    await this.companiesService.findOne(company_id); // Ensure the company exists
-
     const { page, limit } = query;
     const paginate = createPaginator({ perPage: limit });
 
-    const cachedUsers = await this.redis.get('user');
+    const key = 'user';
+    const cachedUsers = await this.redis.get(key);
 
-    if (!cachedUsers || cachedUsers === null) {
+    if (!cachedUsers || cachedUsers.length === 0) {
       const response = await paginate<User, Prisma.UserFindManyArgs>(
         this.prisma.user,
         {
@@ -175,7 +174,7 @@ export class UsersService {
         { page },
       );
 
-      await this.redis.set('user', JSON.stringify(response), 'EX', 3600);
+      await this.redis.set(key, JSON.stringify(response), 'EX', 3600);
       return response;
     }
 

@@ -26,25 +26,6 @@ export class ProductService {
     }
   }
 
-  private async updateCacheOnDb(
-    key: string,
-    data: any,
-    expirationInSeconds: number,
-  ) {
-    const cachedData = await this.redis.get(key);
-
-    if (!cachedData) {
-      await this.redis.set(
-        key,
-        JSON.stringify(data),
-        'EX',
-        expirationInSeconds,
-      );
-    }
-
-    return JSON.parse(cachedData || JSON.stringify(data));
-  }
-
   async create(
     company_id: string,
     category_id: string,
@@ -89,7 +70,7 @@ export class ProductService {
       return response;
     }
 
-    return cachedProducts;
+    return JSON.parse(cachedProducts);
   }
 
   async search(company_id: string, query: string) {
