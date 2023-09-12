@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createPaginator } from 'prisma-pagination';
-import { CompaniesService } from '../../companies/services/companies.service';
 import { PrismaService } from '../../shared/prisma/prisma.service';
 import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { productCategoryReponse } from '../dto/product-category-response';
@@ -86,7 +85,8 @@ export class ProductCategoriesService {
         key,
         JSON.stringify(response),
         'EX',
-        7 * 24 * 60 * 60, //7 days
+        10,
+        //7 * 24 * 60 * 60, //7 days
       );
 
       return response;

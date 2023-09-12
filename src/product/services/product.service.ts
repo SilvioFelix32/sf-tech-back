@@ -79,7 +79,8 @@ export class ProductService {
         key,
         JSON.stringify(response),
         'EX',
-        7 * 24 * 60 * 60,
+        10,
+        // 7 * 24 * 60 * 60,
       ); //7 days
 
       return response;

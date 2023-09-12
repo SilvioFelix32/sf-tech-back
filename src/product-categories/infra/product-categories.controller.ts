@@ -52,6 +52,7 @@ export class ProductCategoriesController {
   }
 
   @Get(':id')
+  @IsPublic()
   findOne(@Param('id') category_id: string) {
     return this.productCategoriesService.findOne(category_id);
   }
