@@ -174,7 +174,12 @@ export class UsersService {
         { page },
       );
 
-      await this.redis.set(key, JSON.stringify(response), 'EX', 3600);
+      await this.redis.set(
+        key,
+        JSON.stringify(response),
+        'EX',
+        7 * 24 * 60 * 60,
+      ); //7 days
       return response;
     }
 

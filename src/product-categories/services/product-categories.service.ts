@@ -18,15 +18,23 @@ import { FindProductCategoryDto } from '../dto/find-product-categoru.dto';
 export class ProductCategoriesService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly companiesService: CompaniesService,
     private readonly redis: RedisService,
   ) {}
 
-  private async validateProduct(company_id: string) {
-    const company = await this.companiesService.findOne(company_id);
+  private validateCompany(company_id: string) {
+    if (!company_id) {
+      throw new BadRequestException('No company ID informed');
+    }
+  }
 
-    if (!company) {
-      throw new NotFoundException('Company not found');
+  private async validateCategory(category_id: string) {
+    const verifyIfCategoryExists = await this.prisma.productCategory.findUnique(
+      {
+        where: { category_id },
+      },
+    );
+    if (!verifyIfCategoryExists) {
+      throw new NotFoundException('Category not found');
     }
   }
 
@@ -34,7 +42,7 @@ export class ProductCategoriesService {
     company_id: string,
     dto: CreateProductCategoryDto,
   ): Promise<ProductCategory | unknown> {
-    await this.validateProduct(company_id);
+    this.validateCompany(company_id);
 
     const { product_type } = dto;
 
@@ -74,7 +82,12 @@ export class ProductCategoriesService {
         { page },
       );
 
-      await this.redis.set(key, JSON.stringify(response), 'EX', 3600);
+      await this.redis.set(
+        key,
+        JSON.stringify(response),
+        'EX',
+        7 * 24 * 60 * 60, //7 days
+      );
 
       return response;
     }
@@ -82,8 +95,10 @@ export class ProductCategoriesService {
     return JSON.parse(cachedProductCategories);
   }
 
-  async findOne(category_id: string): Promise<ProductCategory | unknown> {
-    return this.prisma.productCategory.findUnique({
+  async findOne(category_id: string): Promise<ProductCategory> {
+    await this.validateCategory(category_id);
+
+    const response = await this.prisma.productCategory.findUnique({
       where: {
         category_id,
       },
@@ -91,27 +106,31 @@ export class ProductCategoriesService {
         ...productCategoryReponse,
       },
     });
+    return response as ProductCategory;
   }
 
   async update(
     category_id: string,
     dto: UpdateProductCategoryDto,
-  ): Promise<ProductCategory | unknown> {
-    const { category_id: dtoCategoryId, products, ...updateData } = dto;
+  ): Promise<ProductCategory> {
+    await this.validateCategory(category_id);
 
-    return this.prisma.productCategory.update({
+    const response = await this.prisma.productCategory.update({
       where: {
         category_id,
       },
-      data: updateData,
+      data: dto,
     });
+    return response as ProductCategory;
   }
 
-  remove(category_id: string): Promise<ProductCategory | unknown> {
-    return this.prisma.productCategory.delete({
+  async remove(category_id: string): Promise<ProductCategory | unknown> {
+    await this.validateCategory(category_id);
+    const response = this.prisma.productCategory.delete({
       where: {
         category_id,
       },
     });
+    return response;
   }
 }

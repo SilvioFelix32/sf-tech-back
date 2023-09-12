@@ -26,6 +26,16 @@ export class ProductService {
     }
   }
 
+  private async validateProduct(product_id: string) {
+    const verifyIfProductExists = await this.prisma.product.findUnique({
+      where: { product_id },
+    });
+
+    if (!verifyIfProductExists) {
+      throw new NotFoundException('Product not found');
+    }
+  }
+
   async create(
     company_id: string,
     category_id: string,
@@ -65,7 +75,12 @@ export class ProductService {
         { page },
       );
 
-      await this.redis.set(key, JSON.stringify(response), 'EX', 3600);
+      await this.redis.set(
+        key,
+        JSON.stringify(response),
+        'EX',
+        7 * 24 * 60 * 60,
+      ); //7 days
 
       return response;
     }
@@ -73,8 +88,8 @@ export class ProductService {
     return JSON.parse(cachedProducts);
   }
 
-  async search(company_id: string, query: string) {
-    return this.prisma.product.findMany({
+  async search(company_id: string, query: any) {
+    const response = await this.prisma.product.findMany({
       where: {
         company_id,
         title: {
@@ -83,10 +98,13 @@ export class ProductService {
         },
       },
     });
+    return response;
   }
 
-  async findOne(product_id: string): Promise<Product | unknown> {
-    return this.prisma.product.findUnique({
+  async findOne(product_id: string): Promise<Product> {
+    await this.validateProduct(product_id);
+
+    const response = await this.prisma.product.findUnique({
       where: {
         product_id,
       },
@@ -94,18 +112,13 @@ export class ProductService {
         ...productResponse,
       },
     });
+    return response;
   }
 
-  async update(
-    product_id: string,
-    dto: UpdateProductDto,
-  ): Promise<Product | unknown> {
-    const updateProduct = await this.findOne(product_id);
-    if (!updateProduct) {
-      throw new NotFoundException('Product not found');
-    }
+  async update(product_id: string, dto: UpdateProductDto): Promise<Product> {
+    await this.validateProduct(product_id);
 
-    return this.prisma.product.update({
+    const response = await this.prisma.product.update({
       where: {
         product_id,
       },
@@ -113,18 +126,17 @@ export class ProductService {
         ...dto,
       },
     });
+    return response;
   }
 
-  async remove(product_id: string): Promise<Product | unknown> {
-    const deleteProduct = await this.findOne(product_id);
-    if (!deleteProduct) {
-      throw new NotFoundException('Product not found');
-    }
+  async remove(product_id: string): Promise<Product> {
+    await this.validateProduct(product_id);
 
-    return this.prisma.product.delete({
+    const response = await this.prisma.product.delete({
       where: {
         product_id,
       },
     });
+    return response;
   }
 }
