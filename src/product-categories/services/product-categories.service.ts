@@ -62,10 +62,14 @@ export class ProductCategoriesService {
     const paginate = createPaginator({ perPage: limit });
 
     const key = 'productCategory';
-    const cachedProductCategories = await this.redis.get(key);
+    const cacheExpiryTime = 60;
+    const currentTime = Math.floor(Date.now() / 1000);
+    const cachedData = await this.redis
+      .get(key)
+      .then((data) => JSON.parse(data));
 
-    if (!cachedProductCategories) {
-      const response = await paginate<
+    if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
+      const dbData = await paginate<
         ProductCategory,
         Prisma.ProductCategoryFindManyArgs
       >(
@@ -83,16 +87,15 @@ export class ProductCategoriesService {
 
       await this.redis.set(
         key,
-        JSON.stringify(response),
+        JSON.stringify({ data: dbData, timestamp: currentTime }),
         'EX',
-        10,
-        //7 * 24 * 60 * 60, //7 days
+        60 * 60 * 24 * 7,
       );
 
-      return response;
+      return dbData;
     }
 
-    return JSON.parse(cachedProductCategories);
+    return cachedData.data;
   }
 
   async findOne(category_id: string): Promise<ProductCategory> {

@@ -59,10 +59,14 @@ export class ProductService {
     const paginate = createPaginator({ perPage: limit });
 
     const key = 'product';
-    const cachedProducts = await this.redis.get(key);
+    const cacheExpiryTime = 60;
+    const currentTime = Math.floor(Date.now() / 1000);
+    const cachedData = await this.redis
+      .get(key)
+      .then((data) => JSON.parse(data));
 
-    if (!cachedProducts) {
-      const response = await paginate<Product, Prisma.ProductFindManyArgs>(
+    if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
+      const dbData = await paginate<Product, Prisma.ProductFindManyArgs>(
         this.prisma.product,
         {
           where: {
@@ -77,16 +81,15 @@ export class ProductService {
 
       await this.redis.set(
         key,
-        JSON.stringify(response),
+        JSON.stringify({ data: dbData, timestamp: currentTime }),
         'EX',
-        10,
-        // 7 * 24 * 60 * 60,
-      ); //7 days
+        60 * 60 * 24 * 7,
+      );
 
-      return response;
+      return dbData;
     }
 
-    return JSON.parse(cachedProducts);
+    return cachedData.data;
   }
 
   async search(company_id: string, query: any) {
