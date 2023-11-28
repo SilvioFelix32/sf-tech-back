@@ -17,6 +17,7 @@ import { CreateProductCategoryDto } from '../dto/create-product-category.dto';
 import { FindProductCategoryDto } from '../dto/find-product-categoru.dto';
 import { UpdateProductCategoryDto } from '../dto/update-product-category.dto';
 import { ProductCategoriesService } from '../services/product-categories.service';
+import { Product } from 'src/product/entities/product.entity';
 
 @Controller('product-categories')
 export class ProductCategoriesController {
@@ -49,6 +50,29 @@ export class ProductCategoriesController {
     }
 
     return this.productCategoriesService.findAll(company_id, query);
+  }
+
+  @Get()
+  async search(
+    @Headers() header: IHeaders,
+    @Query('query') query: string,
+  ): Promise<Product[]> {
+    if (!header.company_id || !query) {
+      throw new BadRequestException('No Company or query informed');
+    }
+    const { company_id } = header;
+
+    try {
+      const result = await this.productCategoriesService.search(
+        company_id,
+        query,
+      );
+      return result;
+    } catch (error) {
+      // Trate o erro de alguma forma
+      console.error('Erro na busca:', error);
+      throw new BadRequestException('error', error);
+    }
   }
 
   @Get(':id')

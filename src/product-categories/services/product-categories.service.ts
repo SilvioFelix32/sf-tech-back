@@ -98,6 +98,23 @@ export class ProductCategoriesService {
     return cachedData.data;
   }
 
+  async search(company_id: string, query: any) {
+    const response = await this.prisma.productCategory.findMany({
+      where: {
+        company_id,
+        products: {
+          some: {
+            title: {
+              contains: query,
+              mode: 'insensitive',
+            },
+          },
+        },
+      },
+    });
+    return response;
+  }
+
   async findOne(category_id: string): Promise<ProductCategory> {
     await this.validateCategory(category_id);
 
