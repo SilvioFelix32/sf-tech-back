@@ -33,4 +33,8 @@ export class FindProductDto extends QueryPaginateDto {
   @IsBoolean()
   @IsOptional()
   highlighted?: boolean | null;
+
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean | null;
 }

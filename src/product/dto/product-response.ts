@@ -1,4 +1,5 @@
 export const productResponse = {
+  active: true,
   company_id: true,
   description: true,
   discount: true,

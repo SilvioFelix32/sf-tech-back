@@ -12,6 +12,7 @@ import { AuthModule } from './auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RedisService } from './infraestructure/cache/redis';
+import { CategoryModule } from './productCategory/modules/category.module';
 
 @Module({
   controllers: [AppController],
@@ -22,6 +23,7 @@ import { RedisService } from './infraestructure/cache/redis';
     HttpModule,
     CompaniesModule,
     UsersModule,
+    CategoryModule,
     ProductModule,
     SalesModule,
     AuthModule,

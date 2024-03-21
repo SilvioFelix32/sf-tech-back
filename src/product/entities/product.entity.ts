@@ -9,6 +9,7 @@ export class Product {
   price?: number;
   discount?: number;
   highlighted?: boolean;
+  active?: boolean;
 
   createdAt?: Date | string;
   updatedAt?: Date | string;

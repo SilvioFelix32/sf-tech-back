@@ -38,4 +38,8 @@ export class CreateProductDto {
   @IsBoolean()
   @IsOptional()
   highlighted: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  active: boolean;
 }
