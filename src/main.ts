@@ -25,21 +25,21 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,
       forbidNonWhitelisted: true,
+      whitelist: true,
       // transform: true,
     }),
   );
 
   app.enableVersioning({
-    type: VersioningType.URI,
     defaultVersion: '1',
+    type: VersioningType.URI,
   });
 
   const config = new DocumentBuilder()
     .setTitle('SfTech - Web Store Api')
     .setDescription('SfTech integration with Web Store')
-    .setVersion('1.0')
+    .setVersion('1.1')
     .addBearerAuth()
     .build();
 
@@ -50,10 +50,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, options);
 
   const customOptions: SwaggerCustomOptions = {
+    customSiteTitle: 'SfTech API Docs',
     swaggerOptions: {
       persistAuthorization: true,
     },
-    customSiteTitle: 'SfTech API Docs',
   };
 
   SwaggerModule.setup('api', app, document, customOptions);

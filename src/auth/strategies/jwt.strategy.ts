@@ -8,17 +8,17 @@ import { UserPayload } from '../models/UserPayload';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: process.env.JWT_SECRET,
     });
   }
 
   async validate(payload: UserPayload): Promise<UserFromJwt> {
     return {
-      user_id: payload.sub,
       email: payload.email,
       name: payload.name,
+      user_id: payload.sub,
     };
   }
 }

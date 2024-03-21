@@ -28,8 +28,8 @@ export class UsersController {
 
   @Post()
   @ApiResponse({
-    status: 201,
     description: 'User successfully created.',
+    status: 201,
     type: User,
   })
   @IsPublic()
@@ -51,7 +51,6 @@ export class UsersController {
     @Query() query: FindUserDto,
   ): Promise<IPaginateDto | unknown> {
     const { company_id } = header;
-
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }

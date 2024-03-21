@@ -4,10 +4,10 @@ import { companiesSeed } from './seeds.ts/companies';
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.company.deleteMany({});
-  await prisma.productCategory.deleteMany({});
-  await prisma.product.deleteMany({});
+  await prisma.sale.deleteMany({});
   await prisma.user.deleteMany({});
+  await prisma.product.deleteMany({});
+  await prisma.company.deleteMany({});
 
   await Promise.all(
     companiesSeed.map(async (company) => {

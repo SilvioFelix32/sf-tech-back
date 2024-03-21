@@ -39,9 +39,7 @@ export class CompaniesController {
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    this.companiesService.remove(id);
-
-    return;
+  async remove(@Param('id') id: string) {
+    return await this.companiesService.remove(id);
   }
 }

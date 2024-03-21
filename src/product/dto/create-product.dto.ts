@@ -1,30 +1,12 @@
 import {
   IsBoolean,
-  IsDate,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
-  IsUUID,
-  ValidateNested,
 } from 'class-validator';
-import { ProductTotalSales } from '../entities/product-total-sales.entity';
 
 export class CreateProductDto {
-  @IsUUID()
-  @IsString()
-  @IsOptional()
-  product_id?: string;
-
-  @IsString()
-  @IsOptional()
-  category_id: string;
-
-  @IsUUID()
-  @IsString()
-  @IsOptional()
-  company_id?: string;
-
   @IsString()
   @IsNotEmpty()
   sku: string;
@@ -43,11 +25,11 @@ export class CreateProductDto {
 
   @IsString()
   @IsOptional()
-  url_banner?: string;
+  urlBanner?: string;
 
   @IsNumber()
   @IsNotEmpty()
-  value: number;
+  price: number;
 
   @IsNumber()
   @IsNotEmpty()
@@ -55,34 +37,5 @@ export class CreateProductDto {
 
   @IsBoolean()
   @IsOptional()
-  active: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  combo?: boolean;
-
-  @IsBoolean()
-  @IsOptional()
   highlighted: boolean;
-
-  @IsBoolean()
-  @IsOptional()
-  for_sale?: boolean;
-
-  @IsOptional()
-  product_combo: any;
-
-  @IsOptional()
-  @ValidateNested({ each: true })
-  total_sales?: any | ProductTotalSales[];
-
-  @IsString()
-  @IsDate()
-  @IsOptional()
-  created_at: Date | string;
-
-  @IsString()
-  @IsDate()
-  @IsOptional()
-  updated_at: Date | string;
 }

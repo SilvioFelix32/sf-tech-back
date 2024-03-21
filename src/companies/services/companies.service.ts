@@ -3,30 +3,26 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import { PrismaService } from '../../shared/prisma/prisma.service';
+import { PrismaService } from '../../infraestructure/prisma/prisma.service';
 import { CreateCompanyDto } from '../dto/create-company.dto';
 import { UpdateCompanyDto } from '../dto/update-company.dto';
 import { Company } from '../entities/company.entity';
+import { IResult } from 'src/exceptions/result';
+import { ResultSuccess } from 'src/exceptions/result-success';
+import { ResultError } from 'src/exceptions/result-error';
 
 @Injectable()
 export class CompaniesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async isEmailTaken(email: string) {
+  private async isEmailTaken(email: string): Promise<boolean> {
     const companyWithEmail = await this.prisma.company.findUnique({
       where: { email },
     });
     return !!companyWithEmail;
   }
 
-  private async isDocumentTaken(document: string) {
-    const companyWithDocument = await this.prisma.company.findUnique({
-      where: { document },
-    });
-    return !!companyWithDocument;
-  }
-
-  private async isNameTaken(name: string) {
+  private async isNameTaken(name: string): Promise<boolean> {
     const companyWithName = await this.prisma.company.findUnique({
       where: { name },
     });
@@ -34,17 +30,18 @@ export class CompaniesService {
   }
 
   async create(data: CreateCompanyDto) {
-    const { name, document, email } = data;
+    const { name, email } = data;
 
-    if (await this.isEmailTaken(email)) {
+    const [emailTaken, nameTaken] = await Promise.all([
+      this.isEmailTaken(email),
+      this.isNameTaken(name),
+    ]);
+
+    if (emailTaken) {
       throw new ConflictException('Company with this email already exists');
     }
 
-    if (await this.isDocumentTaken(document)) {
-      throw new ConflictException('Company with this document already exists');
-    }
-
-    if (await this.isNameTaken(name)) {
+    if (nameTaken) {
       throw new ConflictException('Company with this name already exists');
     }
 
@@ -57,7 +54,7 @@ export class CompaniesService {
 
   async findOne(company_id: string): Promise<Company> {
     const company = await this.prisma.company.findUnique({
-      where: { id: company_id },
+      where: { company_id },
     });
 
     if (!company) {
@@ -67,36 +64,40 @@ export class CompaniesService {
     return company;
   }
 
-  async update(company_id: string, data: UpdateCompanyDto) {
-    const { document } = data;
+  async update(
+    company_id: string,
+    data: UpdateCompanyDto,
+  ): Promise<IResult<string>> {
     const existingCompany = await this.prisma.company.findUnique({
-      where: { id: company_id },
+      where: { company_id },
     });
 
     if (!existingCompany) {
       throw new NotFoundException('Company not found');
     }
 
-    if (
-      document &&
-      document !== existingCompany.document &&
-      (await this.isDocumentTaken(document))
-    ) {
-      throw new ConflictException('Document already exists in the database');
+    try {
+      await this.prisma.company.update({ data, where: { company_id } });
+      return new ResultSuccess(`Company ${company_id} updated!`);
+    } catch (error) {
+      return new ResultError(`Failed to update company ${company_id}`);
     }
-
-    return this.prisma.company.update({ where: { id: company_id }, data });
   }
 
-  async remove(company_id: string) {
+  async remove(company_id: string): Promise<IResult<string>> {
     const existingCompany = await this.prisma.company.findUnique({
-      where: { id: company_id },
+      where: { company_id },
     });
 
     if (!existingCompany) {
       throw new NotFoundException('Company not found');
     }
 
-    return this.prisma.company.delete({ where: { id: company_id } });
+    try {
+      await this.prisma.company.delete({ where: { company_id } });
+      return new ResultSuccess(`Company ${company_id} deleted!`);
+    } catch (error) {
+      return new ResultError(`Failed to delete company ${company_id}`);
+    }
   }
 }

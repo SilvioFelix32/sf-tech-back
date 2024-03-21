@@ -9,6 +9,7 @@ import { LoginValidationMiddleware } from './middlewares/login-validation.middle
 import { UsersModule } from '../users/users.module';
 
 @Module({
+  controllers: [AuthController],
   imports: [
     UsersModule,
     PassportModule,
@@ -17,7 +18,6 @@ import { UsersModule } from '../users/users.module';
       signOptions: { expiresIn: '30d' },
     }),
   ],
-  controllers: [AuthController],
   providers: [AuthService, LocalStrategy, JwtStrategy],
 })
 export class AuthModule implements NestModule {

@@ -3,56 +3,22 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Company {
-  id           String  @id @default(uuid()) @map("_id")
-  name         String  @unique
-  fantasy_name String?
-  document     String  @unique
-  phone        String?
-  cellphone    String
-  email        String  @unique
+  company_id  String    @id @default(uuid()) @map("_id")
+  name        String    @unique
+  fantasyName String?
+  email       String    @unique
+  urlBanner   String?
+  users       User[]
+  products    Product[]
+  sales       Sale[]
 
-  company_params     CompanyParams[]
-  products           Product[]
-  product_categories ProductCategory[]
-  users              User[]
-  sale               Sale[]
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@map("company")
-}
-
-enum Environment {
-  PRODUCTION
-  HOMOLOGATION
-
-  @@map("environment")
-}
-
-model CompanyParams {
-  id             String       @id @default(uuid()) @map("_id")
-  company        Company      @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  company_id     String       @unique
-  environment    Environment? @default(value: HOMOLOGATION)
-  url_banner     String?
-  url_site       String?
-  url_facebook   String?
-  url_instagram  String?
-  url_linkedin   String?
-  obs_email      String?
-  obs_voucher    String?
-  privacy_policy String?
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@map("company_params")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum Role {
@@ -61,201 +27,46 @@ enum Role {
   MASTER
 }
 
-enum Sex {
-  MALE
-  FEMALE
-  OTHERS
-
-  @@map("sex")
-}
-
 model User {
-  user_id            String    @id @default(uuid()) @map("_id")
-  company            Company?  @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  company_id         String?
-  document           String    @unique
-  name               String
-  last_name          String
-  password           String
-  sex_type           Sex?      @default(OTHERS)
-  birth_date         DateTime?
-  celphone           String?
-  email              String    @unique
-  cep                String?
-  state              String?
-  city               String?
-  neighborhood       String?
-  address            String?
-  address_number     String?
-  address_complement String?
-  active             Boolean?  @default(true)
-  role               Role?     @default(USER)
-  shop_cart          Sale[]
+  user_id    String   @id @default(uuid()) @map("_id")
+  company    Company? @relation(fields: [company_id], references: [company_id])
+  company_id String
+  name       String
+  lastName   String
+  email      String   @unique
+  password   String
+  role       Role     @default(USER)
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@map("users")
-}
-
-enum ProductType {
-  COMPUTER
-  NOTEBOOK
-  CELL
-  MOUSE
-  KEYBOARD
-  SOUND_PHONE
-  PRINTER
-  MONITOR
-  PERIPHERAL
-  USB
-  OTHERS
-
-  @@map("product_type")
-}
-
-model ProductCategory {
-  category_id  String       @id @default(uuid()) @map("_id")
-  company      Company?     @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  company_id   String?
-  product_type ProductType? @default(OTHERS)
-  title        String
-  description  String?
-  active       Boolean?     @default(true)
-  products     Product[]
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@map("product_category")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Sale      Sale[]
 }
 
 model Product {
-  product_id       String           @id @default(uuid()) @map("_id")
-  product_category ProductCategory? @relation(fields: [category_id], references: [category_id], onDelete: Cascade, onUpdate: Cascade)
-  category_id      String?
-  company          Company?         @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  company_id       String?
-  sku              String
-  title            String
-  subtitle         String?
-  description      String?
-  url_banner       String?
-  value            Int
-  discount         Int
-  active           Boolean?         @default(true)
-  combo            Boolean?         @default(false)
-  highlighted      Boolean?         @default(false)
-  for_sale         Boolean?         @default(true)
+  product_id  String   @id @default(uuid()) @map("_id")
+  company     Company? @relation(fields: [company_id], references: [company_id])
+  company_id  String
+  sku         String
+  title       String
+  subtitle    String?
+  description String?
+  urlBanner   String?
+  price       Float
+  discount    Float
+  highlighted Boolean? @default(false)
 
-  items         ProductCombo[]      @relation("Combo")
-  product_combo ProductCombo[]      @relation("Item")
-  item_sales    ItemSales[]
-  total_sales   ProductTotalSales[]
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@map("product")
-}
-
-model ProductCombo {
-  combo_id   String  @id @default(uuid()) @map("_id")
-  product    Product @relation(name: "Combo", fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id String
-  item       Product @relation(name: "Item", fields: [item_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  item_id    String
-  amount     Int
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@unique([product_id, item_id])
-  @@map("product_combo")
-}
-
-model ProductTotalSales {
-  sale_total_id String   @id @default(uuid()) @map("_id")
-  product       Product? @relation(fields: [product_id], references: [product_id], onDelete: Cascade, onUpdate: Cascade)
-  product_id    String
-  date          DateTime
-  amount        Int
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@unique([product_id, date])
-  @@map("product_total_sales")
-}
-
-model ItemSales {
-  item_sale_id     String   @id @default(uuid()) @map("_id")
-  sales            Sale     @relation(fields: [sale_id], references: [sale_id], onDelete: Cascade, onUpdate: Cascade)
-  sale_id          String
-  product          Product  @relation(fields: [product_id], references: [product_id], onDelete: Restrict, onUpdate: Cascade)
-  product_id       String
-  amount           Int
-  unitary_value    Float
-  percent_discount Float
-  subtotal         Float
-  total            Float
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
-
-  @@map("item_sales")
-}
-
-enum SaleStatus {
-  NEW
-  ABANDONED
-  CHECKOUT
-  PAY
-  FAILURE
-  FINISHED
-
-  @@map("sale_status")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Sale {
-  sale_id             String         @id @default(uuid()) @map("_id")
-  company             Company?       @relation(fields: [company_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  company_id          String?
-  user                User?          @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
-  user_id             String
-  session             String?
-  status              SaleStatus     @default(NEW)
-  name                String
-  last_name           String
-  cellphone           String
-  email               String
-  cep                 String
-  state               String
-  city                String
-  address             String
-  address_number      String?
-  address_complement  String?
-  subtotal            Float
-  descount_voucher    String?
-  descount_percentage Float?
-  descount_value      Float?
-  total               Float
-  items               ItemSales[]
-  sales_history       SalesHistory[]
+  sale_id    String   @id @default(uuid()) @map("_id")
+  company    Company? @relation(fields: [company_id], references: [company_id])
+  company_id String
+  user       User     @relation(fields: [user_id], references: [user_id])
+  user_id    String
+  total      Float
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@map("sale")
-}
-
-model SalesHistory {
-  sale_history_id String @id @default(uuid()) @map("_id")
-  sale            Sale   @relation(fields: [sale_id], references: [sale_id], onDelete: Cascade, onUpdate: Cascade)
-  sale_id         String
-  historic        String
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@map("sales_history")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

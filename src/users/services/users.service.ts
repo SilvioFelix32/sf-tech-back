@@ -5,20 +5,22 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Prisma, User } from '@prisma/client';
-import { CompaniesService } from '../../companies/services/companies.service';
-import { PrismaService } from '../../shared/prisma/prisma.service';
+import { PrismaService } from '../../infraestructure/prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { FindUserDto } from '../dto/find-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
-import { userAuthResponse, userResponse } from '../dto/user-response.dto';
+import { userResponse } from '../dto/user-response.dto';
 import { createPaginator } from 'prisma-pagination';
-import { RedisService } from '../../shared/cache/redis';
+import { RedisService } from '../../infraestructure/cache/redis';
+import { IResult } from 'src/exceptions/result';
+import { ResultSuccess } from 'src/exceptions/result-success';
+import { ResultError } from 'src/exceptions/result-error';
+import { IUserResponse } from '../types/user-response';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly companiesService: CompaniesService,
     private readonly redis: RedisService,
   ) {}
 
@@ -33,22 +35,11 @@ export class UsersService {
     return usersWithEmail.length > 0;
   }
 
-  private async isDocumentTakenInCompany(company_id: string, document: string) {
-    const usersWithDocument = await this.prisma.user.findMany({
-      where: {
-        company_id,
-        document,
-      },
-    });
-
-    return usersWithDocument.length > 0;
-  }
-
   private async validateCreateLocalUser(
     company_id: string,
     data: CreateUserDto,
   ) {
-    const { email, document } = data;
+    const { email } = data;
 
     if (!company_id) {
       throw new BadRequestException('User needs a company ID');
@@ -57,12 +48,6 @@ export class UsersService {
     if (await this.isEmailTakenInCompany(company_id, email)) {
       throw new BadRequestException(
         'User with this email already exists in this company',
-      );
-    }
-
-    if (await this.isDocumentTakenInCompany(company_id, document)) {
-      throw new BadRequestException(
-        'User with this document already exists in this company',
       );
     }
   }
@@ -80,7 +65,7 @@ export class UsersService {
       throw new BadRequestException('User does not belong to this company');
     }
 
-    const { email, document } = dto;
+    const { email } = dto;
 
     if (
       email &&
@@ -91,22 +76,12 @@ export class UsersService {
         'User with this email already exists in this company',
       );
     }
-
-    if (
-      document &&
-      document !== updateUser.document &&
-      (await this.isDocumentTakenInCompany(company_id, document))
-    ) {
-      throw new BadRequestException(
-        'User with this document already exists in this company',
-      );
-    }
   }
 
   async create(
     company_id: string,
     dto: CreateUserDto,
-  ): Promise<User | unknown> {
+  ): Promise<IResult<IUserResponse> | unknown> {
     await this.validateCreateLocalUser(company_id, dto);
 
     const encryptedPassword = await bcrypt.hash(dto.password, 10);
@@ -117,15 +92,20 @@ export class UsersService {
       ...dto,
     };
 
-    return this.prisma.user.create({ data });
+    return this.prisma.user.create({
+      data,
+      select: {
+        ...userResponse,
+      },
+    });
   }
 
-  async findByEmail(email: string): Promise<User | unknown> {
+  async findByEmail(email: string): Promise<IResult<IUserResponse> | unknown> {
     const user = await this.prisma.user.findUnique({
-      where: { email },
       select: {
-        ...userAuthResponse,
+        ...userResponse,
       },
+      where: { email },
     });
 
     if (!user) {
@@ -135,12 +115,12 @@ export class UsersService {
     return user;
   }
 
-  async findOne(user_id: string): Promise<User | unknown> {
+  async findOne(user_id: string): Promise<IResult<IUserResponse> | unknown> {
     const user = await this.prisma.user.findUnique({
-      where: { user_id },
       select: {
         ...userResponse,
       },
+      where: { user_id },
     });
 
     if (!user) {
@@ -164,11 +144,11 @@ export class UsersService {
       const response = await paginate<User, Prisma.UserFindManyArgs>(
         this.prisma.user,
         {
-          where: {
-            company_id,
-          },
           select: {
             ...userResponse,
+          },
+          where: {
+            company_id,
           },
         },
         { page },
@@ -192,22 +172,30 @@ export class UsersService {
     dto: UpdateUserDto,
   ): Promise<User | unknown> {
     const updateUser = await this.findOne(user_id);
-
     await this.validateUpdateLocalUser(company_id, dto, updateUser as User);
 
     return this.prisma.user.update({
-      where: { user_id },
       data: {
         ...dto,
       },
+      select: {
+        ...userResponse,
+      },
+      where: { user_id },
     });
   }
 
-  async remove(user_id: string): Promise<User | unknown> {
-    const user = await this.findOne(user_id); // Ensure the user exists
+  async remove(user_id: string): Promise<IResult<string>> {
+    const user = await this.findOne(user_id);
+    if (!user) {
+      return new ResultError(`User ${user_id} don't exists`);
+    }
 
-    return this.prisma.user.delete({
-      where: { user_id },
-    });
+    try {
+      await this.prisma.user.delete({ where: { user_id } });
+      return new ResultSuccess('User deleted');
+    } catch (error) {
+      return new ResultError(`Failed to delete user ${user_id}`);
+    }
   }
 }

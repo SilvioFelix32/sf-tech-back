@@ -9,7 +9,6 @@ import {
   Headers,
   BadRequestException,
   Query,
-  UseInterceptors,
 } from '@nestjs/common';
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../shared/IHeaders';
@@ -23,29 +22,21 @@ import { Product } from '../entities/product.entity';
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Post(':category_id')
+  @Post()
   @IsPublic()
-  create(
-    @Headers() header: IHeaders,
-    @Param('category_id') category_id: string,
-    @Body() dto: CreateProductDto,
-  ) {
+  create(@Headers() header: IHeaders, @Body() dto: CreateProductDto) {
     const { company_id } = header;
 
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }
 
-    if (!category_id) {
-      throw new BadRequestException('Product needs a category_id');
+    const { urlBanner } = dto;
+    if (urlBanner === null || undefined) {
+      dto.urlBanner = 'https://i.imgur.com/2HFGvvT.png';
     }
 
-    let { url_banner } = dto;
-    if (url_banner === null || undefined) {
-      dto.url_banner = 'https://i.imgur.com/2HFGvvT.png';
-    }
-
-    return this.productService.create(company_id, category_id, dto);
+    return this.productService.create(company_id, dto);
   }
 
   @Get()

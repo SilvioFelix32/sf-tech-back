@@ -5,13 +5,13 @@ export class RedisService extends Redis {
   constructor() {
     super({
       host: process.env.REDIS_HOST,
-      username: process.env.REDIS_USER,
       password: process.env.REDIS_PASSWORD,
       port: 6379,
       tls: {
         ca: ['/usr/src/redis.crt'],
         rejectUnauthorized: false,
       },
+      username: process.env.REDIS_USER,
     });
 
     super.on('error', (err) => {
