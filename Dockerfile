@@ -1,9 +1,9 @@
 FROM node:latest
 WORKDIR /usr/app
 COPY package.json yarn.lock ./
-COPY . .
 RUN yarn
+COPY . .
 RUN yarn build
 EXPOSE 3003
-CMD ["yarn", "start:prod"]
+CMD ["node", "./dist/src/main"]  # Alteração no comando CMD para executar o arquivo gerado corretamente
 
