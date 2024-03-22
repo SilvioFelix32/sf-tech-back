@@ -45,7 +45,7 @@ services:
       - REDIS_USER=red-cihe8v5gkuvojje31ta0
       - REDIS_PASSWORD=WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn
       - EXTERNAL_REDIS=rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379
-      - DATABASE_URL=mongodb+srv://sf-tech:pczCa918O7cuEGSY@sf-tech.k6lsm.mongodb.net/sf-tech
+      - DATABASE_URL=postgres://lrazgqcb:e3ac1bd0-5377-421c-9b35-3293a3a358a8@babar.db.elephantsql.com:5432/$lrazgqcb?schema=public
     env_file:
       - .env
     volumes:
