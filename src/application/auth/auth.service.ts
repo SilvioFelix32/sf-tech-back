@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/services/users.service';
-import { UnauthorizedError } from './errors/unauthorized.error';
 import { UserPayload } from './models/UserPayload';
 import { UserToken } from './models/UserToken';
 
@@ -43,14 +42,14 @@ export class AuthService {
     const user: Partial<User> | null = await this.userService.findByEmail(
       email,
     );
-
     await this.validatePassword(user.password, dbPassword);
+
     if (user) {
       delete user.password;
       return { ...(user as User) };
     }
 
-    throw new UnauthorizedError(
+    throw new BadRequestException(
       'Email address or password provided is incorrect.',
     );
   }
@@ -60,7 +59,7 @@ export class AuthService {
     hashedPassword: string,
   ) {
     if (plainPassword != hashedPassword) {
-      throw new UnauthorizedError('Password provided is incorrect.');
+      throw new BadRequestException('Password provided is incorrect.');
     }
   }
 }

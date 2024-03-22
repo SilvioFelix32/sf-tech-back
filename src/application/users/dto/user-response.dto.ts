@@ -3,5 +3,6 @@ export const userResponse = {
   email: true,
   lastName: true,
   name: true,
+  role: true,
   user_id: true,
 };

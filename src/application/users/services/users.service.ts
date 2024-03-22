@@ -50,6 +50,30 @@ export class UsersService {
         'User with this email already exists in this company',
       );
     }
+
+    if (data.password.length < 8) {
+      throw new BadRequestException(
+        'Password must be at least 8 characters long',
+      );
+    }
+
+    if (!/[A-Z]/.test(data.password)) {
+      throw new BadRequestException(
+        'Password must contain at least one uppercase letter',
+      );
+    }
+
+    if (!/\d/.test(data.password)) {
+      throw new BadRequestException(
+        'Password must contain at least one number',
+      );
+    }
+
+    if (!/[!@#$%^&*()-_=+{};:,<.>]/.test(data.password)) {
+      throw new BadRequestException(
+        'Password must contain at least one special character',
+      );
+    }
   }
 
   private async validateUpdateLocalUser(
@@ -84,27 +108,35 @@ export class UsersService {
   ): Promise<IResult<IUserResponse> | unknown> {
     await this.validateCreateLocalUser(company_id, dto);
 
-    const encryptedPassword = await bcrypt.hash(dto.password, 10);
+    try {
+      const encryptedPassword = await bcrypt.hash(dto.password, 10);
+      if (!encryptedPassword) {
+        return new ResultError('Failed to encrypt password');
+      }
 
-    const data: Prisma.UserCreateInput = {
-      company_id,
-      password: encryptedPassword,
-      ...dto,
-    };
+      const data: Prisma.UserCreateInput = {
+        company_id,
+        ...dto,
+        password: encryptedPassword,
+      };
 
-    return this.prisma.user.create({
-      data,
-      select: {
-        ...userResponse,
-      },
-    });
+      const createdUser = await this.prisma.user.create({
+        data,
+        select: {
+          ...userResponse,
+        },
+      });
+
+      return new ResultSuccess(
+        `User created succesfully, user_id: ${createdUser.user_id}`,
+      );
+    } catch (error) {
+      return new ResultError('Failed to create user');
+    }
   }
 
   async findByEmail(email: string): Promise<IResult<IUserResponse> | unknown> {
     const user = await this.prisma.user.findUnique({
-      select: {
-        ...userResponse,
-      },
       where: { email },
     });
 
@@ -122,7 +154,6 @@ export class UsersService {
       },
       where: { user_id },
     });
-
     if (!user) {
       throw new NotFoundException('User not found');
     }

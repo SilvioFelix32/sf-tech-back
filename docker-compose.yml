@@ -2,22 +2,18 @@ version: '3.9'
 
 services:
   database:
-    image: postgres:latest # Corrigido o nome da imagem do PostgreSQL
+    image: postgres:latest
     container_name: sf-tech-postgresql
     ports:
-      - '5432:5432' # Alterado para usar strings para as portas
+      - 5432:5432
     volumes:
-      - ./postgresql-data:/var/lib/postgresql/data # Corrigido o caminho do volume
+      - ./postgresql-data:/var/lib/postgresql/data
     restart: always
     networks:
       - postgresql-network
 
   redis:
     image: redis:alpine
-    environment:
-      - REDIS_HOST=oregon-redis.render.com
-      - REDIS_USER=red-cihe8v5gkuvojje31ta0
-      - REDIS_PORT=6379
     container_name: redis
     ports:
       - 6379:6379
@@ -26,37 +22,30 @@ services:
     command: redis-server
     restart: always
     networks:
-      - postgresql-network # Alterado o nome da rede para corresponder à rede do PostgreSQL
+      - postgresql-network #
 
   app:
     build: .
     container_name: sf-tech
     ports:
-      - 3003:3003 # Alterado para usar strings para as portas
+      - 3003:3003
     networks:
       - postgresql-network
     depends_on:
       - database
       - redis
     restart: always
-    environment:
-      - JWT_SECRET=af3fe660-686f-4e5e-9f95-89f6caac0fd7
-      - REDIS_HOST=oregon-redis.render.com
-      - REDIS_USER=red-cihe8v5gkuvojje31ta0
-      - REDIS_PASSWORD=WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn
-      - EXTERNAL_REDIS=rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379
-      - DATABASE_URL=postgres://lrazgqcb:e3ac1bd0-5377-421c-9b35-3293a3a358a8@babar.db.elephantsql.com:5432/$lrazgqcb?schema=public
     env_file:
       - .env
     volumes:
       - ./redis.crt:/usr/src/redis.crt
 
 volumes:
-  postgresql-data: # Corrigido o nome do volume
+  postgresql-data:
     driver: local
   redis-data:
     driver: local
 
 networks:
-  postgresql-network: # Corrigido o nome da rede
+  postgresql-network:
     driver: bridge
