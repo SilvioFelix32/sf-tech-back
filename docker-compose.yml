@@ -2,61 +2,50 @@ version: '3.9'
 
 services:
   database:
-    image: mongo
-    container_name: sf-tech-mongo
+    image: postgres:latest # Corrigido o nome da imagem do PostgreSQL
+    container_name: sf-tech-postgresql
     ports:
-      - 27017:27017
+      - '5432:5432' # Alterado para usar strings para as portas
     volumes:
-      - ./mongo-data:/data/db
+      - ./postgresql-data:/var/lib/postgresql/data # Corrigido o caminho do volume
     restart: always
     networks:
-      - mongo-network
+      - postgresql-network
 
   redis:
     image: redis:alpine
-    environment:
-      - REDIS_HOST=oregon-redis.render.com
-      - REDIS_USER=red-cihe8v5gkuvojje31ta0
-      - REDIS_PORT=6379
     container_name: redis
     ports:
-      - 6379:6379
+      - '6379:6379' # Alterado para usar strings para as portas
     volumes:
       - ./redis-data:/data
-    command: redis-server
+    command: redis-server --requirepass your_password_here # Adicionada senha para o Redis
     restart: always
     networks:
-      - mongo-network
+      - postgresql-network # Alterado o nome da rede para corresponder à rede do PostgreSQL
 
   app:
     build: .
     container_name: sf-tech
     ports:
-      - 3003:3003
+      - '3003:3003' # Alterado para usar strings para as portas
     networks:
-      - mongo-network
+      - postgresql-network
     depends_on:
       - database
       - redis
     restart: always
-    environment:
-      - JWT_SECRET=af3fe660-686f-4e5e-9f95-89f6caac0fd7
-      - REDIS_HOST=oregon-redis.render.com
-      - REDIS_USER=red-cihe8v5gkuvojje31ta0
-      - REDIS_PASSWORD=WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn
-      - EXTERNAL_REDIS=rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379
-      - DATABASE_URL=mongodb+srv://sf-tech:pczCa918O7cuEGSY@sf-tech.k6lsm.mongodb.net/sf-tech
     env_file:
       - .env
     volumes:
       - ./redis.crt:/usr/src/redis.crt
 
 volumes:
-  mongo-data:
+  postgresql-data: # Corrigido o nome do volume
     driver: local
   redis-data:
     driver: local
 
 networks:
-  mongo-network:
+  postgresql-network: # Corrigido o nome da rede
     driver: bridge
