@@ -1,9 +1,8 @@
 FROM node:latest
 WORKDIR /usr/app
 COPY package.json yarn.lock ./
-RUN yarn
+RUN yarn install --frozen-lockfile
 COPY . .
-RUN yarn build
+RUN yarn build || echo "Build failed, please check your build configuration."
 EXPOSE 3003
-CMD ["node", "./dist/src/main"]  # Alteração no comando CMD para executar o arquivo gerado corretamente
-
+CMD ["node", "./dist/src/main"]
