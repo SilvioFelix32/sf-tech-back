@@ -14,9 +14,13 @@ services:
 
   redis:
     image: redis:alpine
+    environment:
+      - REDIS_HOST=oregon-redis.render.com
+      - REDIS_USER=red-cihe8v5gkuvojje31ta0
+      - REDIS_PORT=6379
     container_name: redis
     ports:
-      - '6379:6379' # Alterado para usar strings para as portas
+      - 6379:6379
     volumes:
       - ./redis-data:/data
     command: redis-server
@@ -28,13 +32,20 @@ services:
     build: .
     container_name: sf-tech
     ports:
-      - '3003:3003' # Alterado para usar strings para as portas
+      - 3003:3003 # Alterado para usar strings para as portas
     networks:
       - postgresql-network
     depends_on:
       - database
       - redis
     restart: always
+    environment:
+      - JWT_SECRET=af3fe660-686f-4e5e-9f95-89f6caac0fd7
+      - REDIS_HOST=oregon-redis.render.com
+      - REDIS_USER=red-cihe8v5gkuvojje31ta0
+      - REDIS_PASSWORD=WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn
+      - EXTERNAL_REDIS=rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379
+      - DATABASE_URL=mongodb+srv://sf-tech:pczCa918O7cuEGSY@sf-tech.k6lsm.mongodb.net/sf-tech
     env_file:
       - .env
     volumes:
