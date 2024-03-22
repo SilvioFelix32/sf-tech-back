@@ -8,7 +8,7 @@ import {
 
 export class CreateProductDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   sku: string;
 
   @IsString()
@@ -32,7 +32,7 @@ export class CreateProductDto {
   price: number;
 
   @IsNumber()
-  @IsNotEmpty()
+  @IsOptional()
   discount: number;
 
   @IsBoolean()

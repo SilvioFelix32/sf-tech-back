@@ -2,50 +2,28 @@
 import { Prisma } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
-export const productSeed: Prisma.ProductCreateInput[] = Array.from(
-  { length: 2 },
-  (): Prisma.ProductCreateInput => ({
-    sku: faker.datatype.uuid(),
-    title: 'Notebook',
-    subtitle: 'Ideapad Gaming3I',
-    description:
-      'Intel Core i5-10300H, Memória8gb, 256Gb SSD PCIe, NVIDEA GeForce GTX 1650 4gb',
-    urlBanner: 'https://imgur.com/aDk3w0x.jpeg',
-    price: Number(Math.floor(Math.random() * 10000)),
-    discount: Number(Math.floor(Math.random() * 100)),
-  }),
-);
-
-productSeed.push(
+export const productSeed: Prisma.ProductCreateManyInput[] = [
   {
-    sku: faker.datatype.uuid(),
-    title: 'Notebook',
-    subtitle: 'Ideapad Gaming3I',
+    company_id: 'b4cce349-7c0b-41c7-9b3e-c21c9f0c2e4c',
     description:
       'Intel Core i5-10300H, Memória8gb, 256Gb SSD PCIe, NVIDEA GeForce GTX 1650 4gb',
-    urlBanner: 'https://imgur.com/aDk3w0x.jpeg',
-    price: Number(Math.floor(Math.random() * 10000)),
     discount: Number(Math.floor(Math.random() * 100)),
+    price: Number(Math.floor(Math.random() * 10000)),
+    sku: faker.datatype.uuid(),
+    subtitle: 'Ideapad Gaming3I',
+    title: 'Notebook',
+    urlBanner: 'https://imgur.com/aDk3w0x.jpeg',
   },
   {
-    sku: faker.datatype.uuid(),
-    title: 'Notebook',
-    subtitle: 'Ideapad Gaming3I',
-    description:
-      'Intel Core i5-10300H, Memória8gb, 256Gb SSD PCIe, NVIDEA GeForce GTX 1650 4gb',
-    urlBanner: 'https://imgur.com/aDk3w0x.jpeg',
-    price: Number(Math.floor(Math.random() * 10000)),
-    discount: Number(Math.floor(Math.random() * 100)),
-  },
-  {
-    sku: faker.datatype.uuid(),
-    title: 'Computador',
-    subtitle: 'Gamer Master',
+    company_id: 'b4cce349-7c0b-41c7-9b3e-c21c9f0c2e4c',
     description:
       'Intel Core i7-10300H, Memória16gb, 480Gb SSD PCIe, NVIDEA GeForce GTX 1650 8gb',
-    urlBanner: 'https://i.imgur.com/7xrToah.jpeg',
-    price: Number(Math.floor(Math.random() * 10000)),
     discount: Number(Math.floor(Math.random() * 100)),
+    price: Number(Math.floor(Math.random() * 10000)),
+    sku: faker.datatype.uuid(),
+    subtitle: 'Gamer Master',
+    title: 'Computador',
+    urlBanner: 'https://i.imgur.com/7xrToah.jpeg',
   },
   {
     sku: faker.datatype.uuid(),
@@ -55,6 +33,7 @@ productSeed.push(
     urlBanner: 'https://imgur.com/LXwXtOR.jpeg',
     price: Number(Math.floor(Math.random() * 10000)),
     discount: Number(Math.floor(Math.random() * 100)),
+    company_id: 'b4cce349-7c0b-41c7-9b3e-c21c9f0c2e4c',
   },
   {
     sku: faker.datatype.uuid(),
@@ -65,6 +44,7 @@ productSeed.push(
     urlBanner: 'https://imgur.com/xpYSoVN.jpeg',
     price: Number(Math.floor(Math.random() * 10000)),
     discount: Number(Math.floor(Math.random() * 100)),
+    company_id: 'b4cce349-7c0b-41c7-9b3e-c21c9f0c2e4c',
   },
   {
     sku: faker.datatype.uuid(),
@@ -74,6 +54,7 @@ productSeed.push(
     urlBanner: 'https://i.imgur.com/2ifI0uy.jpeg',
     price: Number(Math.floor(Math.random() * 10000)),
     discount: Number(Math.floor(Math.random() * 100)),
+    company_id: 'b4cce349-7c0b-41c7-9b3e-c21c9f0c2e4c',
   },
   {
     sku: faker.datatype.uuid(),
@@ -83,5 +64,6 @@ productSeed.push(
     urlBanner: 'https://i.imgur.com/9npHInE.jpeg',
     price: Number(Math.floor(Math.random() * 10000)),
     discount: Number(Math.floor(Math.random() * 100)),
+    company_id: 'b4cce349-7c0b-41c7-9b3e-c21c9f0c2e4c',
   },
-);
+];

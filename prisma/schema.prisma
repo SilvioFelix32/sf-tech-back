@@ -8,11 +8,12 @@ datasource db {
 }
 
 model Company {
-  company_id        String            @id @default(uuid()) @map("_id")
-  name              String            @unique
-  fantasyName       String?
-  email             String            @unique
-  urlBanner         String?
+  company_id  String  @id @default(uuid()) @map("_id")
+  name        String  @unique
+  fantasyName String?
+  email       String  @unique
+  urlBanner   String?
+
   users             User[]
   products          Product[]
   productCategories ProductCategory[]
@@ -30,7 +31,7 @@ enum Role {
 
 model User {
   user_id    String   @id @default(uuid()) @map("_id")
-  company    Company? @relation(fields: [company_id], references: [company_id])
+  company    Company? @relation(fields: [company_id], references: [company_id], onDelete: Cascade, onUpdate: Cascade)
   company_id String
   name       String
   lastName   String
@@ -45,7 +46,7 @@ model User {
 
 model ProductCategory {
   category_id String    @id @default(uuid()) @map("_id")
-  company     Company?  @relation(fields: [company_id], references: [company_id])
+  company     Company?  @relation(fields: [company_id], references: [company_id], onDelete: Cascade, onUpdate: Cascade)
   company_id  String
   title       String
   description String?
@@ -53,33 +54,37 @@ model ProductCategory {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("product_category")
 }
 
 model Product {
-  product_id      String           @id @default(uuid()) @map("_id")
-  company         Company?         @relation(fields: [company_id], references: [company_id])
-  company_id      String
-  productCategory ProductCategory? @relation(fields: [category_id], references: [category_id])
-  category_id     String?
-  sku             String
-  title           String
-  subtitle        String?
-  description     String?
-  urlBanner       String?
-  price           Float
-  discount        Float
-  highlighted     Boolean?         @default(false)
-  active          Boolean?         @default(true)
+  product_id       String           @id @default(uuid()) @map("_id")
+  product_category ProductCategory? @relation(fields: [category_id], references: [category_id], onDelete: Cascade, onUpdate: Cascade)
+  category_id      String?
+  company          Company?         @relation(fields: [company_id], references: [company_id], onDelete: Cascade, onUpdate: Cascade)
+  company_id       String?
+  sku              String?
+  title            String
+  subtitle         String?
+  description      String?
+  urlBanner        String?
+  price            Float
+  discount         Float?
+  highlighted      Boolean?         @default(false)
+  active           Boolean?         @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("product")
 }
 
 model Sale {
   sale_id    String   @id @default(uuid()) @map("_id")
-  company    Company? @relation(fields: [company_id], references: [company_id])
+  company    Company? @relation(fields: [company_id], references: [company_id], onDelete: Cascade, onUpdate: Cascade)
   company_id String
-  user       User     @relation(fields: [user_id], references: [user_id])
+  user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
   user_id    String
   total      Float
 

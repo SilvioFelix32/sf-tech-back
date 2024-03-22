@@ -25,10 +25,13 @@ export class ProductController {
   @Post()
   @IsPublic()
   create(@Headers() header: IHeaders, @Body() dto: CreateProductDto) {
-    const { company_id } = header;
+    const { company_id, category_id } = header;
 
     if (!company_id) {
       throw new BadRequestException('No Company informed');
+    }
+    if (!category_id) {
+      throw new BadRequestException('No Category informed');
     }
 
     const { urlBanner } = dto;
@@ -36,7 +39,7 @@ export class ProductController {
       dto.urlBanner = 'https://i.imgur.com/2HFGvvT.png';
     }
 
-    return this.productService.create(company_id, dto);
+    return this.productService.create(company_id, category_id, dto);
   }
 
   @Get()

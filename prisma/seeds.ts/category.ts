@@ -1,25 +1,19 @@
-import { Prisma } from '@prisma/client';
+import { productSeed } from './products';
 
-export const productCategoriesSeed: Prisma.ProductCategoryCreateInput[] =
-  Array.from(
-    { length: 1 },
-    (): Prisma.ProductCategoryCreateInput => ({
-      description: 'PERIFERICOS',
-      title: 'PERIFERICOS',
-    }),
-  );
-
-productCategoriesSeed.push(
+export const productCategoriesSeed = [
   {
     description: 'COMPUTER',
+    products: { createMany: { data: productSeed } },
     title: 'COMPUTER',
   },
   {
     description: 'NOTEBOOK',
+    products: { createMany: { data: productSeed } },
     title: 'NOTEBOOK',
   },
   {
     description: 'MONITOR',
+    products: { createMany: { data: productSeed } },
     title: 'MONITOR',
   },
-);
+];

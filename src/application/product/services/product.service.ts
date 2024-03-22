@@ -37,12 +37,14 @@ export class ProductService {
 
   async create(
     company_id: string,
+    category_id: string,
     dto: CreateProductDto,
   ): Promise<Product | unknown> {
     this.validateCompany(company_id);
 
     const data: Prisma.ProductCreateInput = {
       company: { connect: { company_id } },
+      product_category: { connect: { category_id } },
       ...dto,
     };
 
@@ -61,7 +63,6 @@ export class ProductService {
     const cachedData = await this.redisService
       .get(key)
       .then((data) => JSON.parse(data));
-
     if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
       const dbData = await paginate<Product, Prisma.ProductFindManyArgs>(
         this.prismaService.product,

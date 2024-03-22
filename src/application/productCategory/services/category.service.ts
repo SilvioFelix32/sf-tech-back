@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, ProductCategory } from '@prisma/client';
@@ -12,9 +13,6 @@ import { categoryResponse } from '../dto/category-response';
 import { FindCategoryDto } from '../dto/find-category.dto';
 import { RedisService } from '../../../shared/infraestructure/cache/redis';
 import { Category } from '../entities/category.entity';
-import { IResult } from 'src/exceptions/result';
-import { ResultSuccess } from 'src/exceptions/result-success';
-import { ResultError } from 'src/exceptions/result-error';
 
 @Injectable()
 export class CategoryService {
@@ -40,6 +38,7 @@ export class CategoryService {
     }
   }
 
+  //TODO: adicionar criação no redis também
   async create(
     company_id: string,
     dto: CreateCategoryDto,
@@ -59,7 +58,7 @@ export class CategoryService {
   async findAll(
     company_id: string,
     query: FindCategoryDto,
-  ): Promise<IResult<ProductCategory>> {
+  ): Promise<ProductCategory | null> {
     const { page, limit } = query;
     const paginate = createPaginator({ perPage: limit });
 
@@ -98,13 +97,13 @@ export class CategoryService {
           60 * 60 * 24 * 7,
         );
 
-        return new ResultSuccess(dbData as unknown as ProductCategory);
+        return dbData.data as unknown as ProductCategory;
       } catch (error) {
-        return new ResultError('Error on fetch users');
+        throw new InternalServerErrorException('Error on fetch users');
       }
     }
 
-    return new ResultSuccess(cachedData.data);
+    return cachedData.data;
   }
 
   async findOne(category_id: string): Promise<Category> {
