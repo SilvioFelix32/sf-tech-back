@@ -15,10 +15,7 @@ yarn-error.log*
 lerna-debug.log*
 
 # ignore certificates
-.crt*
-ca.crt*
-redis.crt
-redis.key
+/certificates
 
 # OS
 .DS_Store

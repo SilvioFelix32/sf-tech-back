@@ -8,7 +8,7 @@ export class RedisService extends Redis {
       password: process.env.REDIS_PASSWORD,
       port: 6379,
       tls: {
-        ca: ['/usr/src/redis.crt'],
+        ca: ['/usr/certificates/redis.crt'],
         rejectUnauthorized: false,
       },
       username: process.env.REDIS_USER,
