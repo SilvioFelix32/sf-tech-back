@@ -7,10 +7,10 @@ import {
 import { CreateCompanyDto } from '../dto/create-company.dto';
 import { UpdateCompanyDto } from '../dto/update-company.dto';
 import { Company } from '../entities/company.entity';
-import { IResult } from 'src/exceptions/result';
-import { ResultSuccess } from 'src/exceptions/result-success';
-import { ResultError } from 'src/exceptions/result-error';
-import { PrismaService } from 'src/shared/infraestructure/prisma/prisma.service';
+import { IResult } from '../../../exceptions/result';
+import { ResultSuccess } from '../../../exceptions/result-success';
+import { ResultError } from '../../../exceptions/result-error';
+import { PrismaService } from '../../../shared/infraestructure/prisma-service/prisma.service';
 
 @Injectable()
 export class CompaniesService {

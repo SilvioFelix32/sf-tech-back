@@ -7,14 +7,14 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
-import { PrismaService } from '../../../shared/infraestructure/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infraestructure/prisma-service/prisma.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
-import { IProductResponse, productResponse } from '../dto/product-response';
+import { IProductResponse } from '../dto/product-response';
+import { CategoryService } from '../../productCategory/services/category.service';
 import { FindProductDto } from '../dto/find-product.dto';
-import { RedisService } from '../../../shared/infraestructure/cache/redis';
+import { RedisService } from '../../../shared/infraestructure/cache-service/redis.service';
 import { Product } from '../entities/product.entity';
-import { CategoryService } from 'src/application/productCategory/services/category.service';
 
 @Injectable()
 export class ProductService {
@@ -97,14 +97,14 @@ export class ProductService {
   }
 
   async findOne(product_id: string): Promise<Product> {
-    await this.validateProduct(product_id);
-
     try {
-      return await this.prismaService.product.findUnique({
-        where: { product_id },
-      });
+      return await this.validateProduct(product_id);
     } catch (error) {
-      console.error('Error retrieving product', error as Error);
+      const err = error as Error;
+      console.error('Error retrieving product:', err);
+      if (err.message === 'Product not found') {
+        throw new NotFoundException(err.message);
+      }
       throw new InternalServerErrorException('Error retrieving product');
     }
   }
@@ -136,11 +136,10 @@ export class ProductService {
     }
   }
 
-  private async validateProduct(product_id: string) {
+  private async validateProduct(product_id: string): Promise<Product> {
     const product = await this.prismaService.product.findUnique({
       where: { product_id },
     });
-
     if (!product) {
       throw new NotFoundException('Product not found');
     }

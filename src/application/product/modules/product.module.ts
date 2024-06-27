@@ -1,8 +1,8 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { ProductController } from '../infra/product.controller';
 import { ProductService } from '../services/product.service';
-import { SharedServicesModule } from 'src/shared/infraestructure/shared-services.module';
-import { CategoryModule } from 'src/application/productCategory/modules/category.module';
+import { SharedServicesModule } from '../../../shared/infraestructure/shared-services.module';
+import { CategoryModule } from '../../../application/productCategory/modules/category.module';
 
 @Module({
   imports: [SharedServicesModule, forwardRef(() => CategoryModule)],

@@ -5,16 +5,16 @@ import {
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
-import { Prisma, ProductCategory } from '@prisma/client';
-import { PaginatedResult, createPaginator } from 'prisma-pagination';
-import { PrismaService } from '../../../shared/infraestructure/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+import { PaginatedResult } from 'prisma-pagination';
+import { PrismaService } from '../../../shared/infraestructure/prisma-service/prisma.service';
 import { CreateCategoryDto } from '../dto/create-category.dto';
 import { UpdateCategoryDto } from '../dto/update-category.dto';
-import { ICategoryResponse, categoryResponse } from '../dto/category-response';
+import { ICategoryResponse } from '../dto/category-response';
 import { FindCategoryDto } from '../dto/find-category.dto';
-import { RedisService } from '../../../shared/infraestructure/cache/redis';
+import { RedisService } from '../../../shared/infraestructure/cache-service/redis.service';
+import { ProductService } from '../../product/services/product.service';
 import { Category } from '../entities/category.entity';
-import { ProductService } from 'src/application/product/services/product.service';
 
 @Injectable()
 export class CategoryService {
@@ -47,8 +47,9 @@ export class CategoryService {
     company_id: string,
     query: FindCategoryDto,
   ): Promise<ICategoryResponse> {
+    await this.validateCompany(company_id);
     const { page, limit } = query;
-    const cacheKey = 'Category';
+    const cacheKey = 'category';
     const cacheExpiryTime = 60;
     const currentTime = Math.floor(Date.now() / 1000);
 
@@ -87,12 +88,11 @@ export class CategoryService {
     await this.validateCategory(category_id);
 
     try {
-      const response = await this.prismaService.productCategory.findUnique({
+      return await this.prismaService.productCategory.findUnique({
         where: {
           category_id,
         },
       });
-      return response;
     } catch (error) {
       console.error('Error on find category', error);
       throw new InternalServerErrorException('Error on find category');
@@ -142,6 +142,16 @@ export class CategoryService {
 
     if (!verifyIfProductExists) {
       throw new NotFoundException('Product not found');
+    }
+  }
+
+  private async validateCompany(company_id: string) {
+    const verifyIfCompanyExists = await this.prismaService.company.findUnique({
+      where: { company_id },
+    });
+
+    if (!verifyIfCompanyExists) {
+      throw new NotFoundException('Company not found');
     }
   }
 

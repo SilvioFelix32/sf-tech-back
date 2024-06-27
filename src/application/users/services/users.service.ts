@@ -6,16 +6,16 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Prisma, User } from '@prisma/client';
-import { PrismaService } from '../../../shared/infraestructure/prisma/prisma.service';
+import { PrismaService } from '../../../shared/infraestructure/prisma-service/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { FindUserDto } from '../dto/find-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { userResponse } from '../dto/user-response.dto';
-import { PaginatedResult, createPaginator } from 'prisma-pagination';
-import { RedisService } from '../../../shared/infraestructure/cache/redis';
-import { IResult } from 'src/exceptions/result';
-import { ResultSuccess } from 'src/exceptions/result-success';
-import { ResultError } from 'src/exceptions/result-error';
+import { PaginatedResult } from 'prisma-pagination';
+import { RedisService } from '../../../shared/infraestructure/cache-service/redis.service';
+import { IResult } from '../../../exceptions/result';
+import { ResultSuccess } from '../../../exceptions/result-success';
+import { ResultError } from '../../../exceptions/result-error';
 import { IPaginatedUserResponse, IUserResponse } from '../types/user-response';
 
 @Injectable()
