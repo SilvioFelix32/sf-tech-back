@@ -8,6 +8,10 @@ import {
 
 export class CreateProductDto {
   @IsString()
+  @IsNotEmpty()
+  category_id: string;
+
+  @IsString()
   @IsOptional()
   sku: string;
 

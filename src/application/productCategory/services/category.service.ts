@@ -1,8 +1,9 @@
 import {
-  BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { Prisma, ProductCategory } from '@prisma/client';
 import { createPaginator } from 'prisma-pagination';
@@ -13,41 +14,25 @@ import { categoryResponse } from '../dto/category-response';
 import { FindCategoryDto } from '../dto/find-category.dto';
 import { RedisService } from '../../../shared/infraestructure/cache/redis';
 import { Category } from '../entities/category.entity';
+import { ProductService } from 'src/application/product/services/product.service';
 
 @Injectable()
 export class CategoryService {
   constructor(
+    @Inject(forwardRef(() => ProductService))
+    private readonly productService: ProductService,
     private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
   ) {}
-
-  private validateCompany(company_id: string) {
-    if (!company_id) {
-      throw new BadRequestException('No company_id informed');
-    }
-  }
-
-  private async validateProduct(category_id: string) {
-    const verifyIfProductExists =
-      await this.prismaService.productCategory.findUnique({
-        where: { category_id },
-      });
-
-    if (!verifyIfProductExists) {
-      throw new NotFoundException('Product not found');
-    }
-  }
 
   //TODO: adicionar criação no redis também
   async create(
     company_id: string,
     dto: CreateCategoryDto,
   ): Promise<Category | unknown> {
-    this.validateCompany(company_id);
-
     const data: Prisma.ProductCategoryCreateInput = {
-      company: { connect: { company_id } },
       ...dto,
+      company: { connect: { company_id } },
     };
 
     return this.prismaService.productCategory.create({
@@ -107,7 +92,7 @@ export class CategoryService {
   }
 
   async findOne(category_id: string): Promise<Category> {
-    await this.validateProduct(category_id);
+    await this.validateCategory(category_id);
 
     const response = await this.prismaService.productCategory.findUnique({
       where: {
@@ -118,7 +103,7 @@ export class CategoryService {
   }
 
   async update(category_id: string, dto: UpdateCategoryDto): Promise<Category> {
-    await this.validateProduct(category_id);
+    await this.validateCategory(category_id);
 
     const response = await this.prismaService.productCategory.update({
       data: {
@@ -132,7 +117,7 @@ export class CategoryService {
   }
 
   async remove(category_id: string): Promise<Category> {
-    await this.validateProduct(category_id);
+    await this.validateCategory(category_id);
 
     const response = await this.prismaService.productCategory.delete({
       where: {
@@ -140,5 +125,16 @@ export class CategoryService {
       },
     });
     return response;
+  }
+
+  private async validateCategory(category_id: string) {
+    const verifyIfProductExists =
+      await this.prismaService.productCategory.findUnique({
+        where: { category_id },
+      });
+
+    if (!verifyIfProductExists) {
+      throw new NotFoundException('Product not found');
+    }
   }
 }

@@ -25,10 +25,7 @@ export class CategoryController {
   @IsPublic()
   create(@Headers() header: IHeaders, @Body() dto: CreateCategoryDto) {
     const { company_id } = header;
-
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
-    }
+    this.validateHeaders(header);
 
     return this.categoryService.create(company_id, dto);
   }
@@ -37,37 +34,38 @@ export class CategoryController {
   @IsPublic()
   async findAll(@Headers() header: IHeaders, @Query() query: FindCategoryDto) {
     const { company_id } = header;
-
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
-    }
+    this.validateHeaders(header);
 
     return this.categoryService.findAll(company_id, query);
   }
 
   @Get(':id')
   @IsPublic()
-  findOne(@Param('id') product_id: string) {
-    return this.categoryService.findOne(product_id);
+  findOne(@Param('id') category_id: string) {
+    return this.categoryService.findOne(category_id);
   }
 
   @Patch(':id')
   @IsPublic()
   update(
     @Headers() header: IHeaders,
-    @Param('id') product_id: string,
+    @Param('id') category_id: string,
     @Body() dto: UpdateCategoryDto,
   ) {
-    const { company_id } = header;
-
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
-    }
-    return this.categoryService.update(product_id, dto);
+    this.validateHeaders(header);
+    
+    return this.categoryService.update(category_id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') product_id: string) {
-    return this.categoryService.remove(product_id);
+  remove(@Param('id') category_id: string) {
+    return this.categoryService.remove(category_id);
+  }
+
+  private validateHeaders(header: IHeaders) {
+    const { company_id } = header;
+    if (!company_id) {
+      throw new BadRequestException('No Company informed');
+    }
   }
 }

@@ -1,14 +1,23 @@
-import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  INestApplication,
+  Injectable,
+  InternalServerErrorException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   private static instance: PrismaService | null = null;
   private readonly maxConnectionAttempts = 3;
   private connectionAttempts = 0;
-
   constructor() {
-    super();
+    super({
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL,
+        },
+      },
+    });
     if (PrismaService.instance === null) {
       PrismaService.instance = this;
     }
@@ -26,7 +35,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
   private async connectWithRetry() {
     while (this.connectionAttempts < this.maxConnectionAttempts) {
       try {
-        await PrismaService.instance.$connect();
+        await this.$connect();
         console.log('Database connection successful');
         return;
       } catch (err) {
@@ -36,13 +45,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
         );
       }
     }
-    throw new Error(
+    throw new InternalServerErrorException(
       `Maximum connection attempts (${this.maxConnectionAttempts}) reached.`,
     );
   }
 
   async enableShutdownHooks(app: INestApplication) {
-    PrismaService.instance.$on('beforeExit', async () => {
+    process.on('beforeExit', async () => {
       await app.close();
     });
   }

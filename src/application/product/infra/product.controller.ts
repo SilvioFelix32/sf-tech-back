@@ -25,43 +25,28 @@ export class ProductController {
   @Post()
   @IsPublic()
   create(@Headers() header: IHeaders, @Body() dto: CreateProductDto) {
-    const { company_id, category_id } = header;
-
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
-    }
-    if (!category_id) {
-      throw new BadRequestException('No Category informed');
-    }
+    const { category_id } = header;
+    this.validateHeaders(header);
 
     const { urlBanner } = dto;
     if (urlBanner === null || undefined) {
       dto.urlBanner = 'https://i.imgur.com/2HFGvvT.png';
     }
 
-    return this.productService.create(company_id, category_id, dto);
+    return this.productService.create(category_id, dto);
   }
 
   @Get()
   @IsPublic()
-  async findAll(@Headers() header: IHeaders, @Query() query: FindProductDto) {
-    const { company_id } = header;
-
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
-    }
-
-    return this.productService.findAll(company_id, query);
+  async findAll(@Query() query: FindProductDto) {
+    return this.productService.findAll( query);
   }
 
   @Get()
   async search(
-    @Headers() header: IHeaders,
     @Query('query') query: string,
   ): Promise<Product[]> {
-    const { company_id } = header;
-
-    return this.productService.search(company_id, query);
+    return this.productService.search( query);
   }
 
   @Get(':id')
@@ -77,16 +62,20 @@ export class ProductController {
     @Param('id') product_id: string,
     @Body() dto: UpdateProductDto,
   ) {
-    const { company_id } = header;
+    this.validateHeaders(header);
 
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
-    }
     return this.productService.update(product_id, dto);
   }
 
   @Delete(':id')
   remove(@Param('id') product_id: string) {
     return this.productService.remove(product_id);
+  }
+
+  private validateHeaders(header: IHeaders) {
+    if (!header.category_id) {
+      console.error('A category_id must be informed to create a new product')
+      throw new BadRequestException('A category_id must be informed to create a new product');
+    }
   }
 }

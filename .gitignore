@@ -4,6 +4,7 @@ node_modules
 .env
 mongo-data
 redis-data
+postgresql-data
 
 # Logs
 logs
@@ -34,4 +35,4 @@ lerna-debug.log*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
-!.vscode/extensions.json
+!.vscode/extensions.jsonpostgresql-data/

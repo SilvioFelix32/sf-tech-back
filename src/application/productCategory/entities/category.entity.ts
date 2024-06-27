@@ -5,7 +5,7 @@ export class Category {
   company_id: string;
   title?: string;
   description?: string;
-  products?: Product[];
+  products?: any;
 
   createdAt?: Date | string;
   updatedAt?: Date | string;

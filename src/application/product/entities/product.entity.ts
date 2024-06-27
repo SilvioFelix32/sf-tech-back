@@ -1,6 +1,6 @@
 export class Product {
   product_id: string;
-  company_id: string;
+  category_id: string;
   sku?: string;
   title?: string;
   subtitle?: string;

@@ -1,6 +1,6 @@
 export const productResponse = {
   active: true,
-  company_id: true,
+  category_id: true,
   description: true,
   discount: true,
   highlighted: true,

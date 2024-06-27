@@ -13,5 +13,5 @@ export class FindCategoryDto extends QueryPaginateDto {
 
   @IsArray()
   @IsOptional()
-  products: Product[];
+  products?: any;
 }
