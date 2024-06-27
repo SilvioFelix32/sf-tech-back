@@ -1,5 +1,3 @@
-import { Product } from '@prisma/client';
-
 export class Category {
   category_id: string;
   company_id: string;

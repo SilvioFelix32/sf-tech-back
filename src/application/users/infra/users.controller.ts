@@ -13,7 +13,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
-import { IPaginateDto } from '../../../shared/paginator/paginate.interface.dto';
 import { IsPublic } from '../../auth/decorators/is-public.decorator';
 import { IHeaders } from '../../../shared/IHeaders';
 import { CreateUserDto } from '../dto/create-user.dto';
@@ -46,10 +45,7 @@ export class UsersController {
   @Get()
   @IsPublic()
   @ApiResponse({ status: 200, type: [User] })
-  findAll(
-    @Headers() header: IHeaders,
-    @Query() query: FindUserDto,
-  ): Promise<IPaginateDto | unknown> {
+  findAll(@Headers() header: IHeaders, @Query() query: FindUserDto) {
     const { company_id } = header;
     if (!company_id) {
       throw new BadRequestException('No Company informed');

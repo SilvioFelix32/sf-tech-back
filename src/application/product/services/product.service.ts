@@ -6,11 +6,11 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PaginatedResult, createPaginator } from 'prisma-pagination';
+import { PaginatedResult } from 'prisma-pagination';
 import { PrismaService } from '../../../shared/infraestructure/prisma/prisma.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
-import { productResponse } from '../dto/product-response';
+import { IProductResponse, productResponse } from '../dto/product-response';
 import { FindProductDto } from '../dto/find-product.dto';
 import { RedisService } from '../../../shared/infraestructure/cache/redis';
 import { Product } from '../entities/product.entity';
@@ -41,38 +41,41 @@ export class ProductService {
     }
   }
 
-  async findAll(query: FindProductDto): Promise<PaginatedResult<Product>> {
+  // Todo: pensar numa maneira de remover o data.data
+  async findAll(query: FindProductDto): Promise<IProductResponse> {
     const { page, limit } = query;
-    const paginate = createPaginator({ perPage: limit });
-
-    const key = 'product';
-    const cacheExpiryTime = 60;
+    const cacheKey = 'product';
+    const cacheExpiryTime = 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
-      const cachedData = await this.getCache(key);
+      const cachedData = await this.getCache(cacheKey);
       if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
-        const dbData = await paginate<Product, Prisma.ProductFindManyArgs>(
-          this.prismaService.product,
-          {
-            select: {
-              ...productResponse,
-            },
-          },
-          { page },
-        );
-
-        await this.setCache(
-          key,
-          { data: dbData, timestamp: currentTime },
+        const dbData = await this.fetchAndCacheProducts(
+          page,
+          limit,
+          cacheKey,
           cacheExpiryTime,
         );
-        return dbData;
+
+        return {
+          message: 'Products retrieved from database',
+          data: dbData,
+        };
       }
 
-      return cachedData.data;
+      const paginatedCacheData = this.paginateData(
+        cachedData.data,
+        page,
+        limit,
+      );
+
+      return {
+        message: 'Products retrieved from cache',
+        data: paginatedCacheData,
+      };
     } catch (error) {
-      console.error('Error retrieving products', error as Error);
+      console.error('Error retrieving products from cache', error as Error);
       throw new InternalServerErrorException('Error retrieving products');
     }
   }
@@ -157,10 +160,64 @@ export class ProductService {
 
   private async getCache(key: string) {
     const cachedData = await this.redisService.get(key);
+    console.log(
+      `Retrieved cache for key: ${key}, data:`,
+      JSON.parse(cachedData),
+    );
     return cachedData ? JSON.parse(cachedData) : null;
   }
 
   private async setCache(key: string, data: any, ttl: number) {
+    console.log(`Setting cache for key: ${key}, data:`, data.data.length);
     await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
+  }
+
+  private async fetchAndCacheProducts(
+    page: number,
+    limit: number,
+    cacheKey: string,
+    cacheExpiryTime: number,
+  ): Promise<PaginatedResult<Product>> {
+    try {
+      const dbData = await this.prismaService.product.findMany();
+      await this.setCache(
+        cacheKey,
+        { data: dbData, timestamp: Math.floor(Date.now() / 1000) },
+        cacheExpiryTime,
+      );
+
+      const paginatedDbData = this.paginateData(dbData, page, limit);
+
+      return paginatedDbData;
+    } catch (error) {
+      console.error('Error fetching and caching products', error as Error);
+      throw new InternalServerErrorException(
+        'Error fetching and caching products',
+      );
+    }
+  }
+  private paginateData(
+    data: Product[],
+    page: number,
+    limit: number,
+  ): PaginatedResult<Product> {
+    const totalItems = data.length;
+    const totalPages = Math.ceil(totalItems / limit);
+    const offset = (page - 1) * limit;
+    const paginatedData = data.slice(offset, offset + limit);
+    const prevPage = page > 1 ? page - 1 : null;
+    const nextPage = page < totalPages ? page + 1 : null;
+
+    return {
+      data: paginatedData,
+      meta: {
+        total: totalItems,
+        lastPage: totalPages,
+        currentPage: page,
+        perPage: limit ? limit : 20,
+        prev: prevPage,
+        next: nextPage,
+      },
+    };
   }
 }

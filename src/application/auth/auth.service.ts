@@ -16,15 +16,14 @@ export class AuthService {
     const dbUser: Partial<User> = await this.userService.findByEmail(
       user.email,
     );
-
     await this.validatePassword(user.password, dbUser.password);
+
     if (dbUser) {
       const payload: UserPayload = {
         email: dbUser.email,
         name: dbUser.name,
         sub: dbUser.user_id,
       };
-
       return {
         access_token: this.jwtService.sign(payload),
         user: {
@@ -39,9 +38,8 @@ export class AuthService {
   }
 
   async validateUser(email: string, dbPassword: string): Promise<User | null> {
-    const user: Partial<User> | null = await this.userService.findByEmail(
-      email,
-    );
+    const user: Partial<User> | null =
+      await this.userService.findByEmail(email);
     await this.validatePassword(user.password, dbPassword);
 
     if (user) {

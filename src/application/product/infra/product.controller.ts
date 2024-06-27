@@ -39,14 +39,12 @@ export class ProductController {
   @Get()
   @IsPublic()
   async findAll(@Query() query: FindProductDto) {
-    return this.productService.findAll( query);
+    return this.productService.findAll(query);
   }
 
   @Get()
-  async search(
-    @Query('query') query: string,
-  ): Promise<Product[]> {
-    return this.productService.search( query);
+  async search(@Query('query') query: string): Promise<Product[]> {
+    return this.productService.search(query);
   }
 
   @Get(':id')
@@ -74,8 +72,10 @@ export class ProductController {
 
   private validateHeaders(header: IHeaders) {
     if (!header.category_id) {
-      console.error('A category_id must be informed to create a new product')
-      throw new BadRequestException('A category_id must be informed to create a new product');
+      console.error('A category_id must be informed to create a new product');
+      throw new BadRequestException(
+        'A category_id must be informed to create a new product',
+      );
     }
   }
 }

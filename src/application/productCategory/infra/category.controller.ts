@@ -53,7 +53,7 @@ export class CategoryController {
     @Body() dto: UpdateCategoryDto,
   ) {
     this.validateHeaders(header);
-    
+
     return this.categoryService.update(category_id, dto);
   }
 

@@ -1,3 +1,6 @@
+import { PaginatedResult } from 'prisma-pagination';
+import { Product } from '../entities/product.entity';
+
 export const productResponse = {
   active: true,
   category_id: true,
@@ -11,3 +14,8 @@ export const productResponse = {
   title: true,
   urlBanner: true,
 };
+
+export interface IProductResponse {
+  message: string;
+  data: PaginatedResult<Product>;
+}
