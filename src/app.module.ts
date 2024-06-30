@@ -3,17 +3,19 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
-import { SharedServicesModule } from './shared/infraestructure/shared-services.module';
-import { APP_GUARD } from '@nestjs/core';
+import { SharedServicesModule } from './modules/shared-services.module';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './infrasctructure/security/auth/guards/jwt-auth.guard';
+
 import {
-  AuthModule,
   CategoryModule,
   CompaniesModule,
   ProductModule,
   SalesModule,
   UsersModule,
-} from './application';
-import { JwtAuthGuard } from './application/auth/guards/jwt-auth.guard';
+} from './modules';
+import { AuthModule } from './infrasctructure/security/auth/auth.module';
+import { GlobalExceptionFilter } from './infrasctructure/errors/ExceptiosnFiltes';
 
 @Module({
   controllers: [AppController],
@@ -36,6 +38,10 @@ import { JwtAuthGuard } from './application/auth/guards/jwt-auth.guard';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
     },
   ],
 })
