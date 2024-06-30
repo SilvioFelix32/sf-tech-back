@@ -8,9 +8,11 @@ import {
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
 import Redis from 'ioredis';
+import { GlobalExceptionFilter } from './infrasctructure/errors/ExceptiosnFiltes';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
+  app.useGlobalFilters(new GlobalExceptionFilter());
   const redisClient = new Redis(process.env.EXTERNAL_REDIS);
 
   redisClient.on('error', (err) => {

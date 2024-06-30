@@ -20,22 +20,23 @@ export class CompaniesService {
     const { name, email } = data;
 
     try {
-      const [emailTaken, nameTaken] = await Promise.all([
-        this.isEmailTaken(email),
-        this.isNameTaken(name),
-      ]);
+      const isCompanyExists = await this.validateCreateCompany(email, name);
 
-      if (emailTaken) {
+      if (isCompanyExists.email) {
         throw new ConflictException('Company with this email already exists');
       }
 
-      if (nameTaken) {
+      if (isCompanyExists.name) {
         throw new ConflictException('Company with this name already exists');
       }
 
       return await this.prisma.company.create({ data });
     } catch (error) {
       console.error('Failed to create company', error);
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+
       throw new InternalServerErrorException('Failed to create company');
     }
   }
@@ -101,25 +102,23 @@ export class CompaniesService {
     }
   }
 
-  private async isEmailTaken(email: string): Promise<boolean> {
-    const companyWithEmail = await this.prisma.company.findUnique({
-      where: { email },
+  private async validateCreateCompany(
+    email: string,
+    name: string,
+  ): Promise<{ email: boolean; name: boolean }> {
+    const existingCompany = await this.prisma.company.findFirst({
+      where: {
+        OR: [{ email }, { name }],
+      },
+      select: {
+        email: true,
+        name: true,
+      },
     });
 
-    if (!companyWithEmail) {
-      return false;
-    }
-    return true;
-  }
-
-  private async isNameTaken(name: string): Promise<boolean> {
-    const companyWithName = await this.prisma.company.findUnique({
-      where: { name },
-    });
-
-    if (!companyWithName) {
-      return false;
-    }
-    return true;
+    return {
+      email: !!existingCompany?.email,
+      name: !!existingCompany?.name,
+    };
   }
 }
