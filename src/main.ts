@@ -8,7 +8,7 @@ import {
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
 import Redis from 'ioredis';
-import { GlobalExceptionFilter } from './infrasctructure/errors/ExceptiosnFiltes';
+import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });

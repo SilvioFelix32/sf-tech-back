@@ -15,7 +15,7 @@ import {
   UsersModule,
 } from './modules';
 import { AuthModule } from './infrasctructure/security/auth/auth.module';
-import { GlobalExceptionFilter } from './infrasctructure/errors/ExceptiosnFiltes';
+import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
 
 @Module({
   controllers: [AppController],

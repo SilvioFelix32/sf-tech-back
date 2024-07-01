@@ -286,13 +286,12 @@ describe('UsersService', () => {
   describe('update', () => {
     it('should update a user', async () => {
       const updateUsertDto: UpdateUserDto = { name: 'test' };
-      const result = (await service.update(
-        userData.company_id,
-        userData.user_id,
-        {
-          name: 'test',
-        },
-      )) as User;
+      const result = {
+        company_id: userData.company_id,
+        user_id: userData.user_id,
+        name: 'test',
+      } as User;
+
       jest
         .spyOn(prismaService.user, 'findUnique')
         .mockResolvedValue(userData as User);
@@ -319,5 +318,29 @@ describe('UsersService', () => {
     });
   });
 
-  describe('remove', () => {});
+  describe('remove', () => {
+    it('should delete a user', async () => {
+      jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockResolvedValue(userData as User);
+      jest
+        .spyOn(prismaService.user, 'delete')
+        .mockResolvedValue(userData as User);
+
+      expect(await service.remove(userData.user_id)).toEqual(
+        `User ${userData.user_id} deleted`,
+      );
+    });
+
+    it('should throw an error if user deletion fails', async () => {
+      jest
+        .spyOn(prismaService.user, 'findUnique')
+        .mockResolvedValue(userData as User);
+      jest
+        .spyOn(prismaService.user, 'delete')
+        .mockRejectedValue(userData as User);
+
+      await expect(service.remove(userData.user_id)).rejects.toThrow(Error);
+    });
+  });
 });

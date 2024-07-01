@@ -159,10 +159,7 @@ export class ProductService {
 
   private async getCache(key: string) {
     const cachedData = await this.redisService.get(key);
-    console.log(
-      `Retrieved cache for key: ${key}, data:`,
-      JSON.parse(cachedData),
-    );
+    console.log(`Retrieved cache for key: ${key}`);
     return cachedData ? JSON.parse(cachedData) : null;
   }
 

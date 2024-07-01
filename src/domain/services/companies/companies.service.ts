@@ -7,20 +7,20 @@ import {
 import { CreateCompanyDto } from '../../../application/dtos/company/create-company.dto';
 import { UpdateCompanyDto } from '../../../application/dtos/company/update-company.dto';
 import { Company } from '../../entities/company/company.entity';
-import { IResult } from '../../../application/exceptions/result';
-import { ResultSuccess } from '../../../application/exceptions/result-success';
-import { ResultError } from '../../../application/exceptions/result-error';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CompaniesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prismaService: PrismaService) {}
 
   async create(data: CreateCompanyDto): Promise<Company> {
     const { name, email } = data;
 
     try {
-      const isCompanyExists = await this.validateCreateCompany(email, name);
+      const isCompanyExists = await this.validateCompanyEmailAndName(
+        email,
+        name,
+      );
 
       if (isCompanyExists.email) {
         throw new ConflictException('Company with this email already exists');
@@ -30,7 +30,7 @@ export class CompaniesService {
         throw new ConflictException('Company with this name already exists');
       }
 
-      return await this.prisma.company.create({ data });
+      return await this.prismaService.company.create({ data });
     } catch (error) {
       console.error('Failed to create company', error);
       if (error instanceof ConflictException) {
@@ -43,7 +43,7 @@ export class CompaniesService {
 
   async findAll(): Promise<Company[]> {
     try {
-      return await this.prisma.company.findMany();
+      return await this.prismaService.company.findMany();
     } catch (error) {
       console.error('Failed to fetch companies', error);
       throw new InternalServerErrorException('Failed to fetch companies');
@@ -52,7 +52,7 @@ export class CompaniesService {
 
   async findOne(company_id: string): Promise<Company> {
     try {
-      const company = await this.prisma.company.findUnique({
+      const company = await this.prismaService.company.findUnique({
         where: { company_id },
       });
 
@@ -72,12 +72,30 @@ export class CompaniesService {
   }
 
   async update(company_id: string, data: UpdateCompanyDto): Promise<Company> {
-    await this.validateCompany(company_id);
-
     try {
-      return await this.prisma.company.update({ data, where: { company_id } });
+      const { email, name } = data;
+      const isCompanyExists = await this.validateCompanyEmailAndName(
+        email,
+        name,
+      );
+
+      if (isCompanyExists.email) {
+        throw new ConflictException('Company with this email already exists');
+      }
+
+      if (isCompanyExists.name) {
+        throw new ConflictException('Company with this name already exists');
+      }
+      return await this.prismaService.company.update({
+        data,
+        where: { company_id },
+      });
     } catch (error) {
+      console.error('Failed to update company', error);
       if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error instanceof ConflictException) {
         throw error;
       }
       throw new InternalServerErrorException(
@@ -90,7 +108,7 @@ export class CompaniesService {
     await this.validateCompany(company_id);
 
     try {
-      await this.prisma.company.delete({ where: { company_id } });
+      await this.prismaService.company.delete({ where: { company_id } });
       return `Company ${company_id} deleted!`;
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -103,22 +121,24 @@ export class CompaniesService {
   }
 
   private async validateCompany(company_id: string): Promise<void> {
-    const company = await this.prisma.company.findUnique({
+    const response = await this.prismaService.company.findFirst({
       where: { company_id },
     });
 
-    if (!company) {
+    if (!response) {
       throw new NotFoundException('Company not found');
     }
+    return;
   }
 
-  private async validateCreateCompany(
-    email: string,
-    name: string,
+  private async validateCompanyEmailAndName(
+    email?: string,
+    name?: string,
   ): Promise<{ email: boolean; name: boolean }> {
-    const existingCompany = await this.prisma.company.findFirst({
+    const response = await this.prismaService.company.findFirst({
       where: {
-        OR: [{ email }, { name }],
+        email,
+        name,
       },
       select: {
         email: true,
@@ -127,8 +147,8 @@ export class CompaniesService {
     });
 
     return {
-      email: !!existingCompany?.email,
-      name: !!existingCompany?.name,
+      name: !!response?.name,
+      email: !!response?.email,
     };
   }
 }

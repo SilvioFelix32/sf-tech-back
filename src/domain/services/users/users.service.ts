@@ -13,15 +13,10 @@ import { UpdateUserDto } from '../../../application/dtos/users/update-user.dto';
 import { userResponse } from '../../../application/dtos/users/user-response.dto';
 import { PaginatedResult } from 'prisma-pagination';
 import { RedisService } from '../redis/redis.service';
-import { IResult } from '../../../application/exceptions/result';
-import { ResultSuccess } from '../../../application/exceptions/result-success';
-import { ResultError } from '../../../application/exceptions/result-error';
 import {
-  ICachedData,
   IPaginatedUserResponse,
   IUserResponse,
 } from '../../../infrasctructure/types/user-response';
-import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class UsersService {
@@ -171,21 +166,29 @@ export class UsersService {
       });
     } catch (error) {
       console.error('Failed to update user', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new Error('Failed to update user');
     }
   }
 
-  async remove(user_id: string): Promise<IResult<string>> {
-    const user = await this.findOne(user_id);
-    if (!user) {
-      return new ResultError(`User ${user_id} don't exists`);
-    }
+  async remove(user_id: string): Promise<string> {
+    await this.validateUpdateLocalUser(user_id);
 
     try {
       await this.prismaService.user.delete({ where: { user_id } });
-      return new ResultSuccess('User deleted');
+      return `User ${user_id} deleted`;
     } catch (error) {
-      return new ResultError(`Failed to delete user ${user_id}`);
+      console.error('Failed to delete user', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new Error(`Failed to delete user ${user_id}`);
     }
   }
 

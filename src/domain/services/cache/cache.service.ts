@@ -13,12 +13,14 @@ export class CacheService {
     }
   }
 
-  async setCache<T>(key: string, data: T, ttl: number): Promise<void> {
+  async setCache<T>(key: string, data: T, ttl: number): Promise<string> {
     try {
       console.log(`Setting cache for key: ${key}`);
       await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
+      return `Cache created for key: ${key}`;
     } catch (error) {
       console.log('Error setting cache', error);
+      throw new Error('Error setting cache');
     }
   }
 }
