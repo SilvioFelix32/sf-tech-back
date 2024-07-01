@@ -3,9 +3,11 @@ import { faker } from '@faker-js/faker';
 import { Company } from '@prisma/client';
 import { CompaniesService } from '../../../../src/domain/services/companies/companies.service';
 import { PrismaService } from '../../../../src/infrasctructure/prisma/prisma.service';
+import { UpdateCompanyDto } from '../../../../src/application/dtos/company/update-company.dto';
 import {
   ConflictException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 
 const mockPrismaService = {
@@ -117,11 +119,151 @@ describe('CompaniesService', () => {
     });
   });
 
-  describe('findAll', () => {});
+  describe('findAll', () => {
+    const data = [
+      {
+        company_id: faker.string.uuid(),
+        name: faker.person.firstName(),
+        fantasyName: faker.person.fullName(),
+        email: faker.internet.email(),
+      },
+    ] as Company[];
 
-  describe('findOne', () => {});
+    it('should return all companies', async () => {
+      jest.spyOn(prismaService.company, 'findMany').mockResolvedValue(data);
 
-  describe('update', () => {});
+      expect(await service.findAll()).toEqual(data);
+    });
 
-  describe('delete', () => {});
+    it('Shold return InternalServerErrorException', async () => {
+      jest
+        .spyOn(prismaService.company, 'findMany')
+        .mockRejectedValue(
+          new InternalServerErrorException('Failed to fetch companies'),
+        );
+
+      await expect(service.findAll()).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('findOne', () => {
+    const data = {
+      company_id: faker.string.uuid(),
+      name: faker.person.firstName(),
+      fantasyName: faker.person.fullName(),
+      email: faker.internet.email(),
+    } as Company;
+
+    it('should return a company', async () => {
+      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
+
+      expect(await service.findOne(data.company_id)).toEqual(data);
+    });
+
+    it('Shold return NotFoundException when company not found', async () => {
+      jest
+        .spyOn(prismaService.company, 'findUnique')
+        .mockRejectedValue(new NotFoundException('Company not found'));
+
+      await expect(service.findOne(data.company_id)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('Shold return InternalServerErrorException', async () => {
+      jest
+        .spyOn(prismaService.company, 'findUnique')
+        .mockRejectedValue(
+          new InternalServerErrorException('Failed to fetch companies'),
+        );
+
+      await expect(service.findOne(data.company_id)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('update', () => {
+    const data = {
+      company_id: faker.string.uuid(),
+      name: faker.person.firstName(),
+      fantasyName: faker.person.fullName(),
+      email: faker.internet.email(),
+    } as Company;
+
+    it('should update a company', async () => {
+      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
+      jest.spyOn(prismaService.company, 'update').mockResolvedValue(data);
+
+      expect(
+        await service.update(data.company_id, data as UpdateCompanyDto),
+      ).toEqual(data);
+    });
+
+    it('Shold return NotFoundException when company not found', async () => {
+      jest
+        .spyOn(prismaService.company, 'findUnique')
+        .mockRejectedValue(new NotFoundException('Company not found'));
+
+      await expect(
+        service.update(data.company_id, data as UpdateCompanyDto),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('Shold return InternalServerErrorException', async () => {
+      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
+      jest
+        .spyOn(prismaService.company, 'update')
+        .mockRejectedValue(
+          new InternalServerErrorException('Failed to fetch company'),
+        );
+
+      await expect(
+        service.update(data.company_id, data as UpdateCompanyDto),
+      ).rejects.toThrow(InternalServerErrorException);
+    });
+  });
+
+  describe('delete', () => {
+    const data = {
+      company_id: faker.string.uuid(),
+      name: faker.person.firstName(),
+      fantasyName: faker.person.fullName(),
+      email: faker.internet.email(),
+    } as Company;
+
+    it('should delete a company', async () => {
+      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
+      jest.spyOn(prismaService.company, 'delete').mockResolvedValue(data);
+
+      expect(await service.remove(data.company_id)).toEqual(
+        `Company ${data.company_id} deleted!`,
+      );
+    });
+
+    it('Shold return NotFoundException when company not found', async () => {
+      jest
+        .spyOn(prismaService.company, 'findUnique')
+        .mockRejectedValue(new NotFoundException('Company not found'));
+
+      await expect(service.remove(data.company_id)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('Shold return InternalServerErrorException', async () => {
+      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
+      jest
+        .spyOn(prismaService.company, 'delete')
+        .mockRejectedValue(
+          new InternalServerErrorException('Failed to delete company'),
+        );
+
+      await expect(service.remove(data.company_id)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
 });

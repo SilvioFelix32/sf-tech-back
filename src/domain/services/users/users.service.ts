@@ -28,16 +28,15 @@ export class UsersService {
     private readonly redisService: RedisService,
   ) {}
 
-  async create(
-    company_id: string,
-    dto: CreateUserDto,
-  ): Promise<IResult<IUserResponse> | unknown> {
+  async create(company_id: string, dto: CreateUserDto): Promise<IUserResponse> {
     await this.validateCreateLocalUser(company_id, dto);
 
     try {
       const encryptedPassword = await bcrypt.hash(dto.password, 10);
       if (!encryptedPassword) {
-        return new ResultError('Failed to encrypt password');
+        throw new InternalServerErrorException(
+          'Failed to encrypt user password',
+        );
       }
 
       const data: Prisma.UserCreateInput = {
@@ -53,12 +52,13 @@ export class UsersService {
         },
       });
 
-      return new ResultSuccess(
-        `User created succesfully, user_id: ${createdUser.user_id}`,
-      );
+      return createdUser;
     } catch (error) {
       console.error('Failed to create user', error);
-      return new ResultError('Failed to create user');
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to create user');
     }
   }
 
@@ -203,7 +203,11 @@ export class UsersService {
       );
     }
 
-    if (data.password.length < 8) {
+    if (!data.password) {
+      throw new BadRequestException('No password provided');
+    }
+
+    if (data.password?.length < 8) {
       throw new BadRequestException(
         'Password must be at least 8 characters long',
       );
@@ -288,6 +292,7 @@ export class UsersService {
       );
     }
   }
+
   private paginateData(
     data: User[],
     page: number,

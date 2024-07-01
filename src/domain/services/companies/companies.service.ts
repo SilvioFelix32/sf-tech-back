@@ -16,7 +16,7 @@ import { PrismaService } from '../../../infrasctructure/prisma/prisma.service';
 export class CompaniesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateCompanyDto) {
+  async create(data: CreateCompanyDto): Promise<Company> {
     const { name, email } = data;
 
     try {
@@ -63,36 +63,46 @@ export class CompaniesService {
       return company;
     } catch (error) {
       console.error('Failed to fetch company', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+
       throw new InternalServerErrorException('Failed to fetch company');
     }
   }
 
-  async update(
-    company_id: string,
-    data: UpdateCompanyDto,
-  ): Promise<IResult<string>> {
+  async update(company_id: string, data: UpdateCompanyDto): Promise<Company> {
     await this.validateCompany(company_id);
 
     try {
-      await this.prisma.company.update({ data, where: { company_id } });
-      return new ResultSuccess(`Company ${company_id} updated!`);
+      return await this.prisma.company.update({ data, where: { company_id } });
     } catch (error) {
-      return new ResultError(`Failed to update company ${company_id}`);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Failed to update company ${company_id}`,
+      );
     }
   }
 
-  async remove(company_id: string): Promise<IResult<string>> {
+  async remove(company_id: string): Promise<string> {
     await this.validateCompany(company_id);
 
     try {
       await this.prisma.company.delete({ where: { company_id } });
-      return new ResultSuccess(`Company ${company_id} deleted!`);
+      return `Company ${company_id} deleted!`;
     } catch (error) {
-      return new ResultError(`Failed to delete company ${company_id}`);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Failed to delete company ${company_id}`,
+      );
     }
   }
 
-  private async validateCompany(company_id: string) {
+  private async validateCompany(company_id: string): Promise<void> {
     const company = await this.prisma.company.findUnique({
       where: { company_id },
     });
