@@ -39,7 +39,7 @@ yarn dev
 # GENERATE SEED ON DB
 
 npx prisma db push
-npx prisma db seed --preview-feature
+npx prisma db seed
 
 //Authentication
 https://fabricadesinapse.gitbook.io/sinapse-book/nestjs/autenticacao-sistema-de-login-com-token-jwt

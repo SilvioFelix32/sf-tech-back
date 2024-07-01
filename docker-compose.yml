@@ -2,22 +2,18 @@ version: '3.9'
 
 services:
   database:
-    image: mongo
-    container_name: sf-tech-mongo
+    image: postgres:latest
+    container_name: sf-tech-postgresql
     ports:
-      - 27017:27017
+      - 5432:5432
     volumes:
-      - ./mongo-data:/data/db
+      - ./postgresql-data:/var/lib/postgresql/data
     restart: always
     networks:
-      - mongo-network
+      - postgresql-network
 
   redis:
     image: redis:alpine
-    environment:
-      - REDIS_HOST=oregon-redis.render.com
-      - REDIS_USER=red-cihe8v5gkuvojje31ta0
-      - REDIS_PORT=6379
     container_name: redis
     ports:
       - 6379:6379
@@ -26,7 +22,7 @@ services:
     command: redis-server
     restart: always
     networks:
-      - mongo-network
+      - postgresql-network #
 
   app:
     build: .
@@ -34,29 +30,22 @@ services:
     ports:
       - 3003:3003
     networks:
-      - mongo-network
+      - postgresql-network
     depends_on:
       - database
       - redis
     restart: always
-    environment:
-      - JWT_SECRET=af3fe660-686f-4e5e-9f95-89f6caac0fd7
-      - REDIS_HOST=oregon-redis.render.com
-      - REDIS_USER=red-cihe8v5gkuvojje31ta0
-      - REDIS_PASSWORD=WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn
-      - EXTERNAL_REDIS=rediss://red-cihe8v5gkuvojje31ta0:WOtZOQ7YJFBF0oTKmrBRo2SVXnGqwrVn@oregon-redis.render.com:6379
-      - DATABASE_URL=mongodb+srv://sf-tech:pczCa918O7cuEGSY@sf-tech.k6lsm.mongodb.net/sf-tech
     env_file:
       - .env
     volumes:
       - ./redis.crt:/usr/src/redis.crt
 
 volumes:
-  mongo-data:
+  postgresql-data:
     driver: local
   redis-data:
     driver: local
 
 networks:
-  mongo-network:
+  postgresql-network:
     driver: bridge

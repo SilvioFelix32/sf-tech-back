@@ -2,19 +2,24 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
-import { PrismaService } from './shared/prisma/prisma.service';
 import { AppController } from './app.controller';
-import { UsersModule } from './users/users.module';
-import { CompaniesModule } from './companies/companies.module';
-import { ProductModule } from './product/modules/product.module';
-import { ProductCategoriesModule } from './product-categories/modules/product-categories.module';
-import { SalesModule } from './sales/modules/sales.module';
-import { AuthModule } from './auth/auth.module';
-import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { RedisService } from './shared/cache/redis';
+import { SharedServicesModule } from './modules/shared-services.module';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './infrasctructure/security/auth/guards/jwt-auth.guard';
+
+import {
+  CategoryModule,
+  CompaniesModule,
+  ProductModule,
+  SalesModule,
+  UsersModule,
+} from './modules';
+import { AuthModule } from './infrasctructure/security/auth/auth.module';
+import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
 
 @Module({
+  controllers: [AppController],
+  exports: [],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
@@ -22,19 +27,21 @@ import { RedisService } from './shared/cache/redis';
     HttpModule,
     CompaniesModule,
     UsersModule,
+    CategoryModule,
     ProductModule,
-    ProductCategoriesModule,
     SalesModule,
     AuthModule,
+    SharedServicesModule,
   ],
-  controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
-    RedisService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: GlobalExceptionFilter,
     },
   ],
 })

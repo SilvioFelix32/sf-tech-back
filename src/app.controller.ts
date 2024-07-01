@@ -1,8 +1,7 @@
-import { Controller, Get, Inject } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { CurrentUser } from './auth/decorators/current-user.decorator';
-import { User } from './users/entities/user.entity';
-
+import { User } from '@prisma/client';
+import { CurrentUser } from './infrasctructure/security/auth/decorators/current-user.decorator';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
