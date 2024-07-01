@@ -8,12 +8,12 @@ import { faker } from '@faker-js/faker';
 import { CategoryService } from '../../../../src/domain/services/categories/category.service';
 import { FindCategoryDto } from '../../../../src/application/dtos/categories/find-category.dto';
 import { UpdateCategoryDto } from '../../../../src/application/dtos/categories/update-category.dto';
-import { RedisService } from '../../../../src/infrasctructure/cache/redis.service';
-import { PrismaService } from '../../../../src/infrasctructure/prisma/prisma.service';
 import { Category } from '../../../../src/domain/entities/categories/category.entity';
 import { CompaniesService } from '../../../../src/domain/services/companies/companies.service';
 import { ProductService } from '../../../../src/domain/services/products/product.service';
 import { ICategoryResponse } from '../../../../src/infrasctructure/types/category-response';
+import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
+import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 
 const mockPrismaService = {
   productCategory: {

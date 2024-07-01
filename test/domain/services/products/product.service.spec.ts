@@ -9,9 +9,9 @@ import { faker } from '@faker-js/faker';
 import { CategoryService } from '../../../../src/domain/services/categories/category.service';
 import { CreateProductDto } from '../../../../src/application/dtos/products/create-product.dto';
 import { UpdateProductDto } from '../../../../src/application/dtos/products/update-product.dto';
-import { RedisService } from '../../../../src/infrasctructure/cache/redis.service';
-import { PrismaService } from '../../../../src/infrasctructure/prisma/prisma.service';
 import { IProductResponse } from '../../../../src/infrasctructure/types/product-response';
+import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
+import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 
 const mockPrismaService = {
   product: {

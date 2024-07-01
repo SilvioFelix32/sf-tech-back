@@ -10,7 +10,7 @@ import { Company } from '../../entities/company/company.entity';
 import { IResult } from '../../../application/exceptions/result';
 import { ResultSuccess } from '../../../application/exceptions/result-success';
 import { ResultError } from '../../../application/exceptions/result-error';
-import { PrismaService } from '../../../infrasctructure/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CompaniesService {

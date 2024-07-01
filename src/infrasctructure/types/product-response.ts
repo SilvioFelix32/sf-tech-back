@@ -1,5 +1,6 @@
 import { PaginatedResult } from 'prisma-pagination';
 import { Product } from '../../domain/entities/products/product.entity';
+import { IPaginatedResult } from './paginate-data';
 
 export const productResponse = {
   active: true,
@@ -18,4 +19,9 @@ export const productResponse = {
 export interface IProductResponse {
   message: string;
   data: PaginatedResult<Product>;
+}
+
+export interface ICachedData {
+  timestamp: number;
+  data: IPaginatedResult<Product>;
 }

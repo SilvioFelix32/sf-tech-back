@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { InternalServerErrorException } from '@nestjs/common';
-import { RedisService } from './redis.service';
+import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 import { faker } from '@faker-js/faker';
 
 describe('RedisService', () => {

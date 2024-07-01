@@ -2,8 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { faker } from '@faker-js/faker';
 import { Company } from '@prisma/client';
 import { CompaniesService } from '../../../../src/domain/services/companies/companies.service';
-import { PrismaService } from '../../../../src/infrasctructure/prisma/prisma.service';
 import { UpdateCompanyDto } from '../../../../src/application/dtos/company/update-company.dto';
+import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
 import {
   ConflictException,
   InternalServerErrorException,

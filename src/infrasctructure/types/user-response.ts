@@ -1,4 +1,6 @@
 import { PaginatedResult } from 'prisma-pagination';
+import { IPaginatedResult } from './paginate-data';
+import { User } from '@prisma/client';
 
 export interface IUserResponse {
   user_id: string;
@@ -13,4 +15,9 @@ export interface IUserResponse {
 export interface IPaginatedUserResponse {
   message: string;
   data: PaginatedResult<IUserResponse>;
+}
+
+export interface ICachedData {
+  timestamp: number;
+  data: IPaginatedResult<User>;
 }

@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { PrismaService } from './prisma.service';
+import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
 import { InternalServerErrorException } from '@nestjs/common';
 import { faker } from '@faker-js/faker';
 

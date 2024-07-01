@@ -51,7 +51,7 @@ export class UsersController {
       throw new BadRequestException('No Company informed');
     }
 
-    return this.usersService.findAll(company_id, query);
+    return this.usersService.findAll(query);
   }
 
   @Get('email')

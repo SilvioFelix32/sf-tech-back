@@ -6,25 +6,27 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Prisma, User } from '@prisma/client';
-import { PrismaService } from '../../../infrasctructure/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../../../application/dtos/users/create-user.dto';
 import { FindUserDto } from '../../../application/dtos/users/find-user.dto';
 import { UpdateUserDto } from '../../../application/dtos/users/update-user.dto';
 import { userResponse } from '../../../application/dtos/users/user-response.dto';
 import { PaginatedResult } from 'prisma-pagination';
-import { RedisService } from '../../../infrasctructure/cache/redis.service';
+import { RedisService } from '../redis/redis.service';
 import { IResult } from '../../../application/exceptions/result';
 import { ResultSuccess } from '../../../application/exceptions/result-success';
 import { ResultError } from '../../../application/exceptions/result-error';
 import {
+  ICachedData,
   IPaginatedUserResponse,
   IUserResponse,
 } from '../../../infrasctructure/types/user-response';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class UsersService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -45,7 +47,7 @@ export class UsersService {
         password: encryptedPassword,
       };
 
-      const createdUser = await this.prisma.user.create({
+      const createdUser = await this.prismaService.user.create({
         data,
         select: {
           ...userResponse,
@@ -62,9 +64,9 @@ export class UsersService {
     }
   }
 
-  async findByEmail(email: string): Promise<IResult<IUserResponse> | unknown> {
+  async findByEmail(email: string): Promise<IUserResponse> {
     try {
-      const user = await this.prisma.user.findUnique({
+      const user = await this.prismaService.user.findUnique({
         select: {
           ...userResponse,
         },
@@ -77,14 +79,17 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      console.error('Failed to find user by email', error);
-      return new ResultError('Failed to find user by email');
+      console.error('Failed to find user by id', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to find user by id');
     }
   }
 
-  async findOne(user_id: string): Promise<IResult<IUserResponse> | unknown> {
+  async findOne(user_id: string): Promise<IUserResponse> {
     try {
-      const user = await this.prisma.user.findUnique({
+      const user = await this.prismaService.user.findUnique({
         select: {
           ...userResponse,
         },
@@ -98,14 +103,16 @@ export class UsersService {
       return user;
     } catch (error) {
       console.error('Failed to find user by id', error);
-      return new ResultError('Failed to find user by id');
+      if (error instanceof NotFoundException) {
+        throw error;
+      } else if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Failed to find user by id');
     }
   }
 
-  async findAll(
-    company_id: string,
-    query: FindUserDto,
-  ): Promise<IPaginatedUserResponse> {
+  async findAll(query: FindUserDto): Promise<IPaginatedUserResponse> {
     const { page, limit } = query;
     const cacheKey = 'user';
     const cacheExpiryTime = 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
@@ -139,7 +146,7 @@ export class UsersService {
       };
     } catch (error) {
       console.error('Error retrieving Users from cache', error as Error);
-      throw new InternalServerErrorException('Error retrieving Users');
+      throw new Error('Error retrieving Users');
     }
   }
 
@@ -147,19 +154,25 @@ export class UsersService {
     company_id: string,
     user_id: string,
     dto: UpdateUserDto,
-  ): Promise<User | unknown> {
-    const updateUser = await this.findOne(user_id);
-    await this.validateUpdateLocalUser(company_id, dto, updateUser as User);
+  ): Promise<IUserResponse> {
+    await this.validateUpdateLocalUser(user_id);
 
-    return this.prisma.user.update({
-      data: {
-        ...dto,
-      },
-      select: {
-        ...userResponse,
-      },
-      where: { user_id },
-    });
+    try {
+      return await this.prismaService.user.update({
+        data: {
+          ...dto,
+          company_id,
+          user_id,
+        },
+        select: {
+          ...userResponse,
+        },
+        where: { user_id },
+      });
+    } catch (error) {
+      console.error('Failed to update user', error);
+      throw new Error('Failed to update user');
+    }
   }
 
   async remove(user_id: string): Promise<IResult<string>> {
@@ -169,7 +182,7 @@ export class UsersService {
     }
 
     try {
-      await this.prisma.user.delete({ where: { user_id } });
+      await this.prismaService.user.delete({ where: { user_id } });
       return new ResultSuccess('User deleted');
     } catch (error) {
       return new ResultError(`Failed to delete user ${user_id}`);
@@ -177,7 +190,7 @@ export class UsersService {
   }
 
   private async isEmailTakenInCompany(company_id: string, email: string) {
-    const usersWithEmail = await this.prisma.user.findMany({
+    const usersWithEmail = await this.prismaService.user.findMany({
       where: {
         company_id,
         email,
@@ -232,25 +245,18 @@ export class UsersService {
     }
   }
 
-  private async validateUpdateLocalUser(
-    company_id: string,
-    dto: UpdateUserDto,
-    updateUser: User | null,
-  ) {
-    if (!updateUser) {
+  private async validateUpdateLocalUser(user_id: string) {
+    const userData = await this.findOne(user_id);
+    if (!userData) {
       throw new NotFoundException('User not found');
     }
 
-    if (updateUser.company_id !== company_id) {
-      throw new BadRequestException('User does not belong to this company');
-    }
-
-    const { email } = dto;
+    const { email } = userData;
 
     if (
       email &&
-      email !== updateUser.email &&
-      (await this.isEmailTakenInCompany(company_id, email))
+      email !== userData.email &&
+      (await this.isEmailTakenInCompany(userData.company_id, email))
     ) {
       throw new BadRequestException(
         'User with this email already exists in this company',
@@ -260,6 +266,7 @@ export class UsersService {
 
   private async getCache(key: string) {
     const cachedData = await this.redisService.get(key);
+    console.log(`Retrieved cache for key: ${key}`);
     return cachedData ? JSON.parse(cachedData) : null;
   }
 
@@ -275,7 +282,7 @@ export class UsersService {
     cacheExpiryTime: number,
   ): Promise<PaginatedResult<User>> {
     try {
-      const dbData = await this.prisma.user.findMany();
+      const dbData = await this.prismaService.user.findMany();
       await this.setCache(
         cacheKey,
         { data: dbData, timestamp: Math.floor(Date.now() / 1000) },
@@ -298,6 +305,9 @@ export class UsersService {
     page: number,
     limit: number,
   ): PaginatedResult<User> {
+    if (!data) {
+      throw new Error('Data not found');
+    }
     const totalItems = data.length;
     const totalPages = Math.ceil(totalItems / limit);
     const offset = (page - 1) * limit;

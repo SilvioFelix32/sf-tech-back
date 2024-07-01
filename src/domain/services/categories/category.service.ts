@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
-import { PrismaService } from '../../../infrasctructure/prisma/prisma.service';
-import { RedisService } from '../../../infrasctructure/cache/redis.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { RedisService } from '../redis/redis.service';
 import { ProductService } from '../products/product.service';
 import { Category } from '../../entities/categories/category.entity';
 import { CreateCategoryDto } from '../../../application/dtos/categories/create-category.dto';

@@ -1,5 +1,5 @@
 import { ApiHideProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Role, User } from '../../../domain/entities/users/user.entity';
 
 export class CreateUserDto extends User {
@@ -16,7 +16,7 @@ export class CreateUserDto extends User {
   email: string;
 
   @IsString()
-  @ApiHideProperty()
+  @IsOptional()
   role?: Role;
 
   @IsString()
@@ -24,8 +24,10 @@ export class CreateUserDto extends User {
   password: string;
 
   @ApiHideProperty()
+  @IsOptional()
   createdAt?: Date | string;
 
   @ApiHideProperty()
+  @IsOptional()
   updatedAt?: Date | string;
 }
