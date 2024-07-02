@@ -14,7 +14,10 @@ import { Category } from '../../entities/categories/category.entity';
 import { CreateCategoryDto } from '../../../application/dtos/categories/create-category.dto';
 import { FindCategoryDto } from '../../../application/dtos/categories/find-category.dto';
 import { UpdateCategoryDto } from '../../../application/dtos/categories/update-category.dto';
-import { ICategoryResponse } from '../../../infrasctructure/types/category-response';
+import {
+  ICategoryResponse,
+  categoryResponse,
+} from '../../../infrasctructure/types/category-response';
 
 @Injectable()
 export class CategoryService {
@@ -92,6 +95,7 @@ export class CategoryService {
         where: {
           category_id,
         },
+        select: categoryResponse,
       });
     } catch (error) {
       console.error('Error on find category', error);
@@ -141,7 +145,7 @@ export class CategoryService {
       });
 
     if (!verifyIfProductExists) {
-      throw new NotFoundException('Product not found');
+      throw new NotFoundException('Category of products not found');
     }
   }
 
@@ -173,7 +177,9 @@ export class CategoryService {
     cacheExpiryTime: number,
   ): Promise<PaginatedResult<Category>> {
     try {
-      const dbData = await this.prismaService.productCategory.findMany();
+      const dbData = await this.prismaService.productCategory.findMany({
+        select: categoryResponse,
+      });
       await this.setCache(
         cacheKey,
         { data: dbData, timestamp: Math.floor(Date.now() / 1000) },
