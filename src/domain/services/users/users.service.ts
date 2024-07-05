@@ -59,12 +59,10 @@ export class UsersService {
     }
   }
 
-  async findByEmail(email: string): Promise<IUserResponse> {
+  async findByEmail(email: string): Promise<User> {
+    console.log('userService.findByEmail', email);
     try {
       const user = await this.prismaService.user.findUnique({
-        select: {
-          ...userResponse,
-        },
         where: { email },
       });
 
@@ -78,7 +76,7 @@ export class UsersService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException('Failed to find user by id');
+      throw new InternalServerErrorException('Failed to find user by email');
     }
   }
 
@@ -110,7 +108,7 @@ export class UsersService {
   async findAll(query: FindUserDto): Promise<IPaginatedUserResponse> {
     const { page, limit } = query;
     const cacheKey = 'user';
-    const cacheExpiryTime = 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
+    const cacheExpiryTime = 60 * 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
@@ -283,9 +281,13 @@ export class UsersService {
     limit: number,
     cacheKey: string,
     cacheExpiryTime: number,
-  ): Promise<PaginatedResult<User>> {
+  ): Promise<PaginatedResult<IUserResponse>> {
     try {
-      const dbData = await this.prismaService.user.findMany();
+      const dbData = await this.prismaService.user.findMany({
+        select: {
+          ...userResponse,
+        },
+      });
       await this.setCache(
         cacheKey,
         { data: dbData, timestamp: Math.floor(Date.now() / 1000) },
@@ -304,10 +306,10 @@ export class UsersService {
   }
 
   private paginateData(
-    data: User[],
+    data: IUserResponse[],
     page: number,
     limit: number,
-  ): PaginatedResult<User> {
+  ): PaginatedResult<IUserResponse> {
     if (!data) {
       throw new Error('Data not found');
     }

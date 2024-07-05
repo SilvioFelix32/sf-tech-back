@@ -202,18 +202,21 @@ describe('CompaniesService', () => {
       ).toEqual(data);
     });
 
-    it('Shold return NotFoundException when company not found', async () => {
+    it('Shold return ConflictException when data alredy exists', async () => {
+      jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(data);
       jest
-        .spyOn(prismaService.company, 'findUnique')
-        .mockRejectedValue(new NotFoundException('Company not found'));
+        .spyOn(prismaService.company, 'update')
+        .mockRejectedValue(new ConflictException('email already exists'));
 
       await expect(
         service.update(data.company_id, data as UpdateCompanyDto),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(ConflictException);
     });
 
     it('Shold return InternalServerErrorException', async () => {
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
+      jest
+        .spyOn(prismaService.company, 'findFirst')
+        .mockResolvedValue({} as Company);
       jest
         .spyOn(prismaService.company, 'update')
         .mockRejectedValue(
@@ -246,6 +249,9 @@ describe('CompaniesService', () => {
     it('Shold return NotFoundException when company not found', async () => {
       jest
         .spyOn(prismaService.company, 'findUnique')
+        .mockRejectedValue(new NotFoundException('Company not found'));
+      jest
+        .spyOn(prismaService.company, 'delete')
         .mockRejectedValue(new NotFoundException('Company not found'));
 
       await expect(service.remove(data.company_id)).rejects.toThrow(

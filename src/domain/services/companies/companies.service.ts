@@ -92,9 +92,6 @@ export class CompaniesService {
       });
     } catch (error) {
       console.error('Failed to update company', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
       if (error instanceof ConflictException) {
         throw error;
       }

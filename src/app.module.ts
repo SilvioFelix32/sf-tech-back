@@ -14,7 +14,7 @@ import {
   SalesModule,
   UsersModule,
 } from './modules';
-import { AuthModule } from './infrasctructure/security/auth/auth.module';
+import { AuthModule } from './modules/auth.module';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
 
 @Module({

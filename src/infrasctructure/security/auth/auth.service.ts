@@ -4,6 +4,7 @@ import { User } from '../../../domain/entities/users/user.entity';
 import { UsersService } from '../../../domain/services/users/users.service';
 import { UserPayload } from './models/UserPayload';
 import { UserToken } from './models/UserToken';
+import { IUserResponse } from 'src/infrasctructure/types/user-response';
 
 @Injectable()
 export class AuthService {
@@ -13,9 +14,7 @@ export class AuthService {
   ) {}
 
   async login(user: User): Promise<UserToken> {
-    const dbUser: Partial<User> = await this.userService.findByEmail(
-      user.email,
-    );
+    const dbUser = await this.userService.findByEmail(user.email);
     await this.validatePassword(user.password, dbUser.password);
 
     if (dbUser) {
@@ -32,14 +31,13 @@ export class AuthService {
           name: dbUser.name,
           role: dbUser.role,
           user_id: dbUser.user_id,
-        },
+        } as User,
       };
     }
   }
 
-  async validateUser(email: string, dbPassword: string): Promise<User | null> {
-    const user: Partial<User> | null =
-      await this.userService.findByEmail(email);
+  async validateUser(email: string, dbPassword: string): Promise<User> {
+    const user = await this.userService.findByEmail(email);
     await this.validatePassword(user.password, dbPassword);
 
     if (user) {

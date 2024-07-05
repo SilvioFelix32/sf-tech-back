@@ -19,5 +19,5 @@ export interface IPaginatedUserResponse {
 
 export interface ICachedData {
   timestamp: number;
-  data: IPaginatedResult<User>;
+  data: IPaginatedResult<IUserResponse>;
 }
