@@ -221,7 +221,7 @@ export class UsersService {
       throw new BadRequestException('No password provided');
     }
 
-    if (data.password?.length < 8) {
+    if (data.password.length < 8) {
       throw new BadRequestException(
         'Password must be at least 8 characters long',
       );
@@ -239,7 +239,7 @@ export class UsersService {
       );
     }
 
-    if (!/[!@#$%^&*()-_=+{};:,<.>]/.test(data.password)) {
+    if (!/[\!\@\#\$\%\^\&\*\(\)\-\_\=\+\{\}\;\:\,\<\.\>]/.test(data.password)) {
       throw new BadRequestException(
         'Password must contain at least one special character',
       );

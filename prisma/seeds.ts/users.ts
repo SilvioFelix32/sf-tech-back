@@ -12,23 +12,6 @@ export const userSeed: Prisma.UserCreateInput[] = Array.from(
   }),
 );
 
-userSeed.push(
-  {
-    email: 'materUser@mailinator.com',
-    lastName: 'Master',
-    name: 'User',
-    password: 'Master123',
-    role: 'MASTER',
-  },
-  {
-    email: 'adminUser@mailinator.com',
-    lastName: 'Admin',
-    name: 'User',
-    password: 'Admin123',
-    role: 'ADMIN',
-  },
-);
-
 export default {
   userSeed,
 };

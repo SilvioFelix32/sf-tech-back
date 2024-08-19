@@ -1,10 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '../../../domain/entities/users/user.entity';
 import { UsersService } from '../../../domain/services/users/users.service';
 import { UserPayload } from './models/UserPayload';
 import { UserToken } from './models/UserToken';
-import { IUserResponse } from 'src/infrasctructure/types/user-response';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -15,8 +19,14 @@ export class AuthService {
 
   async login(user: User): Promise<UserToken> {
     const dbUser = await this.userService.findByEmail(user.email);
-    await this.validatePassword(user.password, dbUser.password);
+    const isPasswordValid = await bcrypt.compare(
+      user.password,
+      dbUser.password,
+    );
 
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
     if (dbUser) {
       const payload: UserPayload = {
         email: dbUser.email,
@@ -26,11 +36,11 @@ export class AuthService {
       return {
         access_token: this.jwtService.sign(payload),
         user: {
+          user_id: dbUser.user_id,
           email: dbUser.email,
           lastName: dbUser.lastName,
           name: dbUser.name,
           role: dbUser.role,
-          user_id: dbUser.user_id,
         } as User,
       };
     }
@@ -38,7 +48,7 @@ export class AuthService {
 
   async validateUser(email: string, dbPassword: string): Promise<User> {
     const user = await this.userService.findByEmail(email);
-    await this.validatePassword(user.password, dbPassword);
+    await bcrypt.compare(user.password, dbPassword);
 
     if (user) {
       delete user.password;
@@ -48,14 +58,5 @@ export class AuthService {
     throw new BadRequestException(
       'Email address or password provided is incorrect.',
     );
-  }
-
-  private async validatePassword(
-    plainPassword: string,
-    hashedPassword: string,
-  ) {
-    if (plainPassword != hashedPassword) {
-      throw new BadRequestException('Password provided is incorrect.');
-    }
   }
 }
