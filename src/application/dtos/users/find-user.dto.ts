@@ -1,7 +1,7 @@
 import { IsEmail, IsOptional, IsString, IsUUID } from 'class-validator';
-import { QueryPaginateDto } from '../../../shared/paginator/query-paginate.dto';
+import { CognitoQueryPaginateDto } from '../../../shared/paginator/query-paginate.dto';
 
-export class FindUserDto extends QueryPaginateDto {
+export class FindUserDto extends CognitoQueryPaginateDto {
   @IsString()
   @IsOptional()
   @IsUUID()

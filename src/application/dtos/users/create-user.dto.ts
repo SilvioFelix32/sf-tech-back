@@ -16,18 +16,10 @@ export class CreateUserDto extends User {
   email: string;
 
   @IsString()
-  @IsOptional()
-  role?: Role;
+  @IsNotEmpty()
+  role: Role;
 
   @IsString()
   @ApiHideProperty()
   password: string;
-
-  @ApiHideProperty()
-  @IsOptional()
-  createdAt?: Date | string;
-
-  @ApiHideProperty()
-  @IsOptional()
-  updatedAt?: Date | string;
 }

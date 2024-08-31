@@ -105,43 +105,43 @@ export class UsersService {
     }
   }
 
-  async findAll(query: FindUserDto): Promise<IPaginatedUserResponse> {
-    const { page, limit } = query;
-    const cacheKey = 'user';
-    const cacheExpiryTime = 60 * 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
-    const currentTime = Math.floor(Date.now() / 1000);
+  // async findAll(query: FindUserDto): Promise<IPaginatedUserResponse> {
+  //   const { paginationToken, limit } = query;
+  //   const cacheKey = 'user';
+  //   const cacheExpiryTime = 60 * 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
+  //   const currentTime = Math.floor(Date.now() / 1000);
 
-    try {
-      const cachedData = await this.getCache(cacheKey);
-      if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
-        const dbData = await this.fetchAndCacheUsers(
-          page,
-          limit,
-          cacheKey,
-          cacheExpiryTime,
-        );
+  //   try {
+  //     const cachedData = await this.getCache(cacheKey);
+  //     if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
+  //       const dbData = await this.fetchAndCacheUsers(
+  //         page,
+  //         limit,
+  //         cacheKey,
+  //         cacheExpiryTime,
+  //       );
 
-        return {
-          message: 'Users retrieved from database',
-          data: dbData,
-        };
-      }
+  //       return {
+  //         message: 'Users retrieved from database',
+  //         data: dbData,
+  //       };
+  //     }
 
-      const paginatedCacheData = this.paginateData(
-        cachedData.data,
-        page,
-        limit,
-      );
+  //     const paginatedCacheData = this.paginateData(
+  //       cachedData.data,
+  //       page,
+  //       limit,
+  //     );
 
-      return {
-        message: 'Users retrieved from cache',
-        data: paginatedCacheData,
-      };
-    } catch (error) {
-      console.error('Error retrieving Users from cache', error as Error);
-      throw new Error('Error retrieving Users');
-    }
-  }
+  //     return {
+  //       message: 'Users retrieved from cache',
+  //       data: paginatedCacheData,
+  //     };
+  //   } catch (error) {
+  //     console.error('Error retrieving Users from cache', error as Error);
+  //     throw new Error('Error retrieving Users');
+  //   }
+  // }
 
   async update(
     company_id: string,
