@@ -87,6 +87,7 @@ export const monitorsSeed: Prisma.ProductCreateManyInput[] = [
     urlBanner: 'https://i.imgur.com/kdozFaW.png',
     price: 1800,
     discount: Number(Math.floor(Math.random() * 100)),
+    highlighted: true,
   },
 ];
 
@@ -120,6 +121,7 @@ export const notebooksSeed: Prisma.ProductCreateManyInput[] = [
     subtitle: 'Ideapad Gaming3I',
     title: 'Notebook Master',
     urlBanner: 'https://i.imgur.com/aDk3w0x.png',
+    highlighted: true,
   },
 ];
 
@@ -186,5 +188,6 @@ export const chairsSeed: Prisma.ProductCreateManyInput[] = [
     subtitle: 'Cadeira Presidencial',
     title: 'Cadeira Presidencial de luxo',
     urlBanner: 'https://i.imgur.com/THjU0O2.png',
+    highlighted: true,
   },
 ];
