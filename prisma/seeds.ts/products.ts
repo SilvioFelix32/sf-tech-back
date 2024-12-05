@@ -24,37 +24,37 @@ export const peripheralsSeed: Prisma.ProductCreateManyInput[] = [
   },
   {
     sku: faker.string.uuid(),
-    title: 'Mouse',
+    title: 'Mouse Dragon',
     subtitle: 'Mouse Dragon',
     description: '500bpi',
-    urlBanner: 'https://i.imgur.com/bM59fZf.jpeg',
+    urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 40,
-    discount: Number(Math.floor(Math.random() * 100)),
+    discount: Number(Math.floor(Math.random() * 10)),
   },
   {
     sku: faker.string.uuid(),
-    title: 'Mouse',
+    title: 'Mouse Gamer',
     subtitle: 'Mouse Gamer Dragon',
     description: '500bpi',
-    urlBanner: 'https://i.imgur.com/bM59fZf.jpeg',
+    urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 80,
     discount: Number(Math.floor(Math.random() * 10)),
   },
   {
     sku: faker.string.uuid(),
-    title: 'Mouse',
+    title: 'Mouse Letron',
     subtitle: 'Mouse letron',
     description: '500bpi',
-    urlBanner: 'https://i.imgur.com/hQ9NABQ.jpeg',
+    urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 30,
     discount: Number(Math.floor(Math.random() * 10)),
   },
   {
     sku: faker.string.uuid(),
-    title: 'Mouse',
+    title: 'Mouse Gamer Letron',
     subtitle: 'Mouse Gamer letron',
     description: '500bpi',
-    urlBanner: 'https://i.imgur.com/hQ9NABQ.jpeg',
+    urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 100,
     discount: Number(Math.floor(Math.random() * 10)),
   },
@@ -132,7 +132,7 @@ export const computersSeed: Prisma.ProductCreateManyInput[] = [
     sku: faker.string.uuid(),
     subtitle: 'Gamer Starter',
     title: 'Computador',
-    urlBanner: 'https://i.imgur.com/7xrToah.jpeg',
+    urlBanner: 'https://i.imgur.com/YvXrCsS.png',
   },
   {
     description:
@@ -142,7 +142,7 @@ export const computersSeed: Prisma.ProductCreateManyInput[] = [
     sku: faker.string.uuid(),
     subtitle: 'Gamer Evolution',
     title: 'Computador',
-    urlBanner: 'https://i.imgur.com/7xrToah.jpeg',
+    urlBanner: 'https://i.imgur.com/YvXrCsS.png',
   },
   {
     description:
@@ -152,7 +152,7 @@ export const computersSeed: Prisma.ProductCreateManyInput[] = [
     sku: faker.string.uuid(),
     subtitle: 'Gamer Master',
     title: 'Computador',
-    urlBanner: 'https://i.imgur.com/7xrToah.jpeg',
+    urlBanner: 'https://i.imgur.com/YvXrCsS.png',
   },
 ];
 
