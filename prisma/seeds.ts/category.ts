@@ -1,4 +1,5 @@
 import {
+  chairsSeed,
   computersSeed,
   monitorsSeed,
   notebooksSeed,
@@ -7,9 +8,9 @@ import {
 
 export const productCategoriesSeed = [
   {
-    description: 'COMPUTER',
+    description: 'COMPUTADORES',
     products: { createMany: { data: computersSeed } },
-    title: 'COMPUTER',
+    title: 'COMPUTADORES',
   },
   {
     description: 'NOTEBOOK',
@@ -17,13 +18,18 @@ export const productCategoriesSeed = [
     title: 'NOTEBOOK',
   },
   {
-    description: 'MONITOR',
+    description: 'MONITORES',
     products: { createMany: { data: monitorsSeed } },
-    title: 'MONITOR',
+    title: 'MONITORES',
   },
   {
     description: 'PERIFÉRICOS',
     products: { createMany: { data: peripheralsSeed } },
     title: 'PERIFÉRICOS',
+  },
+  {
+    description: 'CADEIRAS',
+    products: { createMany: { data: chairsSeed } },
+    title: 'CADEIRAS',
   },
 ];
