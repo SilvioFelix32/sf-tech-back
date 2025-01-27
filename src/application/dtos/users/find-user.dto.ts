@@ -14,14 +14,14 @@ export class FindUserDto extends QueryPaginateDto {
 
   @IsString()
   @IsOptional()
-  name: string;
+  declare name: string;
 
   @IsString()
   @IsOptional()
-  lastName: string;
+  declare lastName: string;
 
   @IsEmail()
   @IsOptional()
   @IsString()
-  email: string;
+  declare email: string;
 }

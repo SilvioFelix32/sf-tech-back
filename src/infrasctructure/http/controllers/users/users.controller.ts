@@ -16,10 +16,10 @@ import { ApiResponse } from '@nestjs/swagger';
 import { IsPublic } from '../../../security/auth/decorators/is-public.decorator';
 import { IHeaders } from '../../../types/IHeaders';
 import { CreateUserDto } from '../../../../application/dtos/users/create-user.dto';
-import { FindUserDto } from '../../../../application/dtos/users/find-user.dto';
 import { UpdateUserDto } from '../../../../application/dtos/users/update-user.dto';
 import { User } from '../../../../domain/entities/users/user.entity';
 import { UsersService } from '../../../../domain/services/users/users.service';
+import { IQueryPaginate } from '../../../../shared/paginator/i-query-paginate';
 @Controller('users')
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
@@ -45,7 +45,7 @@ export class UsersController {
   @Get()
   @IsPublic()
   @ApiResponse({ status: 200, type: [User] })
-  findAll(@Headers() header: IHeaders, @Query() query: FindUserDto) {
+  findAll(@Headers() header: IHeaders, @Query() query: IQueryPaginate) {
     const { company_id } = header;
     if (!company_id) {
       throw new BadRequestException('No Company informed');
@@ -62,6 +62,7 @@ export class UsersController {
   }
 
   @Get(':id')
+  @IsPublic()
   @ApiResponse({ status: 200, type: User })
   findOne(@Param('id') user_id: string) {
     return this.usersService.findOne(user_id);

@@ -13,17 +13,33 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+    if (exception instanceof HttpException) {
+      const status = exception.getStatus();
+      const errorResponse = exception.getResponse();
 
-    response.status(status).json({
-      statusCode: status,
-      message:
-        exception instanceof HttpException
-          ? exception.getResponse()
-          : 'Internal server error',
+      const message =
+        typeof errorResponse === 'string'
+          ? errorResponse
+          : (errorResponse as { message: string }).message ||
+            'An error occurred';
+
+      const cause =
+        typeof errorResponse === 'string'
+          ? errorResponse
+          : (errorResponse as { error: string }).error || 'Unknown error';
+
+      return response.status(status).json({
+        statusCode: status,
+        cause,
+        message,
+      });
+    }
+
+    console.error('Unhandled exception:', exception);
+
+    return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'Internal server error',
     });
   }
 }

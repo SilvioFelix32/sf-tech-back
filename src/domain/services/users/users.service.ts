@@ -8,7 +8,6 @@ import * as bcrypt from 'bcrypt';
 import { Prisma, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from '../../../application/dtos/users/create-user.dto';
-import { FindUserDto } from '../../../application/dtos/users/find-user.dto';
 import { UpdateUserDto } from '../../../application/dtos/users/update-user.dto';
 import { userResponse } from '../../../application/dtos/users/user-response.dto';
 import { PaginatedResult } from 'prisma-pagination';
@@ -17,12 +16,15 @@ import {
   IPaginatedUserResponse,
   IUserResponse,
 } from '../../../infrasctructure/types/user-response';
+import { ErrorHandler } from '../../../shared/errors/error-handler';
+import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
+    private readonly errorHandler: ErrorHandler,
   ) {}
 
   async create(company_id: string, dto: CreateUserDto): Promise<IUserResponse> {
@@ -30,6 +32,7 @@ export class UsersService {
 
     try {
       const encryptedPassword = await bcrypt.hash(dto.password, 10);
+
       if (!encryptedPassword) {
         throw new InternalServerErrorException(
           'Failed to encrypt user password',
@@ -37,7 +40,6 @@ export class UsersService {
       }
 
       const data: Prisma.UserCreateInput = {
-        company_id,
         ...dto,
         password: encryptedPassword,
       };
@@ -51,16 +53,11 @@ export class UsersService {
 
       return createdUser;
     } catch (error) {
-      console.error('Failed to create user', error);
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to create user');
+      this.errorHandler.handle(error as Error);
     }
   }
 
   async findByEmail(email: string): Promise<User> {
-    console.log('userService.findByEmail', email);
     try {
       const user = await this.prismaService.user.findUnique({
         where: { email },
@@ -72,11 +69,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      console.error('Failed to find user by id', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to find user by email');
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -95,20 +88,15 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      console.error('Failed to find user by id', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new InternalServerErrorException('Failed to find user by id');
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  async findAll(query: FindUserDto): Promise<IPaginatedUserResponse> {
+  async findAll(query: IQueryPaginate): Promise<IPaginatedUserResponse> {
     const { page, limit } = query;
+
     const cacheKey = 'user';
-    const cacheExpiryTime = 60 * 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
+    const cacheExpiryTime = 60 * 60;
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
@@ -138,8 +126,7 @@ export class UsersService {
         data: paginatedCacheData,
       };
     } catch (error) {
-      console.error('Error retrieving Users from cache', error as Error);
-      throw new Error('Error retrieving Users');
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -163,13 +150,7 @@ export class UsersService {
         where: { user_id },
       });
     } catch (error) {
-      console.error('Failed to update user', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new Error('Failed to update user');
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -180,13 +161,7 @@ export class UsersService {
       await this.prismaService.user.delete({ where: { user_id } });
       return `User ${user_id} deleted`;
     } catch (error) {
-      console.error('Failed to delete user', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      } else if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new Error(`Failed to delete user ${user_id}`);
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -239,7 +214,9 @@ export class UsersService {
       );
     }
 
-    if (!/[\!\@\#\$\%\^\&\*\(\)\-\_\=\+\{\}\;\:\,\<\.\>]/.test(data.password)) {
+    const SPECIAL_CHARACTERS_REGEX = /[!@#$%^&*()\-_=+{};:,<.>]/;
+
+    if (!SPECIAL_CHARACTERS_REGEX.test(data.password)) {
       throw new BadRequestException(
         'Password must contain at least one special character',
       );
@@ -267,12 +244,12 @@ export class UsersService {
 
   private async getCache(key: string) {
     const cachedData = await this.redisService.get(key);
-    console.log(`Retrieved cache for key: ${key}`);
+    console.info(`Retrieved cache for key: ${key}`);
     return cachedData ? JSON.parse(cachedData) : null;
   }
 
   private async setCache(key: string, data: any, ttl: number) {
-    console.log(`Setting cache for key: ${key}, data:`, data.data.length);
+    console.info(`Setting cache for key: ${key}, data:`, data.data.length);
     await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
   }
 
@@ -298,10 +275,7 @@ export class UsersService {
 
       return paginatedDbData;
     } catch (error) {
-      console.error('Error fetching and caching Users', error as Error);
-      throw new InternalServerErrorException(
-        'Error fetching and caching Users',
-      );
+      this.errorHandler.handle(error as Error);
     }
   }
 

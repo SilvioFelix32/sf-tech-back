@@ -4,11 +4,16 @@ import { CategoryService } from '../domain/services/categories/category.service'
 import { CategoryController } from '../infrasctructure/http/controllers/categories/category.controller';
 import { SharedServicesModule } from './shared-services.module';
 import { ProductModule } from './product.module';
+import { ErrorHandler } from '../shared/errors/error-handler';
 
 @Module({
-  imports: [SharedServicesModule, forwardRef(() => ProductModule)],
+  imports: [
+    SharedServicesModule,
+    ErrorHandler,
+    forwardRef(() => ProductModule),
+  ],
+  providers: [CategoryService, CompaniesService, ErrorHandler],
   controllers: [CategoryController],
-  providers: [CategoryService, CompaniesService],
   exports: [CategoryService],
 })
 export class CategoryModule {}

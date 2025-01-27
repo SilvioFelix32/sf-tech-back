@@ -6,7 +6,6 @@ import {
 import { Company, ProductCategory } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import { CategoryService } from '../../../../src/domain/services/categories/category.service';
-import { FindCategoryDto } from '../../../../src/application/dtos/categories/find-category.dto';
 import { UpdateCategoryDto } from '../../../../src/application/dtos/categories/update-category.dto';
 import { Category } from '../../../../src/domain/entities/categories/category.entity';
 import { CompaniesService } from '../../../../src/domain/services/companies/companies.service';
@@ -14,6 +13,7 @@ import { ProductService } from '../../../../src/domain/services/products/product
 import { ICategoryResponse } from '../../../../src/infrasctructure/types/category-response';
 import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
+import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 
 const mockPrismaService = {
   productCategory: {
@@ -104,12 +104,17 @@ const dbDataResponse = {
   message: 'Categories retrieved from database',
 } as ICategoryResponse;
 
+const mockErrorHandler = {
+  handle: jest.fn(),
+};
+
 describe('CategoryService', () => {
   let service: CategoryService;
   let productService: ProductService;
   let companiesService: CompaniesService;
   let prismaService: PrismaService;
   let redisService: RedisService;
+  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -119,6 +124,7 @@ describe('CategoryService', () => {
         { provide: RedisService, useValue: mockRedisService },
         { provide: CompaniesService, useValue: mockCompaniesService },
         { provide: ProductService, useValue: mockProductService },
+        { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
 
@@ -127,6 +133,7 @@ describe('CategoryService', () => {
     redisService = module.get<RedisService>(RedisService);
     companiesService = module.get<CompaniesService>(CompaniesService);
     productService = module.get<ProductService>(ProductService);
+    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
   it('should be defined', () => {
@@ -154,7 +161,7 @@ describe('CategoryService', () => {
           createCategoryDto.company_id as string,
           createCategoryDto,
         ),
-      ).toEqual(result);
+      ).toEqual(`Category ${result.category_id} created successfully`);
     });
 
     it('should throw an error if category creation fails', async () => {
@@ -203,7 +210,7 @@ describe('CategoryService', () => {
         await service.findAll(company_id, {
           page: 1,
           limit: 10,
-        } as FindCategoryDto),
+        }),
       ).toEqual(cachedDataResponse);
     });
 
@@ -221,7 +228,7 @@ describe('CategoryService', () => {
       const result = await service.findAll(company_id, {
         page: 1,
         limit: 10,
-      } as FindCategoryDto);
+      });
 
       expect(result).toEqual(dbDataResponse);
       expect(redisService.get).toHaveBeenCalledWith('category');
@@ -240,7 +247,7 @@ describe('CategoryService', () => {
         );
 
       await expect(
-        service.findAll(company_id, { page: 1, limit: 10 } as FindCategoryDto),
+        service.findAll(company_id, { page: 1, limit: 10 }),
       ).rejects.toThrow(InternalServerErrorException);
     });
   });
@@ -299,7 +306,9 @@ describe('CategoryService', () => {
         .spyOn(prismaService.productCategory, 'update')
         .mockResolvedValue(result);
 
-      expect(await service.update('1', updateProductDto)).toEqual(result);
+      expect(await service.update('1', updateProductDto)).toEqual(
+        `Category ${result.category_id} updated successfully`,
+      );
     });
 
     it('should throw an error if product update fails', async () => {
@@ -329,7 +338,9 @@ describe('CategoryService', () => {
         .spyOn(prismaService.productCategory, 'delete')
         .mockResolvedValue(result);
 
-      expect(await service.remove('1')).toEqual(result);
+      expect(await service.remove('1')).toEqual(
+        `Category ${result.category_id} deleted successfully`,
+      );
     });
 
     it('should throw an error if product deletion fails', async () => {

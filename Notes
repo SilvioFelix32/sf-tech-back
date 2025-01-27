@@ -7,6 +7,13 @@ npx prisma migrate dev --name "init"
 //# START PRISMA ON PORT 5556
 npx prisma studio
 
+# ATUALIZAÇÃO DE PACOTES:
+
+sudo apt install nsight-compute
+ncu -u
+yarn cache clean --force
+yarn upgrade
+
 #NEST GENERATE OPTIONS
 Generate a module (nest g mo) to keep code organized and establish clear boundaries (grouping related components)
 Generate a controller (nest g co) to define CRUD routes (or queries/mutations for GraphQL applications)

@@ -13,11 +13,11 @@ export class CreateProductDto {
 
   @IsString()
   @IsOptional()
-  sku: string;
+  declare sku: string;
 
   @IsString()
   @IsNotEmpty()
-  title: string;
+  declare title: string;
 
   @IsString()
   @IsOptional()
@@ -33,17 +33,17 @@ export class CreateProductDto {
 
   @IsNumber()
   @IsNotEmpty()
-  price: number;
+  declare price: number;
 
   @IsNumber()
   @IsOptional()
-  discount: number;
+  declare discount: number;
 
   @IsBoolean()
   @IsOptional()
-  highlighted: boolean;
+  declare highlighted: boolean;
 
   @IsBoolean()
   @IsOptional()
-  active: boolean;
+  declare active: boolean;
 }

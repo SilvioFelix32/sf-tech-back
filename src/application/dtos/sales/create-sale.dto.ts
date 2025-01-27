@@ -2,14 +2,14 @@ import { IsNumber, IsString } from 'class-validator';
 
 export class CreateSaleDto {
   @IsString()
-  sale_id: string;
+  declare sale_id: string;
 
   @IsString()
-  company_id: string;
+  declare company_id: string;
 
   @IsString()
-  user_id: string;
+  declare user_id: string;
 
   @IsNumber()
-  total: number;
+  declare total: number;
 }

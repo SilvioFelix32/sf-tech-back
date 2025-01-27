@@ -13,23 +13,23 @@ import { GlobalExceptionFilter } from './application/exceptions/exceptions-filte
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   app.useGlobalFilters(new GlobalExceptionFilter());
-  const redisClient = new Redis(process.env.EXTERNAL_REDIS);
+  const redisUrl = process.env.redisUrl as string;
+  const redisClient = new Redis(redisUrl);
 
   redisClient.on('error', (err) => {
-    console.log('Error while connecting with Redis db!');
-    console.log(err);
+    console.info('Error while connecting with Redis db!');
+    console.info(err);
     process.exit(1);
   });
 
   redisClient.on('connect', () => {
-    console.log('Redis connected with db!');
+    console.info('Redis connected with db!');
   });
 
   app.useGlobalPipes(
     new ValidationPipe({
       forbidNonWhitelisted: true,
       whitelist: true,
-      // transform: true,
     }),
   );
 
@@ -62,8 +62,7 @@ async function bootstrap() {
 
   app.enableCors();
   await app.listen(3003);
-  //console.clear();
-  console.log(`Application is running on: ${await app.getUrl()}`);
+  console.info(`Application is running on: ${await app.getUrl()}`);
 }
 
 bootstrap();

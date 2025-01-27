@@ -1,7 +1,6 @@
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
@@ -12,20 +11,21 @@ import { CategoryService } from '../categories/category.service';
 import { RedisService } from '../redis/redis.service';
 import { Product } from '../../entities/products/product.entity';
 import { CreateProductDto } from '../../../application/dtos/products/create-product.dto';
-import { FindProductDto } from '../../../application/dtos/products/find-product.dto';
 import { UpdateProductDto } from '../../../application/dtos/products/update-product.dto';
 import { IProductResponse } from '../../../infrasctructure/types/product-response';
+import { ErrorHandler } from '../../../shared/errors/error-handler';
+import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 
 @Injectable()
 export class ProductService {
   constructor(
     @Inject(forwardRef(() => CategoryService))
-    private readonly categoryService: CategoryService,
+    private readonly errorHandler: ErrorHandler,
     private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
   ) {}
 
-  async create(category_id: string, dto: CreateProductDto): Promise<Product> {
+  async create(category_id: string, dto: CreateProductDto): Promise<string> {
     await this.validateCategory(category_id);
 
     try {
@@ -34,18 +34,20 @@ export class ProductService {
         product_category: { connect: { category_id } },
       };
 
-      return this.prismaService.product.create({ data });
+      const result = await this.prismaService.product.create({ data });
+      return `Product ${result.product_id} created successfully`;
     } catch (error) {
-      console.error('Error creating product', error as Error);
-      throw new InternalServerErrorException('Error creating product');
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  // Todo: pensar numa maneira de remover o data.data
-  async findAll(query: FindProductDto): Promise<IProductResponse> {
+  // TODO: pensar numa maneira de remover o data.data
+  async findAll(query: IQueryPaginate): Promise<IProductResponse> {
     const { page, limit } = query;
+
     const cacheKey = 'product';
-    const cacheExpiryTime = 60; // 1 minute - Todo: aumentar o tempo de duração para 60 * 60 = 1 hora
+    // TODO: 1 minuto - aumentar o tempo de duração para 60 * 60 = 1 hora
+    const cacheExpiryTime = 60 * 5;
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
@@ -75,24 +77,22 @@ export class ProductService {
         data: paginatedCacheData,
       };
     } catch (error) {
-      console.error('Error retrieving products from cache', error as Error);
-      throw new InternalServerErrorException('Error retrieving products');
+      this.errorHandler.handle(error as Error);
     }
   }
 
   async search(query: string): Promise<Product[]> {
     try {
-      return await this.prismaService.product.findMany({
+      return (await this.prismaService.product.findMany({
         where: {
           title: {
             contains: query,
             mode: 'insensitive',
           },
         },
-      });
+      })) as Product[];
     } catch (error) {
-      console.error('Error searching products', error as Error);
-      throw new InternalServerErrorException('Error searching products');
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -100,39 +100,36 @@ export class ProductService {
     try {
       return await this.validateProduct(product_id);
     } catch (error) {
-      const err = error as Error;
-      console.error('Error retrieving product:', err);
-      if (err.message === 'Product not found') {
-        throw new NotFoundException(err.message);
-      }
-      throw new InternalServerErrorException('Error retrieving product');
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  async update(product_id: string, dto: UpdateProductDto): Promise<Product> {
+  async update(product_id: string, dto: UpdateProductDto): Promise<string> {
     await this.validateProduct(product_id);
 
     try {
-      return await this.prismaService.product.update({
+      const result = await this.prismaService.product.update({
         data: { ...dto },
         where: { product_id },
       });
+
+      return `Product ${result.product_id} updated successfully`;
     } catch (error) {
-      console.error('Error updating product', error as Error);
-      throw new InternalServerErrorException('Error updating product');
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  async remove(product_id: string): Promise<Product> {
+  async remove(product_id: string): Promise<string> {
     await this.validateProduct(product_id);
 
     try {
-      return await this.prismaService.product.delete({
+      const result = await this.prismaService.product.delete({
         where: { product_id },
       });
+
+      return `Product ${result.product_id} deleted successfully`;
     } catch (error) {
-      console.error('Error deleting product', error as Error);
-      throw new InternalServerErrorException('Error deleting product');
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -140,10 +137,12 @@ export class ProductService {
     const product = await this.prismaService.product.findUnique({
       where: { product_id },
     });
+
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    return product;
+
+    return product as Product;
   }
 
   private async validateCategory(category_id: string) {
@@ -159,12 +158,12 @@ export class ProductService {
 
   private async getCache(key: string) {
     const cachedData = await this.redisService.get(key);
-    console.log(`Retrieved cache for key: ${key}`);
+    console.info(`Retrieved cache for key: ${key}`);
     return cachedData ? JSON.parse(cachedData) : null;
   }
 
   private async setCache(key: string, data: any, ttl: number) {
-    console.log(`Setting cache for key: ${key}, data:`, data.data.length);
+    console.info(`Setting cache for key: ${key}, data:`, data.data.length);
     await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
   }
 
@@ -182,14 +181,16 @@ export class ProductService {
         cacheExpiryTime,
       );
 
-      const paginatedDbData = this.paginateData(dbData, page, limit);
+      const paginatedDbData = this.paginateData(
+        dbData as Product[],
+        page,
+        limit,
+      );
 
       return paginatedDbData;
     } catch (error) {
       console.error('Error fetching and caching products', error as Error);
-      throw new InternalServerErrorException(
-        'Error fetching and caching products',
-      );
+      this.errorHandler.handle(error as Error);
     }
   }
   private paginateData(

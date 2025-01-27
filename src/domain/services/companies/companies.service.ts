@@ -2,51 +2,38 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
-  InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateCompanyDto } from '../../../application/dtos/company/create-company.dto';
 import { UpdateCompanyDto } from '../../../application/dtos/company/update-company.dto';
 import { Company } from '../../entities/company/company.entity';
 import { PrismaService } from '../prisma/prisma.service';
+import { ErrorHandler } from 'src/shared/errors/error-handler';
 
 @Injectable()
 export class CompaniesService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly errorHandler: ErrorHandler,
+  ) {}
 
-  async create(data: CreateCompanyDto): Promise<Company> {
+  async create(data: CreateCompanyDto): Promise<string> {
     const { name, email } = data;
 
     try {
-      const isCompanyExists = await this.validateCompanyEmailAndName(
-        email,
-        name,
-      );
+      await this.companyExists(email, name);
 
-      if (isCompanyExists.email) {
-        throw new ConflictException('Company with this email already exists');
-      }
-
-      if (isCompanyExists.name) {
-        throw new ConflictException('Company with this name already exists');
-      }
-
-      return await this.prismaService.company.create({ data });
+      const result = await this.prismaService.company.create({ data });
+      return `Company ${result.company_id} created successfully`;
     } catch (error) {
-      console.error('Failed to create company', error);
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException('Failed to create company');
+      this.errorHandler.handle(error as Error);
     }
   }
 
   async findAll(): Promise<Company[]> {
     try {
-      return await this.prismaService.company.findMany();
+      return (await this.prismaService.company.findMany()) as Company[];
     } catch (error) {
-      console.error('Failed to fetch companies', error);
-      throw new InternalServerErrorException('Failed to fetch companies');
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -60,64 +47,43 @@ export class CompaniesService {
         throw new NotFoundException('Company not found');
       }
 
-      return company;
+      return company as Company;
     } catch (error) {
-      console.error('Failed to fetch company', error);
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-
-      throw new InternalServerErrorException('Failed to fetch company');
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  async update(company_id: string, data: UpdateCompanyDto): Promise<Company> {
+  async update(company_id: string, data: UpdateCompanyDto): Promise<string> {
     try {
-      const { email, name } = data;
-      const isCompanyExists = await this.validateCompanyEmailAndName(
-        email,
-        name,
-      );
+      await Promise.all([
+        this.companyIdExists(company_id),
+        this.companyExists(String(data.email), String(data.name)),
+      ]);
 
-      if (isCompanyExists.email) {
-        throw new ConflictException('Company with this email already exists');
-      }
-
-      if (isCompanyExists.name) {
-        throw new ConflictException('Company with this name already exists');
-      }
-      return await this.prismaService.company.update({
+      const result = await this.prismaService.company.update({
         data,
         where: { company_id },
       });
+
+      return `Company ${result.company_id} updated!`;
     } catch (error) {
-      console.error('Failed to update company', error);
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        `Failed to update company ${company_id}`,
-      );
+      console.error('ComaniesService.update()', error);
+      this.errorHandler.handle(error as Error);
     }
   }
 
   async remove(company_id: string): Promise<string> {
-    await this.validateCompany(company_id);
+    await this.companyIdExists(company_id);
 
     try {
       await this.prismaService.company.delete({ where: { company_id } });
       return `Company ${company_id} deleted!`;
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw error;
-      }
-      throw new InternalServerErrorException(
-        `Failed to delete company ${company_id}`,
-      );
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  private async validateCompany(company_id: string): Promise<void> {
+  private async companyIdExists(company_id: string): Promise<void> {
     const response = await this.prismaService.company.findFirst({
       where: { company_id },
     });
@@ -128,24 +94,24 @@ export class CompaniesService {
     return;
   }
 
-  private async validateCompanyEmailAndName(
-    email?: string,
-    name?: string,
-  ): Promise<{ email: boolean; name: boolean }> {
-    const response = await this.prismaService.company.findFirst({
-      where: {
-        email,
-        name,
-      },
-      select: {
-        email: true,
-        name: true,
-      },
-    });
+  private async companyExists(email: string, name: string): Promise<void> {
+    const [validateEmail, validateName] = await Promise.all([
+      this.prismaService.company.findUnique({
+        where: {
+          email,
+        },
+      }),
+      this.prismaService.company.findUnique({
+        where: {
+          name,
+        },
+      }),
+    ]);
 
-    return {
-      name: !!response?.name,
-      email: !!response?.email,
-    };
+    if (validateEmail || validateName) {
+      throw new ConflictException(
+        `Company with this ${validateEmail ? 'email' : 'name'} already exists`,
+      );
+    }
   }
 }

@@ -1,6 +1,6 @@
 export class Category {
-  category_id: string;
-  company_id: string;
+  declare category_id: string;
+  declare company_id: string;
   title?: string;
   description?: string;
   products?: any;

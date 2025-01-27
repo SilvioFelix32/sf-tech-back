@@ -12,6 +12,7 @@ import { UpdateProductDto } from '../../../../src/application/dtos/products/upda
 import { IProductResponse } from '../../../../src/infrasctructure/types/product-response';
 import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
+import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 
 const mockPrismaService = {
   product: {
@@ -88,11 +89,16 @@ const dbDataResponse = {
   message: 'Products retrieved from database',
 } as IProductResponse;
 
+const mockErrorHandler = {
+  handle: jest.fn(),
+};
+
 describe('ProductService', () => {
   let service: ProductService;
   let categoryService: CategoryService;
   let prismaService: PrismaService;
   let redisService: RedisService;
+  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -101,6 +107,7 @@ describe('ProductService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: RedisService, useValue: mockRedisService },
         { provide: CategoryService, useValue: mockCategoryService },
+        { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
 
@@ -108,6 +115,7 @@ describe('ProductService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
     redisService = module.get<RedisService>(RedisService);
     categoryService = module.get<CategoryService>(CategoryService);
+    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
   it('should be defined', () => {
@@ -138,7 +146,7 @@ describe('ProductService', () => {
           createProductDto.category_id as string,
           createProductDto,
         ),
-      ).toEqual(result);
+      ).toEqual(`Product ${result.product_id} created successfully`);
     });
 
     it('should throw an error if product creation fails', async () => {
@@ -165,6 +173,7 @@ describe('ProductService', () => {
         .mockRejectedValue(
           new InternalServerErrorException('Error creating product'),
         );
+      jest.spyOn(mockErrorHandler, 'handle').mockRejectedValue(new Error());
 
       await expect(
         service.create(
@@ -274,7 +283,9 @@ describe('ProductService', () => {
       jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
       jest.spyOn(prismaService.product, 'update').mockResolvedValue(result);
 
-      expect(await service.update('1', updateProductDto)).toEqual(result);
+      expect(await service.update('1', updateProductDto)).toEqual(
+        `Product ${result.product_id} updated successfully`,
+      );
     });
 
     it('should throw an error if product update fails', async () => {
@@ -297,7 +308,9 @@ describe('ProductService', () => {
       jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
       jest.spyOn(prismaService.product, 'delete').mockResolvedValue(result);
 
-      expect(await service.remove('1')).toEqual(result);
+      expect(await service.remove('1')).toEqual(
+        `Product ${result.product_id} deleted successfully`,
+      );
     });
 
     it('should throw an error if product deletion fails', async () => {

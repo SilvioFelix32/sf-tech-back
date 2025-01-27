@@ -70,7 +70,9 @@ describe('CompaniesService', () => {
         .spyOn(prismaService.company, 'create')
         .mockResolvedValue(result as Company);
 
-      expect(await service.create(data)).toEqual(result);
+      expect(await service.create(data)).toEqual(
+        `Company ${data.company_id} created successfully`,
+      );
     });
 
     it('should throw a ConflictException when email already exists', async () => {
@@ -199,7 +201,7 @@ describe('CompaniesService', () => {
 
       expect(
         await service.update(data.company_id, data as UpdateCompanyDto),
-      ).toEqual(data);
+      ).toEqual(`Company ${data.company_id} updated!`);
     });
 
     it('Shold return ConflictException when data alredy exists', async () => {

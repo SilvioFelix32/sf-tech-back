@@ -1,6 +1,6 @@
 export class Product {
-  product_id: string;
-  category_id: string;
+  declare product_id: string;
+  declare category_id: string;
   sku?: string;
   title?: string;
   subtitle?: string;

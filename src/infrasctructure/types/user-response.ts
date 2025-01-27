@@ -1,6 +1,5 @@
 import { PaginatedResult } from 'prisma-pagination';
 import { IPaginatedResult } from './paginate-data';
-import { User } from '@prisma/client';
 
 export interface IUserResponse {
   user_id: string;

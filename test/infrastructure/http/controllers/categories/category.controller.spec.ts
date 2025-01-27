@@ -5,6 +5,7 @@ import { PrismaService } from '../../../../../src/domain/services/prisma/prisma.
 import { CompaniesService } from '../../../../../src/domain/services/companies/companies.service';
 import { ProductService } from '../../../../../src/domain/services/products/product.service';
 import { RedisService } from '../../../../../src/domain/services/redis/redis.service';
+import { ErrorHandler } from '../../../../../src/shared/errors/error-handler';
 
 const mockPrismaService = {
   productCategory: {
@@ -36,12 +37,17 @@ const mockCompaniesService = {
   findUnique: jest.fn(),
 };
 
+const mockErrorHandler = {
+  handle: jest.fn(),
+};
+
 describe('CategoryController', () => {
   let controller: CategoryController;
   let productService: ProductService;
   let companiesService: CompaniesService;
   let prismaService: PrismaService;
   let redisService: RedisService;
+  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -52,6 +58,7 @@ describe('CategoryController', () => {
         { provide: RedisService, useValue: mockRedisService },
         { provide: CompaniesService, useValue: mockCompaniesService },
         { provide: ProductService, useValue: mockProductService },
+        { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
 
@@ -60,6 +67,7 @@ describe('CategoryController', () => {
     redisService = module.get<RedisService>(RedisService);
     companiesService = module.get<CompaniesService>(CompaniesService);
     productService = module.get<ProductService>(ProductService);
+    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
   it('should be defined', () => {

@@ -15,8 +15,8 @@ import { IHeaders } from '../../../types/IHeaders';
 import { ProductService } from '../../../../domain/services/products/product.service';
 import { Product } from '../../../../domain/entities/products/product.entity';
 import { CreateProductDto } from '../../../../application/dtos/products/create-product.dto';
-import { FindProductDto } from '../../../../application/dtos/products/find-product.dto';
 import { UpdateProductDto } from '../../../../application/dtos/products/update-product.dto';
+import { IQueryPaginate } from '../../../../shared/paginator/i-query-paginate';
 
 @Controller('products')
 export class ProductController {
@@ -38,11 +38,12 @@ export class ProductController {
 
   @Get()
   @IsPublic()
-  async findAll(@Query() query: FindProductDto) {
+  async findAll(@Query() query: IQueryPaginate) {
     return this.productService.findAll(query);
   }
 
   @Get()
+  @IsPublic()
   async search(@Query('query') query: string): Promise<Product[]> {
     return this.productService.search(query);
   }

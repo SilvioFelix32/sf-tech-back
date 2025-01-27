@@ -9,14 +9,14 @@ export class User {
   user_id?: string;
 
   @ApiHideProperty()
-  company_id: string;
-  name: string;
-  lastName: string;
-  email: string;
+  declare company_id: string;
+  declare name: string;
+  declare lastName: string;
+  declare email: string;
   role?: Role;
 
   @ApiHideProperty()
-  password: string;
+  declare password: string;
   @ApiHideProperty()
   createdAt?: Date | string;
   @ApiHideProperty()

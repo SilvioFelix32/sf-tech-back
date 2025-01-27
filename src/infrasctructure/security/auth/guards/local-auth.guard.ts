@@ -7,11 +7,11 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class LocalAuthGuard extends AuthGuard('local') {
-  canActivate(context: ExecutionContext) {
+  override canActivate(context: ExecutionContext) {
     return super.canActivate(context);
   }
 
-  handleRequest(err, req) {
+  override handleRequest(err: any, req: any) {
     if (err || !req) {
       throw new UnauthorizedException(err?.message);
     }

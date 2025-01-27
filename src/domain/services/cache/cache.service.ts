@@ -1,7 +1,11 @@
+import { ErrorHandler } from 'src/shared/errors/error-handler';
 import { RedisService } from '../redis/redis.service';
 
 export class CacheService {
-  constructor(private readonly redisService: RedisService) {}
+  constructor(
+    private readonly redisService: RedisService,
+    private readonly errorHandler: ErrorHandler,
+  ) {}
 
   async getCache<T>(key: string): Promise<T | null> {
     try {
@@ -19,8 +23,7 @@ export class CacheService {
       await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
       return `Cache created for key: ${key}`;
     } catch (error) {
-      console.log('Error setting cache', error);
-      throw new Error('Error setting cache');
+      this.errorHandler.handle(error as Error);
     }
   }
 }

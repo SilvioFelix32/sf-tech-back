@@ -1,7 +1,6 @@
 import {
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
@@ -12,50 +11,50 @@ import { RedisService } from '../redis/redis.service';
 import { ProductService } from '../products/product.service';
 import { Category } from '../../entities/categories/category.entity';
 import { CreateCategoryDto } from '../../../application/dtos/categories/create-category.dto';
-import { FindCategoryDto } from '../../../application/dtos/categories/find-category.dto';
 import { UpdateCategoryDto } from '../../../application/dtos/categories/update-category.dto';
-import {
-  ICategoryResponse,
-  categoryResponse,
-} from '../../../infrasctructure/types/category-response';
+import { categoryResponse } from '../../../infrasctructure/types/category-response';
+import { ErrorHandler } from '../../../shared/errors/error-handler';
+import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @Inject(forwardRef(() => ProductService))
-    private readonly productService: ProductService,
+    private readonly errorHandler: ErrorHandler,
     private readonly prismaService: PrismaService,
     private readonly redisService: RedisService,
   ) {}
 
-  async create(
-    company_id: string,
-    dto: CreateCategoryDto,
-  ): Promise<Category | unknown> {
+  async create(company_id: string, dto: CreateCategoryDto): Promise<string> {
     const data: Prisma.ProductCategoryCreateInput = {
       ...dto,
       company: { connect: { company_id } },
     };
-
+    console.log('create data ...............', data);
     try {
-      return this.prismaService.productCategory.create({
+      const result = await this.prismaService.productCategory.create({
         data,
       });
+
+      console.log('create result ...............', result);
+
+      return `Category ${result.category_id} created successfully`;
     } catch (error) {
-      throw new InternalServerErrorException(error);
+      console.error('CategoryService.create()', error);
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  async findAll(
-    company_id: string,
-    query: FindCategoryDto,
-  ): Promise<ICategoryResponse> {
+  async findAll(company_id: string, query: IQueryPaginate): Promise<any> {
     await this.validateCompany(company_id);
     const { page, limit } = query;
+
     const cacheKey = 'category';
+    // TODO: 1 minuto - aumentar o tempo de duração para 60 * 60 = 1 hora
     const cacheExpiryTime = 60;
     const currentTime = Math.floor(Date.now() / 1000);
 
+    // TODO: RESOLVER ERRO DE UNDEFINED
     try {
       const cachedData = await this.getCache(cacheKey);
       if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
@@ -82,8 +81,7 @@ export class CategoryService {
         data: paginatedCacheData,
       };
     } catch (error) {
-      console.error('Error retrieving categories from cache', error as Error);
-      throw new InternalServerErrorException(error);
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -91,19 +89,18 @@ export class CategoryService {
     await this.validateCategory(category_id);
 
     try {
-      return await this.prismaService.productCategory.findUnique({
+      return (await this.prismaService.productCategory.findUnique({
         where: {
           category_id,
         },
         select: categoryResponse,
-      });
+      })) as Category;
     } catch (error) {
-      console.error('Error on find category', error);
-      throw new InternalServerErrorException('Error on find category');
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  async update(category_id: string, dto: UpdateCategoryDto): Promise<Category> {
+  async update(category_id: string, dto: UpdateCategoryDto): Promise<string> {
     await this.validateCategory(category_id);
 
     try {
@@ -115,14 +112,14 @@ export class CategoryService {
           category_id,
         },
       });
-      return response;
+
+      return `Category ${response.category_id} updated successfully`;
     } catch (error) {
-      console.error('Error on update category', error);
-      throw new InternalServerErrorException('Error on update category');
+      this.errorHandler.handle(error as Error);
     }
   }
 
-  async remove(category_id: string): Promise<Category> {
+  async remove(category_id: string): Promise<string> {
     await this.validateCategory(category_id);
 
     try {
@@ -131,10 +128,9 @@ export class CategoryService {
           category_id,
         },
       });
-      return response;
+      return `Category ${response.category_id} deleted successfully`;
     } catch (error) {
-      console.error('Error on delete category', error);
-      throw new InternalServerErrorException('Error on delete category');
+      this.errorHandler.handle(error as Error);
     }
   }
 
@@ -150,23 +146,21 @@ export class CategoryService {
   }
 
   private async validateCompany(company_id: string) {
-    const verifyIfCompanyExists = await this.prismaService.company.findUnique({
-      where: { company_id },
-    });
-
-    if (!verifyIfCompanyExists) {
+    if (!company_id) {
       throw new NotFoundException('Company not found');
     }
   }
 
+  //TODO: Trocar pelo CacheService
   private async getCache(key: string) {
     const cachedData = await this.redisService.get(key);
-    console.log(`Retrieved cache for key: ${key}`);
+    console.info(`Retrieved cache for key: ${key}`);
     return cachedData ? JSON.parse(cachedData) : null;
   }
 
+  //TODO: Trocar pelo CacheService
   private async setCache(key: string, data: any, ttl: number) {
-    console.log(`Setting cache for key: ${key}, data:`, data.data.length);
+    console.info(`Setting cache for key: ${key}, data:`, data.data.length);
     await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
   }
 
@@ -186,16 +180,18 @@ export class CategoryService {
         cacheExpiryTime,
       );
 
-      const paginatedDbData = this.paginateData(dbData, page, limit);
+      const paginatedDbData = this.paginateData(
+        dbData as Category[],
+        page,
+        limit,
+      );
 
       return paginatedDbData;
     } catch (error) {
-      console.error('Error fetching and caching products', error as Error);
-      throw new InternalServerErrorException(
-        'Error fetching and caching products',
-      );
+      this.errorHandler.handle(error as Error);
     }
   }
+
   private paginateData(
     data: Category[],
     page: number,

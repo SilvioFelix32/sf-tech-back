@@ -5,29 +5,29 @@ import { Role, User } from '../../../domain/entities/users/user.entity';
 export class CreateUserDto extends User {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  declare name: string;
 
   @IsString()
   @IsNotEmpty()
-  lastName: string;
+  declare lastName: string;
 
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  declare email: string;
 
   @IsString()
   @IsOptional()
-  role?: Role;
+  declare role?: Role;
 
   @IsString()
   @ApiHideProperty()
-  password: string;
+  declare password: string;
 
   @ApiHideProperty()
   @IsOptional()
-  createdAt?: Date | string;
+  declare createdAt?: Date | string;
 
   @ApiHideProperty()
   @IsOptional()
-  updatedAt?: Date | string;
+  declare updatedAt?: Date | string;
 }

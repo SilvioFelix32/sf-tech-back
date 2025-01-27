@@ -1,20 +1,20 @@
 import { Company } from '../../../domain/entities/company/company.entity';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class CreateCompanyDto extends Company {
+export class CreateCompanyDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
+  declare name: string;
 
   @IsOptional()
   @IsString()
-  fantasyName?: string;
+  declare fantasyName?: string;
 
   @IsEmail()
   @IsNotEmpty()
-  email: string;
+  declare email: string;
 
   @IsOptional()
   @IsString()
-  urlBanner?: string;
+  declare urlBanner?: string;
 }

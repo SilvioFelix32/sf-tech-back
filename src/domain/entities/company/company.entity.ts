@@ -1,8 +1,8 @@
 export class Company {
   id?: string;
-  name: string;
+  declare name: string;
+  declare email: string;
   fantasyName?: string;
-  email: string;
   urlBanner?: string;
 
   createdAt?: string | Date;

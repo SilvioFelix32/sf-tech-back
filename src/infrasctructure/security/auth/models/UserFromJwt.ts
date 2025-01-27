@@ -1,5 +1,5 @@
 export class UserFromJwt {
-  user_id: string;
-  email: string;
-  name: string;
+  declare user_id: string;
+  declare email: string;
+  declare name: string;
 }
