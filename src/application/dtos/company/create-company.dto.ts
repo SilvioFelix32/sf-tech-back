@@ -1,4 +1,3 @@
-import { Company } from '../../../domain/entities/company/company.entity';
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCompanyDto {

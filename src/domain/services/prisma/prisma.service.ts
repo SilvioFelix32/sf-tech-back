@@ -5,6 +5,8 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { env } from '../../../shared/config/env';
+
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
   private static instance: PrismaService | null = null;
@@ -14,7 +16,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     super({
       datasources: {
         db: {
-          url: process.env.DATABASE_URL,
+          url: env.DATABASE_URL,
         },
       },
     });
@@ -25,10 +27,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      console.log('Prisma service started create connection with DB');
+      console.info('Prisma service started create connection with DB');
       await this.connectWithRetry();
     } catch (err) {
-      console.log(`Failed to connect to database: ${err}`);
+      console.error(`Failed to connect to database: ${err}`);
     }
   }
 
@@ -36,11 +38,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     while (this.connectionAttempts < this.maxConnectionAttempts) {
       try {
         await this.$connect();
-        console.log('Database connection successful');
+        console.info('Database connection successful');
         return;
       } catch (err) {
         this.connectionAttempts++;
-        console.log(
+        console.error(
           `Prisma service attempt ${this.connectionAttempts} to connect failed with the database, Error: ${err}`,
         );
       }

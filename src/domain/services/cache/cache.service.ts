@@ -12,14 +12,14 @@ export class CacheService {
       const cachedData = await this.redisService.get(key);
       return cachedData ? JSON.parse(cachedData) : null;
     } catch (error) {
-      console.log('Error getting cache', error);
+      console.error('Error getting cache', error);
       return null;
     }
   }
 
   async setCache<T>(key: string, data: T, ttl: number): Promise<string> {
     try {
-      console.log(`Setting cache for key: ${key}`);
+      console.info(`Setting cache for key: ${key}`);
       await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
       return `Cache created for key: ${key}`;
     } catch (error) {

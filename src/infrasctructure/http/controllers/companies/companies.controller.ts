@@ -11,7 +11,6 @@ import { IsPublic } from '../../../security/auth/decorators/is-public.decorator'
 import { CreateCompanyDto } from '../../../../application/dtos/company/create-company.dto';
 import { UpdateCompanyDto } from '../../../../application/dtos/company/update-company.dto';
 import { CompaniesService } from '../../../../domain/services/companies/companies.service';
-import { UnauthorizedError } from 'src/infrasctructure/security/auth/errors/unauthorized.error';
 
 @Controller('companies')
 export class CompaniesController {

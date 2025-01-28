@@ -1,4 +1,5 @@
 import { AppModule } from './app.module';
+import { env } from './shared/config/env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import {
@@ -9,6 +10,8 @@ import {
 } from '@nestjs/swagger';
 import Redis from 'ioredis';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
+
+const port = env.APP_PORT;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -61,8 +64,12 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, customOptions);
 
   app.enableCors();
-  await app.listen(3003);
-  console.info(`Application is running on: ${await app.getUrl()}`);
+  await app.listen(port);
+  console.info(`Application is running on: http://localhost:${port}`);
+  console.info(`Swagger UI is running on: http://localhost:${port}/api`);
+  console.info(
+    `Swagger JSON is available at: http://localhost:${port}/api-json`,
+  );
 }
 
 bootstrap();

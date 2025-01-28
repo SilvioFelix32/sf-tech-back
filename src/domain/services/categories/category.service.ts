@@ -30,13 +30,11 @@ export class CategoryService {
       ...dto,
       company: { connect: { company_id } },
     };
-    console.log('create data ...............', data);
+
     try {
       const result = await this.prismaService.productCategory.create({
         data,
       });
-
-      console.log('create result ...............', result);
 
       return `Category ${result.category_id} created successfully`;
     } catch (error) {
@@ -54,7 +52,6 @@ export class CategoryService {
     const cacheExpiryTime = 60;
     const currentTime = Math.floor(Date.now() / 1000);
 
-    // TODO: RESOLVER ERRO DE UNDEFINED
     try {
       const cachedData = await this.getCache(cacheKey);
       if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {

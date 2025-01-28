@@ -27,19 +27,35 @@
 
 ###
 
+## TO RUN LOCAL
+
+run yarn install
+
+# REDIS
+
+install redis-server
+initiate redis server
+run redis-server
+
+# START
+
+run yarn dev
+or
+run yarn debug // DEBUG MODE
+
 ## Dependencies
 
 - [@nest/axios](https://github.com/nestjs/axios#readme): Nest - modern, fast, powerful node.js web framework (@axios)
-- [@nestjs/cache-manager](https://github.com/nestjs/cache-manager#readme): Nest - modern, fast, powerful node.js web framework 
-- [@nestjs/core](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework 
-- [@nestjs/jwt](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework 
-- [@nestjs/mapped-types](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework 
-- [@nestjs/passport](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework 
-- [@nestjs/latform-express](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework 
-- [@nestjs/swagger](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework 
+- [@nestjs/cache-manager](https://github.com/nestjs/cache-manager#readme): Nest - modern, fast, powerful node.js web framework
+- [@nestjs/core](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
+- [@nestjs/jwt](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
+- [@nestjs/mapped-types](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
+- [@nestjs/passport](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
+- [@nestjs/latform-express](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
+- [@nestjs/swagger](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
 - [@prisma/client](https://www.prisma.io): Prisma Client is an auto-generated, type-safe and modern JavaScript/TypeScript ORM for Node.js that's tailored to your data. Supports MySQL, PostgreSQL, MariaDB, SQLite databases.
-- [bcrypt](https://github.com/kelektiv/node.bcrypt.js#readme):  A bcrypt library for NodeJS.
-- [bcryptjs](https://github.com/dcodeIO/bcrypt.js#readme): Optimized bcrypt in plain JavaScript with zero dependencies. 
+- [bcrypt](https://github.com/kelektiv/node.bcrypt.js#readme): A bcrypt library for NodeJS.
+- [bcryptjs](https://github.com/dcodeIO/bcrypt.js#readme): Optimized bcrypt in plain JavaScript with zero dependencies.
 - [cache-manager](https://github.com/node-cache-manager/node-cache-manager#readme): Cache module for Node.js.
 - [cache-manager-redis-store](https://github.com/dabroek/node-cache-manager-redis-store#readme): Redis store for node-cache-manager.
 - [class-transformer](https://github.com/typestack/class-transformer#readme): Proper decorator-based transformation / serialization / deserialization of plain javascript objects to class constructors.
