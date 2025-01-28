@@ -1,8 +1,15 @@
+# Remember to change this if you change the node version in package.json
 FROM node:latest
-WORKDIR /usr/app
-COPY package.json yarn.lock ./
-COPY . .
-RUN yarn
-RUN yarn build || echo "Build failed, please check your build configuration."
+
 EXPOSE 3003
-CMD ["yarn", "start:prod"] || echo "Yarn start:prod failed, please check your build configuration."
+
+WORKDIR /usr/src
+
+COPY "package.json" "yarn.lock" ./
+RUN yarn cache clean --force
+COPY . .
+
+RUN yarn
+RUN yarn build || echo "DOCKERFILE - Yarn Build failed, please check your build configuration."
+
+CMD ["node", "dist/main.js"]

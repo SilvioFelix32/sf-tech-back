@@ -1,38 +1,55 @@
 # install nest on global
+
 # NPM I -g nest
 
 ## TO RUN LOCAL
+
 run yarn install
 
 # REDIS
+
 install redis-server
 initiate redis server
 run redis-server
 
 # START INDEX.TS IN PORT 3003
+
 run yarn dev
-or 
+or
 run yarn debug // DEBUG MODE
 
+# DOCKER OPTION
+
+docker build -t sf-tech-backend .
+docker run -p 3003:3003 sf-tech-backend
+
+# REMOVE DOCKER IMAGE
+
+docker images
+docker rmi <image_id>
 
 ## OTHER OPTIONS
 
 # GENEREATE A SERVICE PRISMA
+
 nest g 'table-name' Generates and/or modifies files based on a schematic.
 nest g s prisma
 
 # GENERATE SEED ON DB
+
 npx prisma db push
 npx prisma db seed
 
 # CREATE MIGRATIONS
+
 npx prisma migrate dev --name "init"
 
 # START PRISMA ON PORT 5556
+
 npx prisma studio
 
-
 # ATUALIZAÇÃO DE PACOTES:
+
 npm install -g npm-check-updates
 ncu -u
 yarn cache clean --force
@@ -46,14 +63,10 @@ Generate an entity class/interface to represent the resource data shape
 Generate Data Transfer Objects (or inputs for GraphQL applications) to define how the data will be sent over the network
 nest g resource
 
-
 # SE TIVER UMA PORTA OCUPADA NO LINUX
+
 // Descubra o PID (Process ID) do serviço:
 lsof -i :PORTA
 
 > Em seguida Elimine o serviço usando o comando kill:
-kill -15 PID
-
-
-
-
+> kill -15 PID
