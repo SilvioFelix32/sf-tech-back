@@ -17,29 +17,59 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
       const errorResponse = exception.getResponse();
 
-      const message =
-        typeof errorResponse === 'string'
-          ? errorResponse
-          : (errorResponse as { message: string }).message ||
-            'An error occurred';
+      const message = this.errorMessage(errorResponse);
+      const cause = this.errorCause(errorResponse);
 
-      const cause =
-        typeof errorResponse === 'string'
-          ? errorResponse
-          : (errorResponse as { error: string }).error || 'Unknown error';
-
-      return response.status(status).json({
+      const errorBody = {
         statusCode: status,
         cause,
         message,
-      });
+      };
+
+      console.error('GlobalExceptionFilter.catch()', errorBody);
+      return response.status(status).json(errorBody);
     }
 
-    console.error('Unhandled exception:', exception);
+    console.error(
+      'GlobalExceptionFilter.catch() - Unhandled exception:',
+      exception,
+    );
 
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Internal server error',
     });
+  }
+
+  private errorMessage(error: unknown): string {
+    return (
+      (error as { message: string }).message ||
+      (error as Error).message ||
+      'An error occurred'
+    );
+  }
+
+  private errorCause(error: unknown): string {
+    const errorName =
+      (error as { name?: string; error?: string }).name ||
+      (error as { error?: string }).error ||
+      'UnknownError';
+
+    const causeMap: Record<string, string> = {
+      Unauthorized: 'UnauthorizedException',
+      'Not Found': 'NotFoundException',
+      NotFound: 'NotFoundException',
+      Conflict: 'ConflictException',
+      'Bad Request': 'BadRequestException',
+      Forbidden: 'ForbiddenException',
+      Gone: 'GoneException',
+    };
+
+    for (const key in causeMap) {
+      if (new RegExp(key, 'i').test(errorName)) {
+        return causeMap[key] ?? 'InternalServerErrorException';
+      }
+    }
+    return 'InternalServerErrorException';
   }
 }

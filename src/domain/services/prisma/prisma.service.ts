@@ -27,10 +27,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      console.info('Prisma service started create connection with DB');
+      console.info(
+        'PrismaService.onModuleInit(): Started creating connection with DB',
+      );
       await this.connectWithRetry();
     } catch (err) {
-      console.error(`Failed to connect to database: ${err}`);
+      console.error(
+        `PrismaService.onModuleInit(): Failed to connect to database: ${err}`,
+      );
     }
   }
 
@@ -38,12 +42,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     while (this.connectionAttempts < this.maxConnectionAttempts) {
       try {
         await this.$connect();
-        console.info('Database connection successful');
+        console.info(
+          'PrismaService.connectWithRetry(): Database connection successful!',
+        );
         return;
       } catch (err) {
         this.connectionAttempts++;
         console.error(
-          `Prisma service attempt ${this.connectionAttempts} to connect failed with the database, Error: ${err}`,
+          `PrismaService.connectWithRetry(): attempt ${this.connectionAttempts} to connect failed with the database, Error: ${err}`,
         );
       }
     }

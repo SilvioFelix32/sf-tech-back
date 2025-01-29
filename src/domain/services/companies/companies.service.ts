@@ -18,14 +18,13 @@ export class CompaniesService {
 
   async create(data: CreateCompanyDto): Promise<string> {
     const { name, email } = data;
-
     try {
       await this.companyExists(email, name);
 
       const result = await this.prismaService.company.create({ data });
       return `Company ${result.company_id} created successfully`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error);
     }
   }
 
@@ -33,7 +32,7 @@ export class CompaniesService {
     try {
       return (await this.prismaService.company.findMany()) as Company[];
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error);
     }
   }
 
@@ -49,7 +48,7 @@ export class CompaniesService {
 
       return company as Company;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error);
     }
   }
 
@@ -67,8 +66,7 @@ export class CompaniesService {
 
       return `Company ${result.company_id} updated!`;
     } catch (error) {
-      console.error('ComaniesService.update()', error);
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error);
     }
   }
 
@@ -79,7 +77,7 @@ export class CompaniesService {
       await this.prismaService.company.delete({ where: { company_id } });
       return `Company ${company_id} deleted!`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error);
     }
   }
 

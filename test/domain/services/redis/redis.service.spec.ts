@@ -1,5 +1,3 @@
-import { Test } from '@nestjs/testing';
-import { InternalServerErrorException } from '@nestjs/common';
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 import { faker } from '@faker-js/faker';
 
@@ -7,7 +5,7 @@ describe('RedisService', () => {
   let redisService: RedisService;
 
   process.env.REDIS_HOST = faker.internet.ip();
-  process.env.REDIS_USER = faker.internet.userName();
+  process.env.REDIS_USER = faker.internet.username();
   process.env.REDIS_PASSWORD = faker.internet.password();
 
   beforeAll(() => {

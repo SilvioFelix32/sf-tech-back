@@ -167,20 +167,21 @@ describe('ProductService', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw an InternalServerErrorException if product there is no category_id', async () => {
+    it('should throw an NotFoundException if product there is no category_id', async () => {
       jest
-        .spyOn(prismaService.product, 'create')
-        .mockRejectedValue(
-          new InternalServerErrorException('Error creating product'),
-        );
-      jest.spyOn(mockErrorHandler, 'handle').mockRejectedValue(new Error());
+        .spyOn(prismaService.productCategory, 'findUnique')
+        .mockResolvedValue({ category_id: '1234' } as ProductCategory);
+      // jest
+      //   .spyOn(prismaService.productCategory, 'findUnique')
+      //   .mockResolvedValue(null);
 
+      expect(prismaService.productCategory.findUnique).toHaveBeenCalledTimes(1);
       await expect(
         service.create(
           createProductDto.category_id as string,
           createProductDto,
         ),
-      ).rejects.toThrow(InternalServerErrorException);
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

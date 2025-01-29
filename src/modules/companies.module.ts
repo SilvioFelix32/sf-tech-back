@@ -5,9 +5,9 @@ import { SharedServicesModule } from './shared-services.module';
 import { ErrorHandler } from '../shared/errors/error-handler';
 
 @Module({
+  imports: [SharedServicesModule],
+  providers: [CompaniesService, ErrorHandler],
   controllers: [CompaniesController],
   exports: [CompaniesService],
-  imports: [SharedServicesModule, ErrorHandler],
-  providers: [CompaniesService, ErrorHandler],
 })
 export class CompaniesModule {}

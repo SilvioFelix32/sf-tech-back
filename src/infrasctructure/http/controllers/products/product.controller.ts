@@ -23,7 +23,6 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post()
-  @IsPublic()
   create(@Headers() header: IHeaders, @Body() dto: CreateProductDto) {
     const { category_id } = header;
     this.validateHeaders(header);
@@ -55,7 +54,6 @@ export class ProductController {
   }
 
   @Patch(':id')
-  @IsPublic()
   update(
     @Headers() header: IHeaders,
     @Param('id') product_id: string,

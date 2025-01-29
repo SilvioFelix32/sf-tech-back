@@ -24,6 +24,7 @@ export class CacheService {
       return `Cache created for key: ${key}`;
     } catch (error) {
       this.errorHandler.handle(error as Error);
+      throw error;
     }
   }
 }

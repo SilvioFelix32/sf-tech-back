@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from '../../../../src/domain/services/cache/cache.service';
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
+import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 
 const mockCacheService = {
   getCache: jest.fn(),
@@ -12,9 +13,14 @@ const mockRedisService = {
   set: jest.fn(),
 };
 
+const mockErrorHandler = {
+  handle: jest.fn(),
+};
+
 describe('CacheService', () => {
   let service: CacheService;
   let redisService: RedisService;
+  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -22,11 +28,13 @@ describe('CacheService', () => {
         CacheService,
         { provide: CacheService, useValue: mockCacheService },
         { provide: RedisService, useValue: mockRedisService },
+        { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
 
     service = module.get<CacheService>(CacheService);
     redisService = module.get<RedisService>(RedisService);
+    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
   afterEach(() => {

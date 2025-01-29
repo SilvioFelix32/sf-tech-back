@@ -1,17 +1,16 @@
 // NestJS
-import {
-  ExecutionContext,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
-import { UnauthorizedError } from '../errors/unauthorized.error';
+import { ErrorHandler } from 'src/shared/errors/error-handler';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector) {
+  constructor(
+    private reflector: Reflector,
+    private readonly errorHandler: ErrorHandler,
+  ) {
     super();
   }
 
@@ -34,11 +33,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const canActivatePromise = canActivate as Promise<boolean>;
 
     return canActivatePromise.catch((error) => {
-      if (error instanceof UnauthorizedError) {
-        throw new UnauthorizedException(error.message);
-      }
-
-      throw new UnauthorizedException();
+      throw this.errorHandler.handle({
+        ...error,
+        message: 'Unauthorized: User not allowed to do this action',
+      } as Error);
     });
   }
 }

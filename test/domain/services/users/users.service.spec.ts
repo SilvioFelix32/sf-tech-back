@@ -15,8 +15,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CacheService } from '../../../../src/domain/services/cache/cache.service';
-import { FindUserDto } from '../../../../src/application/dtos/users/find-user.dto';
 import { UpdateUserDto } from '../../../../src/application/dtos/users/update-user.dto';
+import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 
 const mockPrismaService = {
   user: {
@@ -68,6 +68,10 @@ const cachedDataResponse = {
   message: 'Users retrieved from cache',
 } as IPaginatedUserResponse;
 
+const mockErrorHandler = {
+  handle: jest.fn(),
+};
+
 const dbDataResponse = {
   data: {
     data: [userData],
@@ -88,6 +92,7 @@ describe('UsersService', () => {
   let cacheService: CacheService;
   let redisService: RedisService;
   let prismaService: PrismaService;
+  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -96,6 +101,7 @@ describe('UsersService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CacheService, useValue: mockCacheService },
         { provide: RedisService, useValue: mockRedisService },
+        { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
 
@@ -103,6 +109,7 @@ describe('UsersService', () => {
     prismaService = module.get<PrismaService>(PrismaService);
     cacheService = module.get<CacheService>(CacheService);
     redisService = module.get<RedisService>(RedisService);
+    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
   it('should be defined', () => {
@@ -251,9 +258,9 @@ describe('UsersService', () => {
         .spyOn(redisService, 'get')
         .mockResolvedValue(JSON.stringify(cachedDataResponse.data));
 
-      expect(
-        await service.findAll({ page: 1, limit: 10 } as FindUserDto),
-      ).toEqual(cachedDataResponse);
+      expect(await service.findAll({ page: 1, limit: 10 })).toEqual(
+        cachedDataResponse,
+      );
       expect(redisService.get).toHaveBeenCalledWith('user');
     });
 
@@ -265,7 +272,7 @@ describe('UsersService', () => {
       const result = await service.findAll({
         page: 1,
         limit: 10,
-      } as FindUserDto);
+      });
 
       expect(result).toEqual(dbDataResponse);
       expect(redisService.get).toHaveBeenCalledWith('user');
@@ -277,9 +284,9 @@ describe('UsersService', () => {
         .spyOn(prismaService.user, 'findMany')
         .mockRejectedValue(new Error('Error retrieving users'));
 
-      await expect(
-        service.findAll({ page: 1, limit: 10 } as FindUserDto),
-      ).rejects.toThrow(Error);
+      await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow(
+        Error,
+      );
     });
   });
 

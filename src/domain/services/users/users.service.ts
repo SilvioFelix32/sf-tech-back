@@ -53,7 +53,7 @@ export class UsersService {
 
       return createdUser;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error as Error);
     }
   }
 
@@ -69,7 +69,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error as Error);
     }
   }
 
@@ -88,7 +88,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error as Error);
     }
   }
 
@@ -126,7 +126,7 @@ export class UsersService {
         data: paginatedCacheData,
       };
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error as Error);
     }
   }
 
@@ -150,7 +150,7 @@ export class UsersService {
         where: { user_id },
       });
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error as Error);
     }
   }
 
@@ -161,7 +161,7 @@ export class UsersService {
       await this.prismaService.user.delete({ where: { user_id } });
       return `User ${user_id} deleted`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error as Error);
     }
   }
 
@@ -275,7 +275,7 @@ export class UsersService {
 
       return paginatedDbData;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error as Error);
     }
   }
 

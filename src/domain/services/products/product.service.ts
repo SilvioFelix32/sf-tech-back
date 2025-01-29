@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Inject,
   Injectable,
   NotFoundException,
@@ -26,9 +27,9 @@ export class ProductService {
   ) {}
 
   async create(category_id: string, dto: CreateProductDto): Promise<string> {
-    await this.validateCategory(category_id);
-
     try {
+      await this.validateCategory(category_id);
+
       const data: Prisma.ProductCreateInput = {
         ...dto,
         product_category: { connect: { category_id } },
@@ -37,7 +38,7 @@ export class ProductService {
       const result = await this.prismaService.product.create({ data });
       return `Product ${result.product_id} created successfully`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -46,7 +47,7 @@ export class ProductService {
     const { page, limit } = query;
 
     const cacheKey = 'product';
-    // TODO: 1 minuto - aumentar o tempo de duração para 60 * 60 = 1 hora
+    // TODO: 5 minutos - aumentar o tempo de duração para 60 * 60 = 1 hora
     const cacheExpiryTime = 60 * 5;
     const currentTime = Math.floor(Date.now() / 1000);
 
@@ -77,7 +78,7 @@ export class ProductService {
         data: paginatedCacheData,
       };
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -92,7 +93,7 @@ export class ProductService {
         },
       })) as Product[];
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -100,7 +101,7 @@ export class ProductService {
     try {
       return await this.validateProduct(product_id);
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -115,7 +116,7 @@ export class ProductService {
 
       return `Product ${result.product_id} updated successfully`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -129,7 +130,7 @@ export class ProductService {
 
       return `Product ${result.product_id} deleted successfully`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -145,7 +146,7 @@ export class ProductService {
     return product as Product;
   }
 
-  private async validateCategory(category_id: string) {
+  private async validateCategory(category_id: string): Promise<void> {
     const category = await this.prismaService.productCategory.findUnique({
       where: { category_id },
     });
@@ -153,7 +154,6 @@ export class ProductService {
     if (!category) {
       throw new NotFoundException('Category not found');
     }
-    return category;
   }
 
   private async getCache(key: string) {
@@ -189,8 +189,11 @@ export class ProductService {
 
       return paginatedDbData;
     } catch (error) {
-      console.error('Error fetching and caching products', error as Error);
-      this.errorHandler.handle(error as Error);
+      console.error(
+        'ProductService.fetchAndCacheProducts: Error fetching and caching products',
+        (error as Error).message,
+      );
+      throw this.validateError(error);
     }
   }
   private paginateData(
@@ -216,5 +219,13 @@ export class ProductService {
         next: nextPage,
       },
     };
+  }
+
+  private validateError(error: unknown): Error {
+    if (error instanceof HttpException) {
+      return error;
+    }
+
+    throw this.errorHandler.handle(error);
   }
 }

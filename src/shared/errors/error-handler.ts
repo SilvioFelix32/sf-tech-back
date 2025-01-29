@@ -4,21 +4,27 @@ import {
   BadRequestException,
   InternalServerErrorException,
   UnauthorizedException,
+  GoneException,
+  Injectable,
+  HttpException,
 } from '@nestjs/common';
 
+@Injectable()
 export class ErrorHandler {
-  public handle(error: Error): never {
-    switch (error.name) {
+  public handle(error: unknown): HttpException {
+    switch ((error as Error).name) {
       case 'NotFoundException':
-        throw new NotFoundException(error.message);
+        return new NotFoundException(error);
       case 'ConflictException':
-        throw new ConflictException(error.message);
+        return new ConflictException(error);
       case 'BadRequestException':
-        throw new BadRequestException(error.message);
+        return new BadRequestException(error);
       case 'UnauthorizedException':
-        throw new UnauthorizedException(error.message);
+        return new UnauthorizedException(error);
+      case 'GoneException':
+        return new GoneException(error);
       default:
-        throw new InternalServerErrorException(error.message);
+        return new InternalServerErrorException(error);
     }
   }
 }

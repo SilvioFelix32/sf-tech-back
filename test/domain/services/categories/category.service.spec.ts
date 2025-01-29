@@ -45,6 +45,10 @@ const mockCompaniesService = {
   findUnique: jest.fn(),
 };
 
+const mockErrorHandler = {
+  handle: jest.fn(),
+};
+
 const company_id = faker.string.uuid();
 const dbData = {
   data: [
@@ -103,10 +107,6 @@ const dbDataResponse = {
   },
   message: 'Categories retrieved from database',
 } as ICategoryResponse;
-
-const mockErrorHandler = {
-  handle: jest.fn(),
-};
 
 describe('CategoryService', () => {
   let service: CategoryService;
@@ -184,12 +184,17 @@ describe('CategoryService', () => {
           new InternalServerErrorException('Error creating product'),
         );
 
+      // jest.spyOn(errorHandler, 'handle').mockImplementation((error: Error) => {
+      //   throw new InternalServerErrorException('Error creating product');
+      // });
+
       await expect(
         service.create(
           createCategoryDto.category_id as string,
           createCategoryDto,
         ),
       ).rejects.toThrow(InternalServerErrorException);
+      // expect(errorHandler.handle).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 

@@ -22,7 +22,6 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  @IsPublic()
   create(@Headers() header: IHeaders, @Body() dto: CreateCategoryDto) {
     const { company_id } = header;
     this.validateCompany(company_id);
@@ -40,13 +39,11 @@ export class CategoryController {
   }
 
   @Get(':id')
-  @IsPublic()
   findOne(@Param('id') category_id: string) {
     return this.categoryService.findOne(category_id);
   }
 
   @Patch(':id')
-  @IsPublic()
   update(
     @Headers() header: IHeaders,
     @Param('id') category_id: string,

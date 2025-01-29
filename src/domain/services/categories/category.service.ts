@@ -1,4 +1,5 @@
 import {
+  HttpException,
   Inject,
   Injectable,
   NotFoundException,
@@ -26,33 +27,33 @@ export class CategoryService {
   ) {}
 
   async create(company_id: string, dto: CreateCategoryDto): Promise<string> {
-    const data: Prisma.ProductCategoryCreateInput = {
-      ...dto,
-      company: { connect: { company_id } },
-    };
-
     try {
+      const data: Prisma.ProductCategoryCreateInput = {
+        ...dto,
+        company: { connect: { company_id } },
+      };
+
       const result = await this.prismaService.productCategory.create({
         data,
       });
 
       return `Category ${result.category_id} created successfully`;
     } catch (error) {
-      console.error('CategoryService.create()', error);
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
   async findAll(company_id: string, query: IQueryPaginate): Promise<any> {
-    await this.validateCompany(company_id);
     const { page, limit } = query;
 
     const cacheKey = 'category';
     // TODO: 1 minuto - aumentar o tempo de duração para 60 * 60 = 1 hora
-    const cacheExpiryTime = 60;
+    const cacheExpiryTime = 60 * 5;
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
+      await this.validateCompany(company_id);
+
       const cachedData = await this.getCache(cacheKey);
       if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
         const dbData = await this.fetchAndCacheCategories(
@@ -78,14 +79,14 @@ export class CategoryService {
         data: paginatedCacheData,
       };
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
   async findOne(category_id: string): Promise<Category> {
-    await this.validateCategory(category_id);
-
     try {
+      await this.validateCategory(category_id);
+
       return (await this.prismaService.productCategory.findUnique({
         where: {
           category_id,
@@ -93,14 +94,13 @@ export class CategoryService {
         select: categoryResponse,
       })) as Category;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
   async update(category_id: string, dto: UpdateCategoryDto): Promise<string> {
-    await this.validateCategory(category_id);
-
     try {
+      await this.validateCategory(category_id);
       const response = await this.prismaService.productCategory.update({
         data: {
           ...dto,
@@ -112,14 +112,14 @@ export class CategoryService {
 
       return `Category ${response.category_id} updated successfully`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
   async remove(category_id: string): Promise<string> {
-    await this.validateCategory(category_id);
-
     try {
+      await this.validateCategory(category_id);
+
       const response = await this.prismaService.productCategory.delete({
         where: {
           category_id,
@@ -127,7 +127,7 @@ export class CategoryService {
       });
       return `Category ${response.category_id} deleted successfully`;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -185,7 +185,7 @@ export class CategoryService {
 
       return paginatedDbData;
     } catch (error) {
-      this.errorHandler.handle(error as Error);
+      throw this.errorHandler.handle(error);
     }
   }
 
@@ -212,5 +212,13 @@ export class CategoryService {
         next: nextPage,
       },
     };
+  }
+
+  private validateError(error: unknown): Error {
+    if (error instanceof HttpException) {
+      return error;
+    }
+
+    throw this.errorHandler.handle(error);
   }
 }

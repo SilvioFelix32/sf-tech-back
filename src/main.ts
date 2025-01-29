@@ -20,13 +20,13 @@ async function bootstrap() {
   const redisClient = new Redis(redisUrl);
 
   redisClient.on('error', (err) => {
-    console.info('Error while connecting with Redis db!');
+    console.info('Main.bootstrap(): Error while connecting with Redis db!');
     console.info(err);
     process.exit(1);
   });
 
   redisClient.on('connect', () => {
-    console.info('Redis connected with db!');
+    console.info('Main.bootstrap(): Redis connected with db!');
   });
 
   app.useGlobalPipes(
