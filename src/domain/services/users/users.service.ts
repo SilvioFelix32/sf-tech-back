@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   InternalServerErrorException,
+  HttpException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { Prisma, User } from '@prisma/client';
@@ -28,9 +29,8 @@ export class UsersService {
   ) {}
 
   async create(company_id: string, dto: CreateUserDto): Promise<IUserResponse> {
-    await this.validateCreateLocalUser(company_id, dto);
-
     try {
+      await this.validateCreateLocalUser(company_id, dto);
       const encryptedPassword = await bcrypt.hash(dto.password, 10);
 
       if (!encryptedPassword) {
@@ -53,7 +53,7 @@ export class UsersService {
 
       return createdUser;
     } catch (error) {
-      throw this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -69,7 +69,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      throw this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -88,7 +88,7 @@ export class UsersService {
 
       return user;
     } catch (error) {
-      throw this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -126,7 +126,7 @@ export class UsersService {
         data: paginatedCacheData,
       };
     } catch (error) {
-      throw this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -135,9 +135,8 @@ export class UsersService {
     user_id: string,
     dto: UpdateUserDto,
   ): Promise<IUserResponse> {
-    await this.validateUpdateLocalUser(user_id);
-
     try {
+      await this.validateUpdateLocalUser(user_id);
       return await this.prismaService.user.update({
         data: {
           ...dto,
@@ -150,18 +149,17 @@ export class UsersService {
         where: { user_id },
       });
     } catch (error) {
-      throw this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
   async remove(user_id: string): Promise<string> {
-    await this.validateUpdateLocalUser(user_id);
-
     try {
+      await this.validateUpdateLocalUser(user_id);
       await this.prismaService.user.delete({ where: { user_id } });
       return `User ${user_id} deleted`;
     } catch (error) {
-      throw this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -275,7 +273,7 @@ export class UsersService {
 
       return paginatedDbData;
     } catch (error) {
-      throw this.errorHandler.handle(error as Error);
+      throw this.validateError(error);
     }
   }
 
@@ -305,5 +303,12 @@ export class UsersService {
         next: nextPage,
       },
     };
+  }
+
+  private validateError(error: unknown): Error {
+    if (error instanceof HttpException) {
+      return error;
+    }
+    return this.errorHandler.handle(error);
   }
 }

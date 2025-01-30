@@ -17,6 +17,7 @@ function getEnvVariable<T = string>(
 
 export const env = {
   APP_PORT: getEnvVariable('APP_PORT', Number),
+  API_RESPONSE_LIMIT: getEnvVariable('API_RESPONSE_LIMIT', Number),
   DATABASE_URL: getEnvVariable('DATABASE_URL'),
   JWT_SECRET: getEnvVariable('JWT_SECRET'),
   REDIS_PORT: getEnvVariable('REDIS_PORT', Number),
