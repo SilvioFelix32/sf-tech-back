@@ -2,23 +2,17 @@ import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import { env } from '../../../shared/config/env';
 
-const redisBody = {
-  host: env.REDIS_HOST,
-  username: env.REDIS_USER,
-  password: env.REDIS_PASSWORD,
-  port: env.REDIS_PORT,
-  tls: {
-    ca: ['/usr/certificates/redis.crt'],
-    rejectUnauthorized: false,
-  },
-};
 @Injectable()
 export class RedisService extends Redis {
   constructor() {
-    super(redisBody);
-
-    super.on('ready', () => {
-      console.log('Redis Service, starting...', redisBody);
+    super({
+      host: env.REDIS_HOST,
+      username: env.REDIS_USER,
+      password: env.REDIS_PASSWORD,
+      port: env.REDIS_PORT,
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     super.on('error', (err) => {
