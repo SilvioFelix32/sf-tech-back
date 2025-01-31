@@ -8,7 +8,6 @@ import {
 import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
 import { ProductService } from '../products/product.service';
 import { Category } from '../../entities/categories/category.entity';
 import { CreateCategoryDto } from '../../../application/dtos/categories/create-category.dto';
@@ -16,6 +15,7 @@ import { UpdateCategoryDto } from '../../../application/dtos/categories/update-c
 import { categoryResponse } from '../../../infrasctructure/types/category-response';
 import { ErrorHandler } from '../../../shared/errors/error-handler';
 import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class CategoryService {
@@ -23,7 +23,7 @@ export class CategoryService {
     @Inject(forwardRef(() => ProductService))
     private readonly errorHandler: ErrorHandler,
     private readonly prismaService: PrismaService,
-    private readonly redisService: RedisService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async create(company_id: string, dto: CreateCategoryDto): Promise<string> {
@@ -53,8 +53,8 @@ export class CategoryService {
 
     try {
       await this.validateCompany(company_id);
-
       const cachedData = await this.getCache(cacheKey);
+
       if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
         const dbData = await this.fetchAndCacheCategories(
           page,
@@ -148,17 +148,17 @@ export class CategoryService {
     }
   }
 
-  //TODO: Trocar pelo CacheService
   private async getCache(key: string) {
-    const cachedData = await this.redisService.get(key);
+    const cachedData = await this.cacheService.getCache<
+      PaginatedResult<Category> & { timestamp: number }
+    >(key);
     console.info(`Retrieved cache for key: ${key}`);
-    return cachedData ? JSON.parse(cachedData) : null;
+    return cachedData;
   }
 
-  //TODO: Trocar pelo CacheService
   private async setCache(key: string, data: any, ttl: number) {
     console.info(`Setting cache for key: ${key}, data:`, data.data.length);
-    await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
+    await this.cacheService.setCache(key, data, ttl);
   }
 
   private async fetchAndCacheCategories(
@@ -168,22 +168,24 @@ export class CategoryService {
     cacheExpiryTime: number,
   ): Promise<PaginatedResult<Category>> {
     try {
-      const dbData = await this.prismaService.productCategory.findMany({
+      const categories = await this.prismaService.productCategory.findMany({
         select: categoryResponse,
       });
-      await this.setCache(
-        cacheKey,
-        { data: dbData, timestamp: Math.floor(Date.now() / 1000) },
-        cacheExpiryTime,
-      );
 
-      const paginatedDbData = this.paginateData(
-        dbData as Category[],
+      const paginatedData: PaginatedResult<Category> = this.paginateData(
+        categories as Category[],
         page,
         limit,
       );
 
-      return paginatedDbData;
+      const dataToCache = {
+        ...paginatedData,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+
+      await this.setCache(cacheKey, dataToCache, cacheExpiryTime);
+
+      return paginatedData;
     } catch (error) {
       throw this.errorHandler.handle(error);
     }

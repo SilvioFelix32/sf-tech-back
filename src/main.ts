@@ -8,7 +8,6 @@ import {
   SwaggerModule,
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
-import Redis from 'ioredis';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
 
 const port = env.APP_PORT;
@@ -16,18 +15,6 @@ const port = env.APP_PORT;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
   app.useGlobalFilters(new GlobalExceptionFilter());
-  const redisUrl = process.env.redisUrl as string;
-  const redisClient = new Redis(redisUrl);
-
-  redisClient.on('error', (err) => {
-    console.info('Main.bootstrap(): Error while connecting with Redis db!');
-    console.info(err);
-    process.exit(1);
-  });
-
-  redisClient.on('connect', () => {
-    console.info('Main.bootstrap(): Redis connected with db!');
-  });
 
   app.useGlobalPipes(
     new ValidationPipe({

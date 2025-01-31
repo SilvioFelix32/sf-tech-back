@@ -9,13 +9,13 @@ import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
 import { PrismaService } from '../prisma/prisma.service';
 import { CategoryService } from '../categories/category.service';
-import { RedisService } from '../redis/redis.service';
 import { Product } from '../../entities/products/product.entity';
 import { CreateProductDto } from '../../../application/dtos/products/create-product.dto';
 import { UpdateProductDto } from '../../../application/dtos/products/update-product.dto';
 import { IProductResponse } from '../../../infrasctructure/types/product-response';
 import { ErrorHandler } from '../../../shared/errors/error-handler';
 import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
+import { CacheService } from '../cache/cache.service';
 
 @Injectable()
 export class ProductService {
@@ -23,7 +23,7 @@ export class ProductService {
     @Inject(forwardRef(() => CategoryService))
     private readonly errorHandler: ErrorHandler,
     private readonly prismaService: PrismaService,
-    private readonly redisService: RedisService,
+    private readonly cacheService: CacheService,
   ) {}
 
   async create(category_id: string, dto: CreateProductDto): Promise<string> {
@@ -157,14 +157,16 @@ export class ProductService {
   }
 
   private async getCache(key: string) {
-    const cachedData = await this.redisService.get(key);
+    const cachedData = await this.cacheService.getCache<
+      PaginatedResult<Product> & { timestamp: number }
+    >(key);
     console.info(`Retrieved cache for key: ${key}`);
-    return cachedData ? JSON.parse(cachedData) : null;
+    return cachedData;
   }
 
   private async setCache(key: string, data: any, ttl: number) {
     console.info(`Setting cache for key: ${key}, data:`, data.data.length);
-    await this.redisService.set(key, JSON.stringify(data), 'EX', ttl);
+    await this.cacheService.setCache(key, data, ttl);
   }
 
   private async fetchAndCacheProducts(
@@ -174,20 +176,21 @@ export class ProductService {
     cacheExpiryTime: number,
   ): Promise<PaginatedResult<Product>> {
     try {
-      const dbData = await this.prismaService.product.findMany();
-      await this.setCache(
-        cacheKey,
-        { data: dbData, timestamp: Math.floor(Date.now() / 1000) },
-        cacheExpiryTime,
-      );
-
-      const paginatedDbData = this.paginateData(
-        dbData as Product[],
+      const products = await this.prismaService.product.findMany();
+      const paginatedData: PaginatedResult<Product> = this.paginateData(
+        products as Product[],
         page,
         limit,
       );
 
-      return paginatedDbData;
+      const dataToCache = {
+        ...paginatedData,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+
+      await this.setCache(cacheKey, dataToCache, cacheExpiryTime);
+
+      return paginatedData;
     } catch (error) {
       console.error(
         'ProductService.fetchAndCacheProducts: Error fetching and caching products',
@@ -226,6 +229,6 @@ export class ProductService {
       return error;
     }
 
-    throw this.errorHandler.handle(error);
+    throw error;
   }
 }
