@@ -10,7 +10,7 @@ import {
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import { IsPublic } from '../../../security/auth/decorators/is-public.decorator';
+import { IsPublic } from '../../../securty[deprecated]/auth/decorators/is-public.decorator';
 import { IHeaders } from '../../../types/IHeaders';
 import { CategoryService } from '../../../../domain/services/categories/category.service';
 import { CreateCategoryDto } from '../../../../application/dtos/categories/create-category.dto';
@@ -50,6 +50,8 @@ export class CategoryController {
     @Param('id') category_id: string,
     @Body() dto: UpdateCategoryDto,
   ) {
+    console.log(header);
+    console.log(dto);
     this.validateCompany(header.company_id);
 
     return this.categoryService.update(category_id, dto);

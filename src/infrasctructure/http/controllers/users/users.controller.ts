@@ -13,7 +13,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiResponse } from '@nestjs/swagger';
-import { IsPublic } from '../../../security/auth/decorators/is-public.decorator';
+import { IsPublic } from '../../../securty[deprecated]/auth/decorators/is-public.decorator';
 import { IHeaders } from '../../../types/IHeaders';
 import { CreateUserDto } from '../../../../application/dtos/users/create-user.dto';
 import { UpdateUserDto } from '../../../../application/dtos/users/update-user.dto';

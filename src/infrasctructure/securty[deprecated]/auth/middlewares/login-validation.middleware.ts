@@ -10,6 +10,7 @@ import { validate } from 'class-validator';
 @Injectable()
 export class LoginValidationMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: NextFunction) {
+    console.log('LoginValidationMiddleware', req.body, res, next);
     const body = req.body;
 
     const loginRequestBody = new LoginRequestBody();

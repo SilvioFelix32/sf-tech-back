@@ -1,20 +1,33 @@
-// NestJS
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
-import { AuthGuard } from '@nestjs/passport';
-import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
+import { JwtService } from '@nestjs/jwt';
+import { Request } from 'express';
+import { env } from 'src/shared/config/env';
 import { ErrorHandler } from 'src/shared/errors/error-handler';
+import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
+import { JwtStrategy } from '../strategies/jwt.strategy';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
+export class JwtAuthGuard implements CanActivate {
+  private jwtSecret: string;
+
   constructor(
     private reflector: Reflector,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
     private readonly errorHandler: ErrorHandler,
+    private readonly jwtStrategy: JwtStrategy,
   ) {
-    super();
+    this.jwtSecret = env.JWT_SECRET;
   }
 
-  override canActivate(context: ExecutionContext): Promise<boolean> | boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -24,19 +37,32 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       return true;
     }
 
-    const canActivate = super.canActivate(context);
+    try {
+      const request = context.switchToHttp().getRequest();
 
-    if (typeof canActivate === 'boolean') {
-      return canActivate;
+      const token = this.extractTokenFromHeader(request);
+      if (!token) {
+        throw new UnauthorizedException(
+          'JwtAuthGuard.canActivate: Token not found',
+        );
+      }
+
+      return await this.isTokenValid(token);
+    } catch (error) {
+      throw this.errorHandler.handle(error);
     }
+  }
 
-    const canActivatePromise = canActivate as Promise<boolean>;
+  private extractTokenFromHeader(request: Request): string | undefined {
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
+  }
 
-    return canActivatePromise.catch((error) => {
-      throw this.errorHandler.handle({
-        ...error,
-        message: 'Unauthorized: User not allowed to do this action',
-      } as Error);
-    });
+  private isTokenValid(token: string): Promise<boolean> {
+    try {
+      return this.jwtStrategy.validate(token);
+    } catch (error) {
+      throw this.errorHandler.handle(error);
+    }
   }
 }

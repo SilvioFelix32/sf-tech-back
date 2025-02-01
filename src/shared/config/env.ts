@@ -25,4 +25,6 @@ export const env = {
   REDIS_PASSWORD: getEnvVariable('REDIS_PASSWORD'),
   REDIS_USER: getEnvVariable('REDIS_USER'),
   REDIS_URL: getEnvVariable('REDIS_URL'),
+  AWS_REGION: getEnvVariable('AWS_REGION'),
+  COGNITO_USER_POOL_ID: getEnvVariable('COGNITO_USER_POOL_ID'),
 };
