@@ -284,13 +284,11 @@ export class UsersService {
     page: number,
     limit: number,
   ): PaginatedResult<IUserResponse> {
-    if (!data) {
-      throw new Error('Data not found');
-    }
-    const totalItems = data.length;
-    const totalPages = Math.ceil(totalItems / limit);
+    const safeData = data ?? [];
+    const totalItems = safeData.length;
+    const totalPages = totalItems ? Math.ceil(totalItems / limit) : 0;
     const offset = (page - 1) * limit;
-    const paginatedData = data.slice(offset, offset + limit);
+    const paginatedData = safeData.slice(offset, offset + limit);
     const prevPage = page > 1 ? page - 1 : null;
     const nextPage = page < totalPages ? page + 1 : null;
 
@@ -300,7 +298,7 @@ export class UsersService {
         total: totalItems,
         lastPage: totalPages,
         currentPage: page,
-        perPage: limit ? limit : 20,
+        perPage: limit ?? 20,
         prev: prevPage,
         next: nextPage,
       },

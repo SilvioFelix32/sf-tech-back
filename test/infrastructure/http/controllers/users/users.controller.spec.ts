@@ -4,6 +4,7 @@ import { UsersController } from '../../../../../src/infrasctructure/http/control
 import { PrismaService } from '../../../../../src/domain/services/prisma/prisma.service';
 import { CacheService } from '../../../../../src/domain/services/cache/cache.service';
 import { RedisService } from '../../../../../src/domain/services/redis/redis.service';
+import { ErrorHandler } from '../../../../../src/shared/errors/error-handler';
 
 const mockPrismaService = {
   user: {
@@ -28,11 +29,16 @@ const mockRedisService = {
   set: jest.fn(),
 };
 
+const mockErrorHandler = {
+  handle: jest.fn(),
+};
+
 describe('UsersController', () => {
   let controller: UsersController;
   let cacheService: CacheService;
   let redisService: RedisService;
   let prismaService: PrismaService;
+  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,6 +48,7 @@ describe('UsersController', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CacheService, useValue: mockCacheService },
         { provide: RedisService, useValue: mockRedisService },
+        { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
 
@@ -49,9 +56,10 @@ describe('UsersController', () => {
     prismaService = module.get<PrismaService>(PrismaService);
     cacheService = module.get<CacheService>(CacheService);
     redisService = module.get<RedisService>(RedisService);
+    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(controller).toBeDefined();
   });
 });

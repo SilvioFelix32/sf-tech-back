@@ -34,8 +34,10 @@ export class ProductService {
         ...dto,
         product_category: { connect: { category_id } },
       };
-
       const result = await this.prismaService.product.create({ data });
+
+      this.updateCache();
+
       return `Product ${result.product_id} created successfully`;
     } catch (error) {
       throw this.validateError(error);
@@ -47,8 +49,7 @@ export class ProductService {
     const { page, limit } = query;
 
     const cacheKey = 'product';
-    // TODO: 5 minutos - aumentar o tempo de duração para 60 * 60 = 1 hora
-    const cacheExpiryTime = 60 * 5;
+    const cacheExpiryTime = 60 * 60 * 24; //24 HOURS
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
@@ -113,6 +114,7 @@ export class ProductService {
         data: { ...dto },
         where: { product_id },
       });
+      this.updateCache();
 
       return `Product ${result.product_id} updated successfully`;
     } catch (error) {
@@ -127,6 +129,7 @@ export class ProductService {
       const result = await this.prismaService.product.delete({
         where: { product_id },
       });
+      this.updateCache();
 
       return `Product ${result.product_id} deleted successfully`;
     } catch (error) {
@@ -199,15 +202,23 @@ export class ProductService {
       throw this.validateError(error);
     }
   }
+
+  private updateCache(): void {
+    setTimeout(() => {
+      this.fetchAndCacheProducts(1, 20, 'product', 60 * 60 * 24); //24 HOURS
+    }, 0);
+  }
+
   private paginateData(
-    data: Product[],
+    data: Product[] | undefined,
     page: number,
     limit: number,
   ): PaginatedResult<Product> {
-    const totalItems = data.length;
-    const totalPages = Math.ceil(totalItems / limit);
+    const safeData = data ?? [];
+    const totalItems = safeData.length;
+    const totalPages = totalItems ? Math.ceil(totalItems / limit) : 0;
     const offset = (page - 1) * limit;
-    const paginatedData = data.slice(offset, offset + limit);
+    const paginatedData = safeData.slice(offset, offset + limit);
     const prevPage = page > 1 ? page - 1 : null;
     const nextPage = page < totalPages ? page + 1 : null;
 
@@ -217,7 +228,7 @@ export class ProductService {
         total: totalItems,
         lastPage: totalPages,
         currentPage: page,
-        perPage: limit ? limit : 20,
+        perPage: limit ?? 20,
         prev: prevPage,
         next: nextPage,
       },

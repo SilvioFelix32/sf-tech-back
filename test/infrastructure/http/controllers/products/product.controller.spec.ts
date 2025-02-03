@@ -4,6 +4,7 @@ import { ProductController } from '../../../../../src/infrasctructure/http/contr
 import { PrismaService } from '../../../../../src/domain/services/prisma/prisma.service';
 import { CategoryService } from '../../../../../src/domain/services/categories/category.service';
 import { RedisService } from '../../../../../src/domain/services/redis/redis.service';
+import { CacheService } from '../../../../../src/domain/services/cache/cache.service';
 
 const mockPrismaService = {
   product: {
@@ -18,6 +19,11 @@ const mockPrismaService = {
   },
 };
 
+const mockCacheService = {
+  getCache: jest.fn(),
+  setCache: jest.fn(),
+};
+
 const mockRedisService = {
   get: jest.fn(),
   set: jest.fn(),
@@ -30,9 +36,6 @@ const mockCategoryService = {
 
 describe('ProductController', () => {
   let controller: ProductController;
-  let categoryService: CategoryService;
-  let prismaService: PrismaService;
-  let redisService: RedisService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -41,17 +44,15 @@ describe('ProductController', () => {
         ProductService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: RedisService, useValue: mockRedisService },
+        { provide: CacheService, useValue: mockCacheService },
         { provide: CategoryService, useValue: mockCategoryService },
       ],
     }).compile();
 
     controller = module.get<ProductController>(ProductController);
-    prismaService = module.get<PrismaService>(PrismaService);
-    redisService = module.get<RedisService>(RedisService);
-    categoryService = module.get<CategoryService>(CategoryService);
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(controller).toBeDefined();
   });
 });

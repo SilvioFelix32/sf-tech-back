@@ -12,8 +12,8 @@ import { CompaniesService } from '../../../../src/domain/services/companies/comp
 import { ProductService } from '../../../../src/domain/services/products/product.service';
 import { ICategoryResponse } from '../../../../src/infrasctructure/types/category-response';
 import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
-import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
+import { CacheService } from '../../../../src/domain/services/cache/cache.service';
 
 const mockPrismaService = {
   productCategory: {
@@ -31,9 +31,9 @@ const mockPrismaService = {
   },
 };
 
-const mockRedisService = {
-  get: jest.fn(),
-  set: jest.fn(),
+const mockcacheService = {
+  getCache: jest.fn(),
+  setCache: jest.fn(),
 };
 
 const mockProductService = {
@@ -110,18 +110,15 @@ const dbDataResponse = {
 
 describe('CategoryService', () => {
   let service: CategoryService;
-  let productService: ProductService;
-  let companiesService: CompaniesService;
   let prismaService: PrismaService;
-  let redisService: RedisService;
-  let errorHandler: ErrorHandler;
+  let cacheService: CacheService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CategoryService,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: RedisService, useValue: mockRedisService },
+        { provide: CacheService, useValue: mockcacheService },
         { provide: CompaniesService, useValue: mockCompaniesService },
         { provide: ProductService, useValue: mockProductService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
@@ -130,13 +127,10 @@ describe('CategoryService', () => {
 
     service = module.get<CategoryService>(CategoryService);
     prismaService = module.get<PrismaService>(PrismaService);
-    redisService = module.get<RedisService>(RedisService);
-    companiesService = module.get<CompaniesService>(CompaniesService);
-    productService = module.get<ProductService>(ProductService);
-    errorHandler = module.get<ErrorHandler>(ErrorHandler);
+    cacheService = module.get<CacheService>(CacheService);
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(service).toBeDefined();
   });
 
@@ -151,7 +145,7 @@ describe('CategoryService', () => {
 
     const result = createCategoryDto as Category;
 
-    it('should create a category', async () => {
+    it('Should create a category', async () => {
       jest
         .spyOn(prismaService.productCategory, 'create')
         .mockResolvedValue(result as ProductCategory);
@@ -164,7 +158,7 @@ describe('CategoryService', () => {
       ).toEqual(`Category ${result.category_id} created successfully`);
     });
 
-    it('should throw an error if category creation fails', async () => {
+    it('Should throw an error if category creation fails', async () => {
       jest
         .spyOn(prismaService.productCategory, 'create')
         .mockRejectedValue(new Error());
@@ -177,16 +171,12 @@ describe('CategoryService', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw an InternalServerErrorException if category there is no category_id', async () => {
+    it('Should throw an InternalServerErrorException if category there is no category_id', async () => {
       jest
         .spyOn(prismaService.productCategory, 'create')
         .mockRejectedValue(
           new InternalServerErrorException('Error creating product'),
         );
-
-      // jest.spyOn(errorHandler, 'handle').mockImplementation((error: Error) => {
-      //   throw new InternalServerErrorException('Error creating product');
-      // });
 
       await expect(
         service.create(
@@ -194,19 +184,18 @@ describe('CategoryService', () => {
           createCategoryDto,
         ),
       ).rejects.toThrow(InternalServerErrorException);
-      // expect(errorHandler.handle).toHaveBeenCalledWith(expect.any(Error));
     });
   });
 
   describe('findAll', () => {
-    it('should return categories from cache if available', async () => {
+    it('Should return categories from cache if available', async () => {
       jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue({
         company_id,
         name: 'Test Company',
       } as Company);
       jest
-        .spyOn(redisService, 'get')
-        .mockResolvedValue(JSON.stringify(cachedDataResponse.data));
+        .spyOn(cacheService, 'getCache')
+        .mockResolvedValue(cachedDataResponse.data);
       jest
         .spyOn(prismaService.productCategory, 'findMany')
         .mockResolvedValue(dbData.data);
@@ -219,16 +208,16 @@ describe('CategoryService', () => {
       ).toEqual(cachedDataResponse);
     });
 
-    it('should return categories from database if cache is not available', async () => {
+    it('Should return categories from database if cache is not available', async () => {
       jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue({
         company_id,
         name: 'Test Company',
       } as Company);
-      jest.spyOn(redisService, 'get').mockResolvedValue(null);
+      jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest
         .spyOn(prismaService.productCategory, 'findMany')
         .mockResolvedValue(dbDataResponse.data.data as ProductCategory[]);
-      jest.spyOn(redisService, 'set').mockResolvedValue(null);
+      jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
       const result = await service.findAll(company_id, {
         page: 1,
@@ -236,15 +225,11 @@ describe('CategoryService', () => {
       });
 
       expect(result).toEqual(dbDataResponse);
-      expect(redisService.get).toHaveBeenCalledWith('category');
+      expect(cacheService.getCache).toHaveBeenCalledWith('category');
     });
 
-    it('should throw an internal server error if database query fails', async () => {
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue({
-        company_id,
-        name: 'Test Company',
-      } as Company);
-      jest.spyOn(redisService, 'get').mockResolvedValue(null);
+    it('Should throw an InternalServerErrorException if database query fails', async () => {
+      jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest
         .spyOn(prismaService.productCategory, 'findMany')
         .mockRejectedValue(
@@ -258,7 +243,7 @@ describe('CategoryService', () => {
   });
 
   describe('findOne', () => {
-    it('should find a category by id', async () => {
+    it('Should find a category by id', async () => {
       const result = {
         category_id: '1',
         title: 'Test category',
@@ -271,7 +256,7 @@ describe('CategoryService', () => {
       expect(await service.findOne('1')).toEqual(result);
     });
 
-    it('should throw an error if category is not found', async () => {
+    it('Should throw a NotFoundException if category is not found', async () => {
       jest
         .spyOn(prismaService.productCategory, 'findUnique')
         .mockResolvedValue(null);
@@ -279,7 +264,7 @@ describe('CategoryService', () => {
       await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw an InternalServerErrorException', async () => {
+    it('Should throw an InternalServerErrorException', async () => {
       jest
         .spyOn(prismaService.productCategory, 'findUnique')
         .mockRejectedValue(
@@ -293,7 +278,7 @@ describe('CategoryService', () => {
   });
 
   describe('update', () => {
-    it('should update a product', async () => {
+    it('Should update a product', async () => {
       const updateProductDto: UpdateCategoryDto = {
         title: 'Updated Product',
       };
@@ -316,7 +301,7 @@ describe('CategoryService', () => {
       );
     });
 
-    it('should throw an error if product update fails', async () => {
+    it('Should throw an error if product update fails', async () => {
       const updateProductDto: UpdateCategoryDto = { title: 'Updated Category' };
       jest
         .spyOn(prismaService.productCategory, 'update')
@@ -331,7 +316,7 @@ describe('CategoryService', () => {
   });
 
   describe('remove', () => {
-    it('should delete a product', async () => {
+    it('Should delete a product', async () => {
       const result = {
         category_id: '1',
         title: 'Test Category',
@@ -348,7 +333,7 @@ describe('CategoryService', () => {
       );
     });
 
-    it('should throw an error if product deletion fails', async () => {
+    it('Should throw an error if product deletion fails', async () => {
       jest
         .spyOn(prismaService.productCategory, 'delete')
         .mockRejectedValue(

@@ -19,17 +19,17 @@ describe('PrismaService', () => {
     await prismaService.$disconnect();
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(prismaService).toBeDefined();
   });
 
-  it('should connect to the database', async () => {
+  it('Should connect to the database', async () => {
     jest.spyOn(prismaService, '$connect').mockResolvedValue();
 
     await expect(prismaService.$connect()).resolves.toBeUndefined();
   });
 
-  it('should throw InternalServerErrorException on connection failure', async () => {
+  it('Should throw InternalServerErrorException on connection failure', async () => {
     jest
       .spyOn(prismaService, '$connect')
       .mockRejectedValue(
@@ -41,7 +41,7 @@ describe('PrismaService', () => {
     );
   });
 
-  it('should enable shutdown hooks', async () => {
+  it('Should enable shutdown hooks', async () => {
     const mockApp: any = {
       close: jest.fn().mockResolvedValue(undefined),
     };

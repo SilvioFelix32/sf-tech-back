@@ -8,8 +8,7 @@ import {
 
 export class CreateProductDto {
   @IsString()
-  @IsOptional()
-  category_id?: string;
+  declare category_id: string;
 
   @IsString()
   @IsOptional()

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   Inject,
   Injectable,
@@ -36,6 +37,7 @@ export class CategoryService {
       const result = await this.prismaService.productCategory.create({
         data,
       });
+      this.updateCache();
 
       return `Category ${result.category_id} created successfully`;
     } catch (error) {
@@ -47,8 +49,7 @@ export class CategoryService {
     const { page, limit } = query;
 
     const cacheKey = 'category';
-    // TODO: 1 minuto - aumentar o tempo de duração para 60 * 60 = 1 hora
-    const cacheExpiryTime = 60 * 5;
+    const cacheExpiryTime = 60 * 60 * 24; //24 HOURS
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
@@ -110,6 +111,8 @@ export class CategoryService {
         },
       });
 
+      this.updateCache();
+
       return `Category ${response.category_id} updated successfully`;
     } catch (error) {
       throw this.validateError(error);
@@ -125,6 +128,8 @@ export class CategoryService {
           category_id,
         },
       });
+      this.updateCache();
+
       return `Category ${response.category_id} deleted successfully`;
     } catch (error) {
       throw this.validateError(error);
@@ -132,19 +137,18 @@ export class CategoryService {
   }
 
   private async validateCategory(category_id: string) {
-    const verifyIfProductExists =
-      await this.prismaService.productCategory.findUnique({
-        where: { category_id },
-      });
+    const productExists = await this.prismaService.productCategory.findUnique({
+      where: { category_id },
+    });
 
-    if (!verifyIfProductExists) {
+    if (!productExists) {
       throw new NotFoundException('Category of products not found');
     }
   }
 
   private async validateCompany(company_id: string) {
     if (!company_id) {
-      throw new NotFoundException('Company not found');
+      throw new BadRequestException('No Company informed');
     }
   }
 
@@ -191,15 +195,22 @@ export class CategoryService {
     }
   }
 
+  private updateCache(): void {
+    setTimeout(() => {
+      this.fetchAndCacheCategories(1, 20, 'category', 60 * 60 * 24); //24 HOURS
+    }, 0);
+  }
+
   private paginateData(
     data: Category[],
     page: number,
     limit: number,
   ): PaginatedResult<Category> {
-    const totalItems = data.length;
-    const totalPages = Math.ceil(totalItems / limit);
+    const safeData = data ?? [];
+    const totalItems = safeData.length;
+    const totalPages = totalItems ? Math.ceil(totalItems / limit) : 0;
     const offset = (page - 1) * limit;
-    const paginatedData = data.slice(offset, offset + limit);
+    const paginatedData = safeData.slice(offset, offset + limit);
     const prevPage = page > 1 ? page - 1 : null;
     const nextPage = page < totalPages ? page + 1 : null;
 
@@ -209,7 +220,7 @@ export class CategoryService {
         total: totalItems,
         lastPage: totalPages,
         currentPage: page,
-        perPage: limit ? limit : 20,
+        perPage: limit ?? 20,
         prev: prevPage,
         next: nextPage,
       },

@@ -39,7 +39,7 @@ describe('CompaniesController', () => {
     errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(controller).toBeDefined();
   });
 });

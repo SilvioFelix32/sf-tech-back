@@ -14,7 +14,7 @@ export class CacheService {
       const cachedData = await this.redisService.getClient().get(key);
       return cachedData ? JSON.parse(cachedData) : null;
     } catch (error) {
-      console.error('Error getting cache', error);
+      console.error('CacheService.getCache: Error getting cache', error);
       return null;
     }
   }
@@ -27,7 +27,7 @@ export class CacheService {
         .set(key, JSON.stringify(data), 'EX', ttl);
       return `Cache created for key: ${key}`;
     } catch (error) {
-      throw this.errorHandler.handle(error);
+      throw new Error('Error setting cache', { cause: error });
     }
   }
 }

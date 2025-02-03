@@ -50,8 +50,6 @@ export class CategoryController {
     @Param('id') category_id: string,
     @Body() dto: UpdateCategoryDto,
   ) {
-    console.log(header);
-    console.log(dto);
     this.validateCompany(header.company_id);
 
     return this.categoryService.update(category_id, dto);

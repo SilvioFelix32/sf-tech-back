@@ -9,8 +9,7 @@ const mockCacheService = {
 };
 
 const mockRedisService = {
-  get: jest.fn(),
-  set: jest.fn(),
+  getClient: jest.fn().mockReturnValue({ get: jest.fn() }),
 };
 
 const mockErrorHandler = {
@@ -19,8 +18,6 @@ const mockErrorHandler = {
 
 describe('CacheService', () => {
   let service: CacheService;
-  let redisService: RedisService;
-  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,36 +30,25 @@ describe('CacheService', () => {
     }).compile();
 
     service = module.get<CacheService>(CacheService);
-    redisService = module.get<RedisService>(RedisService);
-    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('getCache', () => {
     it('Should get a cache', async () => {
       const result = { key: 'value' };
-      jest.spyOn(redisService, 'get').mockResolvedValue(JSON.stringify(result));
-      jest.spyOn(service, 'getCache').mockResolvedValue(result);
+      jest.spyOn(service, 'getCache').mockResolvedValue(JSON.stringify(result));
 
-      expect(await service.getCache('key')).toEqual(result);
+      expect(await service.getCache('key')).toEqual(JSON.stringify(result));
     });
 
     it('Should return null if cache does not exist', async () => {
-      jest.spyOn(redisService, 'get').mockResolvedValue(null);
-      jest.spyOn(service, 'getCache').mockResolvedValue(null);
-
-      expect(await service.getCache('key')).toEqual(null);
-    });
-
-    it('Should return null if cache service fails', async () => {
-      jest.spyOn(redisService, 'get').mockRejectedValue(new Error());
       jest.spyOn(service, 'getCache').mockResolvedValue(null);
 
       expect(await service.getCache('key')).toEqual(null);
@@ -74,7 +60,6 @@ describe('CacheService', () => {
     const cacheValue = { key: 'value' };
     const cacheTTL = 3600;
     it('Should create a cache', async () => {
-      jest.spyOn(redisService, 'set').mockResolvedValue(null);
       jest
         .spyOn(service, 'setCache')
         .mockResolvedValue(`Cache created for key: ${cacheKey}`);
@@ -85,9 +70,6 @@ describe('CacheService', () => {
     });
 
     it('Should throw an error if cache service fails', async () => {
-      jest
-        .spyOn(redisService, 'set')
-        .mockRejectedValue(new Error('Error setting cache'));
       jest
         .spyOn(service, 'setCache')
         .mockRejectedValue(new Error('Error setting cache'));

@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from '../../../../src/domain/services/users/users.service';
-import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 import {
   IPaginatedUserResponse,
   IUserResponse,
@@ -34,11 +33,6 @@ const mockPrismaService = {
 const mockCacheService = {
   getCache: jest.fn(),
   setCache: jest.fn(),
-};
-
-const mockRedisService = {
-  get: jest.fn(),
-  set: jest.fn(),
 };
 
 const userData = {
@@ -90,9 +84,7 @@ const dbDataResponse = {
 describe('UsersService', () => {
   let service: UsersService;
   let cacheService: CacheService;
-  let redisService: RedisService;
   let prismaService: PrismaService;
-  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -100,7 +92,6 @@ describe('UsersService', () => {
         UsersService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: CacheService, useValue: mockCacheService },
-        { provide: RedisService, useValue: mockRedisService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
@@ -108,16 +99,14 @@ describe('UsersService', () => {
     service = module.get<UsersService>(UsersService);
     prismaService = module.get<PrismaService>(PrismaService);
     cacheService = module.get<CacheService>(CacheService);
-    redisService = module.get<RedisService>(RedisService);
-    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('create', () => {
-    it('should create a user', async () => {
+    it('Should create a user', async () => {
       jest
         .spyOn(prismaService.user, 'findMany')
         .mockResolvedValue([] as User[]);
@@ -133,7 +122,7 @@ describe('UsersService', () => {
       ).toEqual(userData);
     });
 
-    it('should throw if user has no company informed', async () => {
+    it('Should throw if user has no company informed', async () => {
       jest
         .spyOn(prismaService.user, 'create')
         .mockRejectedValue(new BadRequestException('User needs a company ID'));
@@ -143,7 +132,7 @@ describe('UsersService', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw if user email already exists in this company', async () => {
+    it('Should throw if user email already exists in this company', async () => {
       jest
         .spyOn(prismaService.user, 'create')
         .mockRejectedValue(new BadRequestException('User needs a company ID'));
@@ -153,7 +142,7 @@ describe('UsersService', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw on password validation', async () => {
+    it('Should throw on password validation', async () => {
       jest
         .spyOn(prismaService.user, 'findMany')
         .mockResolvedValue([userData] as User[]);
@@ -173,7 +162,7 @@ describe('UsersService', () => {
       ).rejects.toThrow();
     });
 
-    it('should throw an InternalServerErrorException if product there is no category_id', async () => {
+    it('Should throw an InternalServerErrorException if product there is no category_id', async () => {
       jest
         .spyOn(prismaService.user, 'findMany')
         .mockResolvedValue([] as User[]);
@@ -253,21 +242,21 @@ describe('UsersService', () => {
   });
 
   describe('findAll', () => {
-    it('should return users from cache if available', async () => {
+    it('Should return users from cache if available', async () => {
       jest
-        .spyOn(redisService, 'get')
-        .mockResolvedValue(JSON.stringify(cachedDataResponse.data));
+        .spyOn(cacheService, 'getCache')
+        .mockResolvedValue(cachedDataResponse.data);
 
       expect(await service.findAll({ page: 1, limit: 10 })).toEqual(
         cachedDataResponse,
       );
-      expect(redisService.get).toHaveBeenCalledWith('user');
+      expect(cacheService.getCache).toHaveBeenCalledWith('user');
     });
 
-    it('should return users from database if cache is not available', async () => {
-      jest.spyOn(redisService, 'get').mockResolvedValue(null);
+    it('Should return users from database if cache is not available', async () => {
+      jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest.spyOn(prismaService.user, 'findMany').mockResolvedValue(dbData.data);
-      jest.spyOn(redisService, 'set').mockResolvedValue(null);
+      jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
       const result = await service.findAll({
         page: 1,
@@ -275,11 +264,11 @@ describe('UsersService', () => {
       });
 
       expect(result).toEqual(dbDataResponse);
-      expect(redisService.get).toHaveBeenCalledWith('user');
+      expect(cacheService.getCache).toHaveBeenCalledWith('user');
     });
 
-    it('should throw an error if database query fails', async () => {
-      jest.spyOn(redisService, 'get').mockResolvedValue(null);
+    it('Should throw an error if database query fails', async () => {
+      jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest
         .spyOn(prismaService.user, 'findMany')
         .mockRejectedValue(new Error('Error retrieving users'));
@@ -291,7 +280,7 @@ describe('UsersService', () => {
   });
 
   describe('update', () => {
-    it('should update a user', async () => {
+    it('Should update a user', async () => {
       const updateUsertDto: UpdateUserDto = { name: 'test' };
       const result = {
         company_id: userData.company_id,
@@ -313,7 +302,7 @@ describe('UsersService', () => {
       ).toEqual(result);
     });
 
-    it('should throw an error if user update fails', async () => {
+    it('Should throw an error if user update fails', async () => {
       const updateUsertDto: UpdateUserDto = { name: 'test' };
       jest
         .spyOn(prismaService.user, 'update')
@@ -326,7 +315,7 @@ describe('UsersService', () => {
   });
 
   describe('remove', () => {
-    it('should delete a user', async () => {
+    it('Should delete a user', async () => {
       jest
         .spyOn(prismaService.user, 'findUnique')
         .mockResolvedValue(userData as User);
@@ -339,7 +328,7 @@ describe('UsersService', () => {
       );
     });
 
-    it('should throw an error if user deletion fails', async () => {
+    it('Should throw an error if user deletion fails', async () => {
       jest
         .spyOn(prismaService.user, 'findUnique')
         .mockResolvedValue(userData as User);

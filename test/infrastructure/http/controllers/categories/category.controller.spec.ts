@@ -6,6 +6,7 @@ import { CompaniesService } from '../../../../../src/domain/services/companies/c
 import { ProductService } from '../../../../../src/domain/services/products/product.service';
 import { RedisService } from '../../../../../src/domain/services/redis/redis.service';
 import { ErrorHandler } from '../../../../../src/shared/errors/error-handler';
+import { CacheService } from '../../../../../src/domain/services/cache/cache.service';
 
 const mockPrismaService = {
   productCategory: {
@@ -28,6 +29,11 @@ const mockRedisService = {
   set: jest.fn(),
 };
 
+const mockCacheService = {
+  getCache: jest.fn(),
+  setCache: jest.fn(),
+};
+
 const mockProductService = {
   findAll: jest.fn(),
   findUnique: jest.fn(),
@@ -43,11 +49,6 @@ const mockErrorHandler = {
 
 describe('CategoryController', () => {
   let controller: CategoryController;
-  let productService: ProductService;
-  let companiesService: CompaniesService;
-  let prismaService: PrismaService;
-  let redisService: RedisService;
-  let errorHandler: ErrorHandler;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -56,6 +57,7 @@ describe('CategoryController', () => {
         CategoryService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: RedisService, useValue: mockRedisService },
+        { provide: CacheService, useValue: mockCacheService },
         { provide: CompaniesService, useValue: mockCompaniesService },
         { provide: ProductService, useValue: mockProductService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
@@ -63,14 +65,9 @@ describe('CategoryController', () => {
     }).compile();
 
     controller = module.get<CategoryController>(CategoryController);
-    prismaService = module.get<PrismaService>(PrismaService);
-    redisService = module.get<RedisService>(RedisService);
-    companiesService = module.get<CompaniesService>(CompaniesService);
-    productService = module.get<ProductService>(ProductService);
-    errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(controller).toBeDefined();
   });
 });

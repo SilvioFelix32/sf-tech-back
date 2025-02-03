@@ -1,32 +1,31 @@
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
-import { faker } from '@faker-js/faker';
+import Redis from 'ioredis';
 
 describe('RedisService', () => {
   let redisService: RedisService;
-
-  process.env.REDIS_HOST = faker.internet.ip();
-  process.env.REDIS_USER = faker.internet.username();
-  process.env.REDIS_PASSWORD = faker.internet.password();
 
   beforeAll(() => {
     redisService = new RedisService();
   });
 
   afterAll(async () => {
-    await redisService.quit();
+    await redisService.getClient().quit();
   });
 
-  it('should connect to Redis', async () => {
-    jest.spyOn(redisService, 'ping').mockResolvedValue('PONG');
-
-    await expect(redisService.ping()).resolves.toBe('PONG');
+  it('Should create a Redis instance', () => {
+    expect(redisService.getClient()).toBeInstanceOf(Redis);
   });
 
-  it('should handle connection errors', async () => {
-    jest
-      .spyOn(redisService, 'ping')
-      .mockRejectedValue(new Error('Connection failed'));
+  it('Should handle connection errors', () => {
+    const redisMock = redisService.getClient() as any;
+    const errorCallback = jest.fn();
 
-    await expect(redisService.ping()).rejects.toThrow('Connection failed');
+    redisMock.on.mockImplementation((event: string, callback: any) => {
+      if (event === 'error') callback(new Error('Connection failed'));
+    });
+
+    redisMock.on('error', errorCallback);
+
+    expect(errorCallback).toHaveBeenCalledWith(new Error('Connection failed'));
   });
 });

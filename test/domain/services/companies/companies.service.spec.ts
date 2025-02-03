@@ -45,7 +45,7 @@ describe('CompaniesService', () => {
     errorHandler = module.get<ErrorHandler>(ErrorHandler);
   });
 
-  it('should be defined', () => {
+  it('Should be defined', () => {
     expect(service).toBeDefined();
   });
 
@@ -58,7 +58,7 @@ describe('CompaniesService', () => {
     };
 
     const result = data as Company;
-    it('should create a company', async () => {
+    it('Should create a company', async () => {
       jest
         .spyOn(prismaService.company, 'findFirst')
         .mockResolvedValue({} as Company);
@@ -71,7 +71,7 @@ describe('CompaniesService', () => {
       );
     });
 
-    it('should throw a ConflictException when email already exists', async () => {
+    it('Should throw a ConflictException when email already exists', async () => {
       jest
         .spyOn(prismaService.company, 'findUnique')
         .mockResolvedValueOnce({
@@ -96,7 +96,7 @@ describe('CompaniesService', () => {
       expect(prismaService.company.create).toHaveBeenCalledTimes(0);
     });
 
-    it('should throw a ConflictException when name already exists', async () => {
+    it('Should throw a ConflictException when name already exists', async () => {
       const fakeName = faker.company.name();
 
       jest
@@ -113,7 +113,7 @@ describe('CompaniesService', () => {
       );
     });
 
-    it('should throw a InternalServerErrorException', async () => {
+    it('Should throw a InternalServerErrorException', async () => {
       jest
         .spyOn(prismaService.company, 'findFirst')
         .mockResolvedValue({ ...data, name: '', email: '' } as Company);
@@ -140,7 +140,7 @@ describe('CompaniesService', () => {
       },
     ] as Company[];
 
-    it('should return all companies', async () => {
+    it('Should return all companies', async () => {
       jest.spyOn(prismaService.company, 'findMany').mockResolvedValue(data);
 
       expect(await service.findAll()).toEqual(data);
@@ -167,7 +167,7 @@ describe('CompaniesService', () => {
       email: faker.internet.email(),
     } as Company;
 
-    it('should return a company', async () => {
+    it('Should return a company', async () => {
       jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
 
       expect(await service.findOne(data.company_id)).toEqual(data);
@@ -204,7 +204,7 @@ describe('CompaniesService', () => {
       email: faker.internet.email(),
     } as Company;
 
-    it('should update a company', async () => {
+    it('Should update a company', async () => {
       jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(data);
       jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(null);
       jest.spyOn(prismaService.company, 'update').mockResolvedValue(data);
@@ -251,7 +251,7 @@ describe('CompaniesService', () => {
       email: faker.internet.email(),
     } as Company;
 
-    it('should delete a company', async () => {
+    it('Should delete a company', async () => {
       jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(data);
       jest.spyOn(prismaService.company, 'delete').mockResolvedValue(data);
 
