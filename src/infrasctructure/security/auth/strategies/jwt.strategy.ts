@@ -27,7 +27,7 @@ export class JwtStrategy {
 
       const key = await this.getKey(token);
       const { payload } = await jose.jwtVerify(token, key, {
-        clockTolerance: 60 * 60 * 3, // 3 hours tolerance. this behavior is necessary because of diferent timezones
+        clockTolerance: 60 * 60 * 5, // 5 hours tolerance. this behavior is necessary because of diferent timezones
       });
 
       if (!payload) {
