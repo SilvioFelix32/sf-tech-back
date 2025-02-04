@@ -14,7 +14,7 @@ import {
 } from './modules';
 import { AuthModule } from './modules/auth.module';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
-import { JwtAuthGuard } from './infrasctructure/security/auth/guards/jwt-auth.guard';
+import { CognitoAuthGuard } from './infrasctructure/security/auth/guards/cognito-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from './infrasctructure/security/auth/strategies/jwt.strategy';
 
@@ -40,7 +40,7 @@ import { JwtStrategy } from './infrasctructure/security/auth/strategies/jwt.stra
     JwtService,
     {
       provide: APP_GUARD,
-      useClass: JwtAuthGuard,
+      useClass: CognitoAuthGuard,
     },
     {
       provide: APP_FILTER,

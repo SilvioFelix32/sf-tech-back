@@ -14,7 +14,7 @@ import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class CognitoAuthGuard implements CanActivate {
   private jwtSecret: string;
 
   constructor(
