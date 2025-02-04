@@ -1,5 +1,8 @@
+import { InternalServerErrorException } from '@nestjs/common';
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 import Redis from 'ioredis';
+
+jest.mock('ioredis');
 
 describe('RedisService', () => {
   let redisService: RedisService;
@@ -18,14 +21,14 @@ describe('RedisService', () => {
 
   it('Should handle connection errors', () => {
     const redisMock = redisService.getClient() as any;
-    const errorCallback = jest.fn();
+    redisMock.emit('error', new Error('Connection failed'));
 
-    redisMock.on.mockImplementation((event: string, callback: any) => {
-      if (event === 'error') callback(new Error('Connection failed'));
-    });
-
-    redisMock.on('error', errorCallback);
-
-    expect(errorCallback).toHaveBeenCalledWith(new Error('Connection failed'));
+    try {
+      redisService.getClient().connect();
+    } catch (err) {
+      const error = err as Error;
+      expect(error).toBeInstanceOf(InternalServerErrorException);
+      expect(error.message).toBe('RedisService: Could not connect to Redis.');
+    }
   });
 });

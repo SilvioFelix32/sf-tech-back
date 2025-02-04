@@ -71,9 +71,8 @@ export class CompaniesService {
   }
 
   async remove(company_id: string): Promise<string> {
-    await this.companyIdExists(company_id);
-
     try {
+      await this.companyIdExists(company_id);
       await this.prismaService.company.delete({ where: { company_id } });
       return `Company ${company_id} deleted!`;
     } catch (error) {

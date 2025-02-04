@@ -3,6 +3,7 @@ import {
   HttpException,
   Inject,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
@@ -191,7 +192,10 @@ export class CategoryService {
 
       return paginatedData;
     } catch (error) {
-      throw this.errorHandler.handle(error);
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException(error);
+      }
+      throw new InternalServerErrorException(error);
     }
   }
 
@@ -232,6 +236,6 @@ export class CategoryService {
       return error;
     }
 
-    throw this.errorHandler.handle(error);
+    return this.errorHandler.handle(error);
   }
 }

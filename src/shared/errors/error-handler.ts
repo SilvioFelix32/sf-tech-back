@@ -12,6 +12,12 @@ import {
 @Injectable()
 export class ErrorHandler {
   public handle(error: unknown): HttpException {
+    if (!(error instanceof Error)) {
+      error = new Error(
+        String(error) || `Unknown error occurred, Error: ${error}`,
+      );
+    }
+
     switch ((error as Error).name) {
       case 'NotFoundException':
         return new NotFoundException(error);

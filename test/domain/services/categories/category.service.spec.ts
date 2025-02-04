@@ -159,6 +159,9 @@ describe('CategoryService', () => {
     });
 
     it('Should throw an error if category creation fails', async () => {
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new Error(error);
+      });
       jest
         .spyOn(prismaService.productCategory, 'create')
         .mockRejectedValue(new Error());
@@ -172,6 +175,9 @@ describe('CategoryService', () => {
     });
 
     it('Should throw an InternalServerErrorException if category there is no category_id', async () => {
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new InternalServerErrorException(error);
+      });
       jest
         .spyOn(prismaService.productCategory, 'create')
         .mockRejectedValue(
@@ -230,6 +236,9 @@ describe('CategoryService', () => {
 
     it('Should throw an InternalServerErrorException if database query fails', async () => {
       jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new InternalServerErrorException(error);
+      });
       jest
         .spyOn(prismaService.productCategory, 'findMany')
         .mockRejectedValue(
@@ -260,11 +269,17 @@ describe('CategoryService', () => {
       jest
         .spyOn(prismaService.productCategory, 'findUnique')
         .mockResolvedValue(null);
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new NotFoundException(error);
+      });
 
       await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
     });
 
     it('Should throw an InternalServerErrorException', async () => {
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new InternalServerErrorException(error);
+      });
       jest
         .spyOn(prismaService.productCategory, 'findUnique')
         .mockRejectedValue(
@@ -303,6 +318,9 @@ describe('CategoryService', () => {
 
     it('Should throw an error if product update fails', async () => {
       const updateProductDto: UpdateCategoryDto = { title: 'Updated Category' };
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new InternalServerErrorException(error);
+      });
       jest
         .spyOn(prismaService.productCategory, 'update')
         .mockRejectedValue(
@@ -334,6 +352,9 @@ describe('CategoryService', () => {
     });
 
     it('Should throw an error if product deletion fails', async () => {
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new InternalServerErrorException(error);
+      });
       jest
         .spyOn(prismaService.productCategory, 'delete')
         .mockRejectedValue(

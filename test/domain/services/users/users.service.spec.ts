@@ -10,6 +10,7 @@ import { User } from '@prisma/client';
 import { CreateUserDto } from '../../../../src/application/dtos/users/create-user.dto';
 import {
   BadRequestException,
+  HttpException,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
@@ -269,6 +270,9 @@ describe('UsersService', () => {
 
     it('Should throw an error if database query fails', async () => {
       jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new Error(error);
+      });
       jest
         .spyOn(prismaService.user, 'findMany')
         .mockRejectedValue(new Error('Error retrieving users'));
@@ -304,6 +308,9 @@ describe('UsersService', () => {
 
     it('Should throw an error if user update fails', async () => {
       const updateUsertDto: UpdateUserDto = { name: 'test' };
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new Error(error);
+      });
       jest
         .spyOn(prismaService.user, 'update')
         .mockRejectedValue(new Error('Error updating product'));
@@ -332,11 +339,20 @@ describe('UsersService', () => {
       jest
         .spyOn(prismaService.user, 'findUnique')
         .mockResolvedValue(userData as User);
+
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return new InternalServerErrorException(error);
+      });
+
       jest
         .spyOn(prismaService.user, 'delete')
-        .mockRejectedValue(userData as User);
+        .mockRejectedValue(
+          new InternalServerErrorException('Error deleting user'),
+        );
 
-      await expect(service.remove(userData.user_id)).rejects.toThrow(Error);
+      await expect(service.remove(userData.user_id)).rejects.toThrow(
+        HttpException,
+      );
     });
   });
 });
