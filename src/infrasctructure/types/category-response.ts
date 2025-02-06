@@ -1,4 +1,3 @@
-import { PaginatedResult } from 'prisma-pagination';
 import { Category } from '../../domain/entities/categories/category.entity';
 import { IPaginatedResult } from './paginate-data';
 
@@ -12,7 +11,15 @@ export const categoryResponse = {
 
 export interface ICategoryResponse {
   message: string;
-  data: PaginatedResult<Category>;
+  data: Category[];
+  meta: {
+    total: number;
+    lastPage: number;
+    currentPage: number;
+    perPage: number;
+    prev: number | null;
+    next: number | null;
+  };
 }
 
 export interface ICachedData {

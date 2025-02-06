@@ -47,46 +47,28 @@ const dbData = {
   ] as unknown as Product[],
 };
 
-const cachedDataResponse = {
-  data: {
-    data: [
-      {
-        category_id: faker.string.uuid(),
-        product_id: faker.string.uuid(),
-        title: 'Test Product',
-      },
-    ],
-    meta: {
-      currentPage: 1,
-      lastPage: 1,
-      next: null,
-      perPage: 10,
-      prev: null,
-      total: 1,
-    },
-  },
-  message: 'Products retrieved from cache',
-} as IProductResponse;
-
 const dbDataResponse = {
-  data: {
-    data: [
-      {
-        category_id: faker.string.uuid(),
-        product_id: faker.string.uuid(),
-        title: 'Test Product',
-      },
-    ],
-    meta: {
-      currentPage: 1,
-      lastPage: 1,
-      next: null,
-      perPage: 10,
-      prev: null,
-      total: 1,
+  data: [
+    {
+      category_id: faker.string.uuid(),
+      product_id: faker.string.uuid(),
+      title: 'Test Product',
     },
+  ],
+  meta: {
+    currentPage: 1,
+    lastPage: 1,
+    next: null,
+    perPage: 10,
+    prev: null,
+    total: 1,
   },
   message: 'Products retrieved from database',
+} as IProductResponse;
+
+const cachedDataResponse = {
+  ...dbDataResponse,
+  message: 'Products retrieved from cache',
 } as IProductResponse;
 
 const mockErrorHandler = {
@@ -183,7 +165,7 @@ describe('ProductService', () => {
     it('Should return products from cache if available', async () => {
       jest
         .spyOn(cacheService, 'getCache')
-        .mockResolvedValue(cachedDataResponse.data);
+        .mockResolvedValue(cachedDataResponse);
       jest
         .spyOn(prismaService.product, 'findMany')
         .mockResolvedValue(dbData.data);
@@ -197,7 +179,7 @@ describe('ProductService', () => {
       jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest
         .spyOn(prismaService.product, 'findMany')
-        .mockResolvedValue(dbDataResponse.data.data as Product[]);
+        .mockResolvedValue(dbDataResponse.data as Product[]);
       jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
       const result = await service.findAll({ page: 1, limit: 10 });

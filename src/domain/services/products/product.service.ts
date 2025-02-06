@@ -44,7 +44,6 @@ export class ProductService {
     }
   }
 
-  // TODO: pensar numa maneira de remover o data.data
   async findAll(query: IQueryPaginate): Promise<IProductResponse> {
     const { page, limit } = query;
 
@@ -64,7 +63,8 @@ export class ProductService {
 
         return {
           message: 'Products retrieved from database',
-          data: dbData,
+          data: dbData.data,
+          meta: dbData.meta,
         };
       }
 
@@ -76,7 +76,8 @@ export class ProductService {
 
       return {
         message: 'Products retrieved from cache',
-        data: paginatedCacheData,
+        data: paginatedCacheData.data,
+        meta: paginatedCacheData.meta,
       };
     } catch (error) {
       throw this.validateError(error);

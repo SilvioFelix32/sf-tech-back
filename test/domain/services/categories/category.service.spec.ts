@@ -62,50 +62,30 @@ const dbData = {
   ] as unknown as ProductCategory[],
 };
 
-const cachedDataResponse = {
-  data: {
-    data: [
-      {
-        company_id,
-        category_id: faker.string.uuid(),
-        title: faker.lorem.word(),
-        description: faker.lorem.word(),
-        products: [],
-      },
-    ],
-    meta: {
-      currentPage: 1,
-      lastPage: 1,
-      next: null,
-      perPage: 10,
-      prev: null,
-      total: 1,
-    },
-  },
-  message: 'Categories retrieved from cache',
-} as ICategoryResponse;
-
 const dbDataResponse = {
-  data: {
-    data: [
-      {
-        company_id,
-        category_id: faker.string.uuid(),
-        title: faker.lorem.word(),
-        description: faker.lorem.word(),
-        products: [],
-      },
-    ],
-    meta: {
-      currentPage: 1,
-      lastPage: 1,
-      next: null,
-      perPage: 10,
-      prev: null,
-      total: 1,
+  data: [
+    {
+      company_id,
+      category_id: faker.string.uuid(),
+      title: faker.lorem.word(),
+      description: faker.lorem.word(),
+      products: [],
     },
+  ],
+  meta: {
+    currentPage: 1,
+    lastPage: 1,
+    next: null,
+    perPage: 10,
+    prev: null,
+    total: 1,
   },
   message: 'Categories retrieved from database',
+} as ICategoryResponse;
+
+const cachedDataResponse = {
+  ...dbDataResponse,
+  message: 'Categories retrieved from cache',
 } as ICategoryResponse;
 
 describe('CategoryService', () => {
@@ -201,7 +181,7 @@ describe('CategoryService', () => {
       } as Company);
       jest
         .spyOn(cacheService, 'getCache')
-        .mockResolvedValue(cachedDataResponse.data);
+        .mockResolvedValue(cachedDataResponse);
       jest
         .spyOn(prismaService.productCategory, 'findMany')
         .mockResolvedValue(dbData.data);
@@ -222,7 +202,7 @@ describe('CategoryService', () => {
       jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest
         .spyOn(prismaService.productCategory, 'findMany')
-        .mockResolvedValue(dbDataResponse.data.data as ProductCategory[]);
+        .mockResolvedValue(dbDataResponse.data as ProductCategory[]);
       jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
       const result = await service.findAll(company_id, {

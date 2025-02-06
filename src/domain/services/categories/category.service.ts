@@ -14,7 +14,10 @@ import { ProductService } from '../products/product.service';
 import { Category } from '../../entities/categories/category.entity';
 import { CreateCategoryDto } from '../../../application/dtos/categories/create-category.dto';
 import { UpdateCategoryDto } from '../../../application/dtos/categories/update-category.dto';
-import { categoryResponse } from '../../../infrasctructure/types/category-response';
+import {
+  categoryResponse,
+  ICategoryResponse,
+} from '../../../infrasctructure/types/category-response';
 import { ErrorHandler } from '../../../shared/errors/error-handler';
 import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 import { CacheService } from '../cache/cache.service';
@@ -46,7 +49,10 @@ export class CategoryService {
     }
   }
 
-  async findAll(company_id: string, query: IQueryPaginate): Promise<any> {
+  async findAll(
+    company_id: string,
+    query: IQueryPaginate,
+  ): Promise<ICategoryResponse> {
     const { page, limit } = query;
 
     const cacheKey = 'category';
@@ -67,7 +73,8 @@ export class CategoryService {
 
         return {
           message: 'Categories retrieved from database',
-          data: dbData,
+          data: dbData.data,
+          meta: dbData.meta,
         };
       }
       const paginatedCacheData = this.paginateData(
@@ -78,7 +85,8 @@ export class CategoryService {
 
       return {
         message: 'Categories retrieved from cache',
-        data: paginatedCacheData,
+        data: paginatedCacheData.data,
+        meta: paginatedCacheData.meta,
       };
     } catch (error) {
       throw this.validateError(error);
