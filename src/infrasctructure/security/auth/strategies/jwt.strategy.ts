@@ -27,7 +27,7 @@ export class JwtStrategy {
 
       const key = await this.getKey(token);
       const { payload } = await jose.jwtVerify(token, key, {
-        clockTolerance: 60 * 60 * 5, // 5 hours tolerance. this behavior is necessary because of diferent timezones
+        clockTolerance: 60 * 60 * 3, // 3 hours tolerance. this behavior is necessary because of diferent timezones
       });
 
       if (!payload) {
@@ -45,18 +45,19 @@ export class JwtStrategy {
   private async getKey(token: string) {
     const { kid } = jose.decodeProtectedHeader(token);
 
-    const key = await this.cacheService.getCache<jose.JWK | undefined>('key');
+    let key = await this.cacheService.getCache<jose.JWK | undefined>('key');
     if (!key) {
       const jwks = await this.getJwks();
-      const key = jwks.keys.find((jwk) => jwk.kid === kid);
-      await this.cacheService.setCache('key', key, 60 * 60 * 3); //3 hours
+      key = jwks.keys.find((jwk) => jwk.kid === kid);
+      if (key) {
+        await this.cacheService.setCache('key', key, 60 * 60 * 3);
+      }
     }
     if (!key) {
       throw new UnauthorizedException(
         'JwtStrategy.getKey: Key not found in jwks',
       );
     }
-
     return await jose.importJWK(key, 'RS256');
   }
 
