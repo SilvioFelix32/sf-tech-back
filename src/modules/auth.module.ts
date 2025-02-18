@@ -10,13 +10,14 @@ import { UsersModule } from '.';
 import { JwtStrategy } from 'src/infrasctructure/security/auth/strategies/jwt.strategy';
 import { LocalStrategy } from 'src/infrasctructure/securty[deprecated]/auth/strategies/local.strategy';
 import { CacheService } from 'src/domain/services/cache/cache.service';
-import { RedisService } from 'src/domain/services/redis/redis.service';
+import { SharedServicesModule } from './shared-services.module';
 
 @Module({
   controllers: [AuthController],
   imports: [
     UsersModule,
     PassportModule,
+    SharedServicesModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -26,13 +27,7 @@ import { RedisService } from 'src/domain/services/redis/redis.service';
       inject: [ConfigService],
     }),
   ],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-    CacheService,
-    RedisService,
-  ],
+  providers: [AuthService, LocalStrategy, JwtStrategy, CacheService],
 })
 export class AuthModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
