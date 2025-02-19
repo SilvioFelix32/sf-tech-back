@@ -72,19 +72,12 @@ describe('CompaniesService', () => {
     it('Should throw a ConflictException when email already exists', async () => {
       jest
         .spyOn(prismaService.company, 'findUnique')
-        .mockResolvedValueOnce({
-          email: 'existing@email.com',
-          name: 'Other Company',
-        } as Company)
+        .mockResolvedValueOnce({ email: 'existing@email.com' } as Company)
         .mockResolvedValueOnce(null);
-
-      jest.spyOn(prismaService.company, 'create').mockResolvedValue({
-        company_id: '12345',
-        email: 'existing@email.com',
-      } as Company);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new ConflictException(error);
       });
+
       await expect(
         service.create({
           ...data,
@@ -101,19 +94,18 @@ describe('CompaniesService', () => {
 
       jest
         .spyOn(prismaService.company, 'findUnique')
-        .mockResolvedValue({ ...data, name: fakeName, email: '' } as Company);
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ name: fakeName } as Company);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new ConflictException(error);
       });
-      jest
-        .spyOn(prismaService.company, 'create')
-        .mockRejectedValue(
-          new ConflictException('Company with this name already exists'),
-        );
 
       await expect(service.create({ ...data, name: fakeName })).rejects.toThrow(
         ConflictException,
       );
+
+      expect(prismaService.company.findUnique).toHaveBeenCalledTimes(2);
+      expect(prismaService.company.create).toHaveBeenCalledTimes(0);
     });
 
     it('Should throw a InternalServerErrorException', async () => {
@@ -182,15 +174,13 @@ describe('CompaniesService', () => {
       expect(await service.findOne(data.company_id)).toEqual(data);
     });
 
-    it('Shold return NotFoundException when company not found', async () => {
+    it('Should throw NotFoundException when company not found', async () => {
+      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(null);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new NotFoundException(error);
       });
-      jest
-        .spyOn(prismaService.company, 'findUnique')
-        .mockRejectedValue(new NotFoundException('Company not found'));
 
-      await expect(service.findOne(data.company_id)).rejects.toThrow(
+      await expect(service.findOne('Company not found')).rejects.toThrow(
         NotFoundException,
       );
     });

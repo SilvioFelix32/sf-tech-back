@@ -3,33 +3,34 @@ import { CacheService } from '../../../../src/domain/services/cache/cache.servic
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 
-const mockCacheService = {
-  getCache: jest.fn(),
-  setCache: jest.fn(),
-};
-
-const mockRedisService = {
-  getClient: jest.fn().mockReturnValue({ get: jest.fn() }),
-};
-
-const mockErrorHandler = {
-  handle: jest.fn(),
-};
-
 describe('CacheService', () => {
   let service: CacheService;
+  let redisService: RedisService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CacheService,
-        { provide: CacheService, useValue: mockCacheService },
-        { provide: RedisService, useValue: mockRedisService },
-        { provide: ErrorHandler, useValue: mockErrorHandler },
+        {
+          provide: RedisService,
+          useValue: {
+            getClient: jest.fn().mockReturnValue({
+              get: jest.fn(),
+              set: jest.fn(),
+            }),
+          },
+        },
+        {
+          provide: ErrorHandler,
+          useValue: {
+            handleError: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<CacheService>(CacheService);
+    redisService = module.get<RedisService>(RedisService);
   });
 
   afterEach(() => {
@@ -43,40 +44,70 @@ describe('CacheService', () => {
   describe('getCache', () => {
     it('Should get a cache', async () => {
       const result = { key: 'value' };
-      jest.spyOn(service, 'getCache').mockResolvedValue(JSON.stringify(result));
+      const key = 'test-key';
+      const mockGet = redisService.getClient().get as jest.Mock;
+      mockGet.mockResolvedValue(JSON.stringify(result));
 
-      expect(await service.getCache('key')).toEqual(JSON.stringify(result));
+      const cachedData = await service.getCache(key);
+      expect(cachedData).toEqual(result);
+      expect(mockGet).toHaveBeenCalledWith(key);
     });
 
     it('Should return null if cache does not exist', async () => {
-      jest.spyOn(service, 'getCache').mockResolvedValue(null);
+      const key = 'test-key';
+      const mockGet = redisService.getClient().get as jest.Mock;
+      mockGet.mockResolvedValue(null);
 
-      expect(await service.getCache('key')).toEqual(null);
+      const cachedData = await service.getCache(key);
+      expect(cachedData).toBeNull();
+      expect(mockGet).toHaveBeenCalledWith(key);
+    });
+
+    it('Should handle errors and return null', async () => {
+      const key = 'test-key';
+      const mockGet = redisService.getClient().get as jest.Mock;
+      mockGet.mockRejectedValue(new Error('Redis error'));
+
+      const cachedData = await service.getCache(key);
+      expect(cachedData).toBeNull();
+      expect(mockGet).toHaveBeenCalledWith(key);
     });
   });
 
   describe('setCache', () => {
-    const cacheKey = 'key';
-    const cacheValue = { key: 'value' };
-    const cacheTTL = 3600;
     it('Should create a cache', async () => {
-      jest
-        .spyOn(service, 'setCache')
-        .mockResolvedValue(`Cache created for key: ${cacheKey}`);
+      const key = 'test-key';
+      const data = { key: 'value' };
+      const ttl = 3600;
+      const mockSet = redisService.getClient().set as jest.Mock;
+      mockSet.mockResolvedValue('OK');
 
-      expect(await service.setCache(cacheKey, cacheValue, cacheTTL)).toEqual(
-        `Cache created for key: ${cacheKey}`,
+      const result = await service.setCache(key, data, ttl);
+      expect(result).toEqual(`Cache created for key: ${key}`);
+      expect(mockSet).toHaveBeenCalledWith(
+        key,
+        JSON.stringify(data),
+        'EX',
+        ttl,
       );
     });
 
     it('Should throw an error if cache service fails', async () => {
-      jest
-        .spyOn(service, 'setCache')
-        .mockRejectedValue(new Error('Error setting cache'));
+      const key = 'test-key';
+      const data = { key: 'value' };
+      const ttl = 3600;
+      const mockSet = redisService.getClient().set as jest.Mock;
+      mockSet.mockRejectedValue(new Error('Redis error'));
 
-      await expect(
-        service.setCache(cacheKey, cacheValue, cacheTTL),
-      ).rejects.toThrow('Error setting cache');
+      await expect(service.setCache(key, data, ttl)).rejects.toThrow(
+        'Error setting cache',
+      );
+      expect(mockSet).toHaveBeenCalledWith(
+        key,
+        JSON.stringify(data),
+        'EX',
+        ttl,
+      );
     });
   });
 });

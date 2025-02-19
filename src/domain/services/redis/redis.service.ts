@@ -6,11 +6,11 @@ import {
 } from '@nestjs/common';
 import Redis from 'ioredis';
 import { env } from '../../../shared/config/env';
-import fs from 'fs';
-import path from 'path';
+// import fs from 'fs';
+// import path from 'path';
 
-const certPath = path.resolve(process.cwd(), 'redis-ca.crt');
-const caCert = fs.readFileSync(certPath, 'utf8');
+// const certPath = path.resolve(process.cwd(), 'redis-ca.crt');
+// const caCert = fs.readFileSync(certPath, 'utf8');
 
 @Injectable()
 export class RedisService implements OnModuleInit, OnModuleDestroy {
@@ -23,7 +23,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       password: env.REDIS_PASSWORD,
       port: env.REDIS_PORT,
       tls: {
-        ca: [caCert],
+        // ca: [caCert],
         rejectUnauthorized: false,
       },
       retryStrategy: (times) => {
