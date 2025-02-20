@@ -1,12 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
 import { InternalServerErrorException } from '@nestjs/common';
-import { faker } from '@faker-js/faker';
 
 describe('PrismaService', () => {
   let prismaService: PrismaService;
 
-  process.env.DATABASE_URL = `postgresql://postgres:${faker.lorem.word()}@test.io:5432/db?schema=public`;
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [PrismaService],

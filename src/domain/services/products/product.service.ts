@@ -207,6 +207,7 @@ export class ProductService {
   private updateCache(): void {
     setTimeout(() => {
       this.fetchAndCacheProducts(1, 20, 'product', 60 * 60 * 24); //24 HOURS
+      console.info('ProductService.updateCache: Cache updated!');
     }, 0);
   }
 

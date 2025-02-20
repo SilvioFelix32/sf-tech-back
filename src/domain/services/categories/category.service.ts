@@ -210,6 +210,7 @@ export class CategoryService {
   private updateCache(): void {
     setTimeout(() => {
       this.fetchAndCacheCategories(1, 20, 'category', 60 * 60 * 24); //24 HOURS
+      console.info('CategoryService.updateCache: Cache updated!');
     }, 0);
   }
 
