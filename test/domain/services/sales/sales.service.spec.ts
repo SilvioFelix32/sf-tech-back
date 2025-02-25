@@ -1,14 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SalesService } from '../../../../src/domain/services/sales/sales.service';
-import { CreateSaleDto } from '../../../../src/application/dtos/sales/create-sale.dto';
 import { faker } from '@faker-js/faker';
 
-const createSaleDto = {
+const saleDto = {
   company_id: faker.string.uuid(),
   sale_id: faker.string.uuid(),
   total: 100,
   user_id: faker.string.uuid(),
-} as CreateSaleDto;
+};
 
 describe('SalesService', () => {
   let service: SalesService;
@@ -27,7 +26,7 @@ describe('SalesService', () => {
 
   describe('create', () => {
     it('Should create a sale', () => {
-      expect(service.create(createSaleDto)).toBe('This action adds a new sale');
+      expect(service.create(saleDto)).toBe('This action adds a new sale');
     });
   });
 
@@ -39,21 +38,25 @@ describe('SalesService', () => {
 
   describe('findOne', () => {
     it('Should find a sale by id', () => {
-      expect(service.findOne(1)).toBe('This action returns a #1 sale');
+      expect(service.findOne(saleDto.sale_id)).toBe(
+        `This action returns a #${saleDto.sale_id} sale`,
+      );
     });
   });
 
   describe('update', () => {
     it('Should update a sale', () => {
-      expect(service.update(1, createSaleDto)).toBe(
-        'This action updates a #1 sale',
+      expect(service.update(saleDto.sale_id, saleDto)).toBe(
+        `This action updates a #${saleDto.sale_id} sale`,
       );
     });
   });
 
   describe('remove', () => {
     it('Should remove a sale', () => {
-      expect(service.remove(1)).toBe('This action removes a #1 sale');
+      expect(service.remove(saleDto.sale_id)).toBe(
+        `This action removes a #${saleDto.sale_id} sale`,
+      );
     });
   });
 });

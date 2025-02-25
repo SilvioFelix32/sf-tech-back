@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CacheService } from 'src/domain/services/cache/cache.service';
-import { env } from 'src/shared/config/env';
+import { environment } from 'src/shared/config/env';
 import * as jose from 'jose';
 import axios from 'axios';
 
@@ -63,8 +63,8 @@ export class JwtStrategy {
 
   private async getJwks(): Promise<jose.JSONWebKeySet> {
     try {
-      const region = env.AWS_REGION;
-      const userPoolId = env.COGNITO_USER_POOL_ID;
+      const region = environment.AWS_REGION;
+      const userPoolId = environment.COGNITO_USER_POOL_ID;
       const jwksUri = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`;
 
       const response = await axios.get(jwksUri);

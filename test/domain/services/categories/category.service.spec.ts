@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import {
   NotFoundException,
   InternalServerErrorException,
-  BadRequestException,
 } from '@nestjs/common';
 import { Company, ProductCategory } from '@prisma/client';
 import { faker } from '@faker-js/faker';
@@ -188,7 +187,7 @@ describe('CategoryService', () => {
         .mockResolvedValue(dbData.data);
 
       expect(
-        await service.findAll(company_id, {
+        await service.findAll({
           page: 1,
           limit: 10,
         }),
@@ -206,7 +205,7 @@ describe('CategoryService', () => {
         .mockResolvedValue(dbDataResponse.data as ProductCategory[]);
       jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
-      const result = await service.findAll(company_id, {
+      const result = await service.findAll({
         page: 1,
         limit: 10,
       });
@@ -226,15 +225,9 @@ describe('CategoryService', () => {
           new InternalServerErrorException('Error retrieving products'),
         );
 
-      await expect(
-        service.findAll(company_id, { page: 1, limit: 10 }),
-      ).rejects.toThrow(InternalServerErrorException);
-    });
-
-    it('Should throw an BadRequestException if no company_id is provided', async () => {
-      await expect(
-        service.findAll(undefined as unknown as string, { page: 1, limit: 10 }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow(
+        InternalServerErrorException,
+      );
     });
 
     it('Should throw an NotFoundException if no categories are found', async () => {
@@ -246,9 +239,9 @@ describe('CategoryService', () => {
         .spyOn(prismaService.productCategory, 'findMany')
         .mockRejectedValue(new NotFoundException('Error retrieving products'));
 
-      await expect(
-        service.findAll(company_id, { page: 1, limit: 10 }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

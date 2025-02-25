@@ -26,17 +26,17 @@ export class SalesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.salesService.findOne(+id);
+  findOne(@Param('id') sale_id: string) {
+    return this.salesService.findOne(sale_id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
-    return this.salesService.update(+id, updateSaleDto);
+  update(@Param('id') sale_id: string, @Body() updateSaleDto: UpdateSaleDto) {
+    return this.salesService.update(sale_id, updateSaleDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.salesService.remove(+id);
+  remove(@Param('id') sale_id: string) {
+    return this.salesService.remove(sale_id);
   }
 }

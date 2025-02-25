@@ -27,12 +27,10 @@ export class ProductController {
     const { category_id } = header;
     this.validateHeaders(header);
 
-    const { urlBanner } = dto;
-    if (urlBanner === null || undefined) {
-      dto.urlBanner = 'https://i.imgur.com/2HFGvvT.png';
-    }
-
-    return this.productService.create(category_id, dto);
+    return this.productService.create(category_id, {
+      ...dto,
+      urlBanner: dto.urlBanner ?? 'https://i.imgur.com/2HFGvvT.png',
+    });
   }
 
   @Get()

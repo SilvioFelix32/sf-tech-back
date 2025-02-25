@@ -13,16 +13,16 @@ export class SalesService {
     return `This action returns all sales`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} sale`;
   }
 
-  update(id: number, updateSaleDto: UpdateSaleDto) {
+  update(id: string, updateSaleDto: UpdateSaleDto) {
     console.info(updateSaleDto);
     return `This action updates a #${id} sale`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} sale`;
   }
 }

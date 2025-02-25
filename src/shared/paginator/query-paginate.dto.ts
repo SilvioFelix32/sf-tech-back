@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, Max, Min } from 'class-validator';
-import { env } from '../config/env';
+import { environment } from '../config/env';
 
-const responseLimit = env.API_RESPONSE_LIMIT ?? 20;
+const responseLimit = environment.API_RESPONSE_LIMIT ?? 20;
 
 export class QueryPaginateDto {
   @IsOptional()

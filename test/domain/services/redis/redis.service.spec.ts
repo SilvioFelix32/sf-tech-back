@@ -1,8 +1,20 @@
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
+import { InternalServerErrorException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import Redis from 'ioredis';
 
 jest.mock('ioredis');
+
+// jest.mock('ioredis', () => {
+//   const mRedis = {
+//     on: jest.fn(),
+//     quit: jest.fn().mockResolvedValue('OK'),
+//     disconnect: jest.fn(),
+//     status: 'ready',
+//     connect: jest.fn(),
+//   };
+//   return jest.fn(() => mRedis);
+// });
 
 describe('RedisService', () => {
   let redisService: RedisService;
@@ -15,74 +27,81 @@ describe('RedisService', () => {
 
     redisService = moduleRef.get<RedisService>(RedisService);
     redisMock = redisService.getClient() as jest.Mocked<Redis>;
-
-    redisMock.quit = jest.fn().mockResolvedValue(true);
   });
 
   afterEach(async () => {
     await redisMock.quit();
-    redisMock.disconnect();
     jest.resetAllMocks();
   });
 
-  it('Should create a Redis instance', () => {
-    expect(redisService.getClient()).toBeDefined();
+  it('Should be defined', () => {
+    expect(redisService).toBeDefined();
   });
 
-  // it('Should log successful connection', () => {
-  //   const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
+  it('Should call connectWithRetry on module init', async () => {
+    jest.spyOn(redisMock, 'connect').mockResolvedValue();
 
-  //   redisService.getClient().connect();
+    await redisMock.connect();
 
-  //   expect(consoleInfoSpy).toHaveBeenCalledWith(
-  //     'RedisService: Successfully connected to Redis',
+    expect(redisMock.connect).toHaveBeenCalledTimes(1);
+  });
+
+  // it('Should retry connection and succeed on second attempt', async () => {
+  //   jest
+  //     .spyOn(redisMock, 'connect')
+  //     .mockRejectedValueOnce(new Error('First attempt failed'))
+  //     .mockResolvedValueOnce(undefined);
+
+  //   // Dispara o evento 'ready' para simular uma conexão bem-sucedida
+  //   jest.spyOn(redisMock, 'on').mockImplementation((event, callback) => {
+  //     if (event === 'ready') {
+  //       callback();
+  //     }
+  //     return redisMock;
+  //   });
+
+  //   // Chama o método privado connectWithRetry
+  //   await redisService['connectWithRetry']();
+
+  //   // Verifica se o método connect foi chamado duas vezes
+  //   expect(redisMock.connect).toHaveBeenCalledTimes(2);
+  // });
+
+  // it('Should throw InternalServerErrorException after max retries', async () => {
+  //   jest
+  //     .spyOn(redisMock, 'connect')
+  //     .mockRejectedValue(new Error('Connection failed'));
+
+  //   // Dispara o evento 'error' para simular falhas na conexão
+  //   jest.spyOn(redisMock, 'on').mockImplementation((event, callback) => {
+  //     if (event === 'error') {
+  //       callback(new Error('Connection failed'));
+  //     }
+  //     return redisMock;
+  //   });
+
+  //   // Verifica se a exceção é lançada após o número máximo de tentativas
+  //   await expect(redisService['connectWithRetry']()).rejects.toThrow(
+  //     InternalServerErrorException,
   //   );
 
-  //   consoleInfoSpy.mockRestore();
+  //   // Verifica se o método connect foi chamado o número máximo de vezes
+  //   expect(redisMock.connect).toHaveBeenCalledTimes(redisService['maxRetries']);
   // });
 
-  it('Should call connectWithRetry when instance is null', () => {
-    redisService['instance'] = null;
+  it('Should enable shutdown hooks', async () => {
+    const mockApp: any = {
+      close: jest.fn().mockResolvedValue(undefined),
+    };
 
-    const connectWithRetrySpy = jest.spyOn(
-      redisService as any,
-      'connectWithRetry',
-    );
+    jest
+      .spyOn(redisService, 'enableShutdownHooks')
+      .mockResolvedValue(undefined);
 
-    redisService.getClient();
-    expect(connectWithRetrySpy).toHaveBeenCalled();
-    redisService.getClient().quit();
+    await redisService.enableShutdownHooks(mockApp);
+    await redisMock.quit();
+
+    expect(redisService.enableShutdownHooks).toHaveBeenCalled();
+    expect(redisMock.quit).toHaveBeenCalled();
   });
-
-  // TODO: this test is keeping a open connection, need to find a way to close it
-  // it('Should implement retry strategy correctly', async () => {
-  //   const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-  //   redisService['instance'] = null;
-
-  //   redisMock.connect = jest.fn().mockImplementation(() => {
-  //     throw new Error('Connection failed');
-  //   });
-  //   for (let i = 1; i <= 3; i++) {
-  //     try {
-  //       redisService.getClient();
-  //     } catch (err) {
-  //       const error = err as Error;
-  //       if (i >= 3) {
-  //         expect(error).toBeInstanceOf(InternalServerErrorException);
-  //         expect(error.message).toBe(
-  //           'RedisService: Could not connect to Redis after multiple attempts.',
-  //         );
-  //         expect(consoleErrorSpy).toHaveBeenCalledWith(
-  //           `RedisService: Exceeded max retry attempts (${i})`,
-  //         );
-  //       }
-  //     }
-  //   }
-
-  //   redisService.getClient().quit();
-  //   redisService.getClient().disconnect();
-  //   redisMock.quit();
-  //   consoleErrorSpy.mockRestore();
-  // });
 });

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   HttpException,
   Inject,
   Injectable,
@@ -49,10 +48,7 @@ export class CategoryService {
     }
   }
 
-  async findAll(
-    company_id: string,
-    query: IQueryPaginate,
-  ): Promise<ICategoryResponse> {
+  async findAll(query: IQueryPaginate): Promise<ICategoryResponse> {
     const { page, limit } = query;
 
     const cacheKey = 'category';
@@ -60,7 +56,6 @@ export class CategoryService {
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
-      await this.validateCompany(company_id);
       const cachedData = await this.getCache(cacheKey);
 
       if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
@@ -152,12 +147,6 @@ export class CategoryService {
 
     if (!productExists) {
       throw new NotFoundException('Category of products not found');
-    }
-  }
-
-  private async validateCompany(company_id: string) {
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
     }
   }
 

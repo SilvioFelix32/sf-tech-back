@@ -1,64 +1,91 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { env } from '../../../shared/config/env';
+import {
+  INestApplication,
+  Injectable,
+  InternalServerErrorException,
+  OnModuleInit,
+} from '@nestjs/common';
+import { environment } from '../../../shared/config/env';
 import Redis from 'ioredis';
 
 @Injectable()
-export class RedisService {
-  private instance: Redis | null = null;
+export class RedisService implements OnModuleInit {
+  private static instance: RedisService | null = null;
+  private client!: Redis;
   private readonly maxRetries = 3;
-  private retryCount = 0;
+  private connectionAttempts = 0;
 
   constructor() {
-    this.connectWithRetry();
+    if (RedisService.instance) {
+      return RedisService.instance;
+    }
+
+    this.client = new Redis({
+      host: environment.REDIS_HOST,
+      username: environment.REDIS_USER,
+      password: environment.REDIS_PASSWORD,
+      port: environment.REDIS_PORT,
+      tls: { rejectUnauthorized: false },
+    });
+
+    RedisService.instance = this;
   }
 
   getClient(): Redis {
-    if (!this.instance || this.instance.status !== 'ready') {
+    if (!this.client || this.client.status !== 'ready') {
+      console.warn(
+        'RedisService.getClient(): Redis client is not ready, reconnecting...',
+      );
       this.connectWithRetry();
     }
-    return this.instance!;
+    return this.client;
+  }
+
+  async onModuleInit() {
+    try {
+      console.info(
+        'RedisService.onModuleInit(): Started creating connection with Redis',
+      );
+      await this.connectWithRetry();
+    } catch (err) {
+      console.error(
+        `RedisService.onModuleInit(): Failed to connect with Redis: ${err}`,
+      );
+    }
   }
 
   private async connectWithRetry(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if (this.retryCount >= this.maxRetries) {
-        console.error(
-          `RedisService: Exceeded max retry attempts (${this.retryCount})`,
-        );
-        reject(
-          new InternalServerErrorException(
-            'RedisService: Could not connect to Redis after multiple attempts.',
-          ),
-        );
+    while (this.connectionAttempts < this.maxRetries) {
+      try {
+        await new Promise<void>((resolve, reject) => {
+          this.client.once('ready', () => {
+            console.info('RedisService.connectWithRetry(): Redis connected!');
+            resolve();
+          });
+
+          this.client.once('error', (err) => {
+            console.error(
+              `RedisService.connectWithRetry(): Attempt ${this.connectionAttempts + 1} failed: ${err}`,
+            );
+            this.connectionAttempts++;
+            reject(err);
+          });
+        });
+
         return;
-      } else {
-        console.warn(
-          `RedisService: Attempting to connect to Redis (attempt ${this.retryCount + 1} of ${this.maxRetries})`,
-        );
+      } catch {
+        if (this.connectionAttempts >= this.maxRetries) {
+          throw new InternalServerErrorException(
+            `Maximum connection attempts to Redis (${this.maxRetries}) reached.`,
+          );
+        }
       }
+    }
+  }
 
-      this.instance = new Redis({
-        host: env.REDIS_HOST,
-        username: env.REDIS_USER,
-        password: env.REDIS_PASSWORD,
-        port: env.REDIS_PORT,
-        tls: {
-          rejectUnauthorized: false,
-        },
-      });
-
-      this.instance.on('connect', () => {
-        console.info('RedisService: Successfully connected to Redis');
-        this.retryCount = 0;
-        resolve();
-      });
-
-      this.instance.on('error', (err) => {
-        console.error(`RedisService: Connection error: ${err.message}`);
-        this.retryCount++;
-        this.instance = null;
-        setTimeout(() => this.connectWithRetry(), 1000);
-      });
+  async enableShutdownHooks(app: INestApplication) {
+    process.on('beforeExit', async () => {
+      await this.client.quit();
+      await app.close();
     });
   }
 }
