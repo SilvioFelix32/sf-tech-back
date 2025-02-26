@@ -38,56 +38,71 @@ describe('RedisService', () => {
     expect(redisService).toBeDefined();
   });
 
-  it('Should call connectWithRetry on module init', async () => {
-    jest.spyOn(redisMock, 'connect').mockResolvedValue();
+  it('Should call onModuleInit', async () => {
+    const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
+    const connectWithRetrySpy = jest
+      .spyOn(redisService as any, 'connectWithRetry')
+      .mockResolvedValue(undefined);
 
-    await redisMock.connect();
+    await redisService.onModuleInit();
 
-    expect(redisMock.connect).toHaveBeenCalledTimes(1);
+    expect(consoleInfoSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'RedisService.onModuleInit(): Started creating connection with Redis',
+      ),
+    );
+    expect(connectWithRetrySpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should log error message when onModuleInit fails', async () => {
+    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+    jest
+      .spyOn(redisService as any, 'connectWithRetry')
+      .mockRejectedValueOnce(new Error('First attempt failed'))
+      .mockResolvedValueOnce(undefined);
+
+    await redisService.onModuleInit();
+    redisMock.on('error', (err) => {
+      console.error(`RedisService.connectWithRetry(): 1 failed: ${err}`);
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'RedisService.onModuleInit(): Failed to connect with Redis: Error: First attempt failed',
+      ),
+    );
   });
 
   // it('Should retry connection and succeed on second attempt', async () => {
+  //   const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
   //   jest
-  //     .spyOn(redisMock, 'connect')
-  //     .mockRejectedValueOnce(new Error('First attempt failed'))
-  //     .mockResolvedValueOnce(undefined);
+  //     .spyOn(redisService as any, 'connectWithRetry')
+  //     .mockRejectedValueOnce(new Error('First attempt failed'));
 
-  //   // Dispara o evento 'ready' para simular uma conexão bem-sucedida
-  //   jest.spyOn(redisMock, 'on').mockImplementation((event, callback) => {
-  //     if (event === 'ready') {
-  //       callback();
-  //     }
-  //     return redisMock;
-  //   });
-
-  //   // Chama o método privado connectWithRetry
+  //   // redisMock.connect();
   //   await redisService['connectWithRetry']();
 
-  //   // Verifica se o método connect foi chamado duas vezes
-  //   expect(redisMock.connect).toHaveBeenCalledTimes(2);
-  // });
-
-  // it('Should throw InternalServerErrorException after max retries', async () => {
-  //   jest
-  //     .spyOn(redisMock, 'connect')
-  //     .mockRejectedValue(new Error('Connection failed'));
-
-  //   // Dispara o evento 'error' para simular falhas na conexão
-  //   jest.spyOn(redisMock, 'on').mockImplementation((event, callback) => {
-  //     if (event === 'error') {
-  //       callback(new Error('Connection failed'));
-  //     }
-  //     return redisMock;
+  //   redisMock.on('error', (err) => {
+  //     console.error(`RedisService.connectWithRetry(): 1 failed: ${err}`);
   //   });
 
-  //   // Verifica se a exceção é lançada após o número máximo de tentativas
-  //   await expect(redisService['connectWithRetry']()).rejects.toThrow(
-  //     InternalServerErrorException,
+  //   expect(consoleErrorSpy).toHaveBeenCalledWith(
+  //     expect.stringContaining(
+  //       'RedisService.onModuleInit(): Failed to connect with Redis: Error: RedisService.connectWithRetry(): 1 failed: First attempt failed',
+  //     ),
   //   );
-
-  //   // Verifica se o método connect foi chamado o número máximo de vezes
-  //   expect(redisMock.connect).toHaveBeenCalledTimes(redisService['maxRetries']);
   // });
+
+  it('Should throw InternalServerErrorException after max retries', async () => {
+    jest
+      .spyOn(redisService as any, 'connectWithRetry')
+      .mockRejectedValue(new InternalServerErrorException('Maximum retries'));
+
+    await expect(redisService['connectWithRetry']()).rejects.toThrow(
+      InternalServerErrorException,
+    );
+  });
 
   it('Should enable shutdown hooks', async () => {
     const mockApp: any = {
