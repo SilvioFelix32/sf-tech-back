@@ -1,13 +1,9 @@
-import { ErrorHandler } from 'src/shared/errors/error-handler';
 import { RedisService } from '../redis/redis.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class CacheService {
-  constructor(
-    private readonly redisService: RedisService,
-    private readonly errorHandler: ErrorHandler,
-  ) {}
+  constructor(private readonly redisService: RedisService) {}
 
   async getCache<T>(key: string): Promise<T | null> {
     try {

@@ -13,9 +13,7 @@ import {
 export class ErrorHandler {
   public handle(error: unknown): HttpException {
     if (!(error instanceof Error)) {
-      error = new Error(
-        String(error) || `Unknown error occurred, Error: ${error}`,
-      );
+      error = new Error(`Unknown error occurred, Error: ${String(error)}`);
     }
 
     switch ((error as Error).name) {

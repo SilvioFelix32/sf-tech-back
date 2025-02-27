@@ -5,7 +5,7 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { env } from '../../../shared/config/env';
+import { environment } from '../../../shared/config/env';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
@@ -16,7 +16,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     super({
       datasources: {
         db: {
-          url: env.DATABASE_URL,
+          url: environment.DATABASE_URL,
         },
       },
     });

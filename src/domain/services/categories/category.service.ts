@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   HttpException,
   Inject,
   Injectable,
@@ -49,10 +48,7 @@ export class CategoryService {
     }
   }
 
-  async findAll(
-    company_id: string,
-    query: IQueryPaginate,
-  ): Promise<ICategoryResponse> {
+  async findAll(query: IQueryPaginate): Promise<ICategoryResponse> {
     const { page, limit } = query;
 
     const cacheKey = 'category';
@@ -60,7 +56,6 @@ export class CategoryService {
     const currentTime = Math.floor(Date.now() / 1000);
 
     try {
-      await this.validateCompany(company_id);
       const cachedData = await this.getCache(cacheKey);
 
       if (!cachedData || currentTime - cachedData.timestamp > cacheExpiryTime) {
@@ -155,12 +150,6 @@ export class CategoryService {
     }
   }
 
-  private async validateCompany(company_id: string) {
-    if (!company_id) {
-      throw new BadRequestException('No Company informed');
-    }
-  }
-
   private async getCache(key: string) {
     const cachedData = await this.cacheService.getCache<
       PaginatedResult<Category> & { timestamp: number }
@@ -210,6 +199,7 @@ export class CategoryService {
   private updateCache(): void {
     setTimeout(() => {
       this.fetchAndCacheCategories(1, 20, 'category', 60 * 60 * 24); //24 HOURS
+      console.info('CategoryService.updateCache: Cache updated!');
     }, 0);
   }
 

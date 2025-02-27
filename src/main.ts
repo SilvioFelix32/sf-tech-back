@@ -1,5 +1,5 @@
 import { AppModule } from './app.module';
-import { env } from './shared/config/env';
+import { environment } from './shared/config/env';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import {
@@ -10,7 +10,7 @@ import {
 } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
 
-const port = env.APP_PORT;
+const port = environment.APP_PORT;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });

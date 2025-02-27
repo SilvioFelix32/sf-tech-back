@@ -32,10 +32,9 @@ export class CategoryController {
   @Get()
   @IsPublic()
   async findAll(@Headers() header: IHeaders, @Query() query: IQueryPaginate) {
-    const { company_id } = header;
-    this.validateCompany(company_id);
+    this.validateCompany(header.company_id);
 
-    return this.categoryService.findAll(company_id, query);
+    return this.categoryService.findAll(query);
   }
 
   @Get(':id')
@@ -60,7 +59,7 @@ export class CategoryController {
     return this.categoryService.remove(category_id);
   }
 
-  private validateCompany(company_id: string) {
+  private validateCompany(company_id: string): void {
     if (!company_id) {
       throw new BadRequestException('No Company informed');
     }

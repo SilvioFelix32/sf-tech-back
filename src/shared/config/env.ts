@@ -3,7 +3,7 @@ import { config as loadEnv } from 'dotenv';
 
 loadEnv();
 
-function getEnvVariable<T = string>(
+export function getEnvVariable<T = string>(
   key: string,
   transform?: (value: string) => T,
 ): T {
@@ -15,7 +15,7 @@ function getEnvVariable<T = string>(
   return transform ? transform(value) : (value as unknown as T);
 }
 
-export const env = {
+export const environment = {
   APP_PORT: getEnvVariable('APP_PORT', Number),
   API_RESPONSE_LIMIT: getEnvVariable('API_RESPONSE_LIMIT', Number),
   DATABASE_URL: getEnvVariable('DATABASE_URL'),

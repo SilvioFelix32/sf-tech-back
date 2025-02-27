@@ -1,73 +1,100 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryService } from '../../../../../src/domain/services/categories/category.service';
 import { CategoryController } from '../../../../../src/infrasctructure/http/controllers/categories/category.controller';
-import { PrismaService } from '../../../../../src/domain/services/prisma/prisma.service';
-import { CompaniesService } from '../../../../../src/domain/services/companies/companies.service';
-import { ProductService } from '../../../../../src/domain/services/products/product.service';
-import { RedisService } from '../../../../../src/domain/services/redis/redis.service';
-import { ErrorHandler } from '../../../../../src/shared/errors/error-handler';
-import { CacheService } from '../../../../../src/domain/services/cache/cache.service';
+import { BadRequestException } from '@nestjs/common';
+import { IHeaders } from '../../../../../src/infrasctructure/types/IHeaders';
+import { faker } from '@faker-js/faker';
 
-const mockPrismaService = {
-  productCategory: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-    findUnique: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
-  product: {
-    findUnique: jest.fn(),
-  },
-  company: {
-    findUnique: jest.fn(),
-  },
-};
-
-const mockRedisService = {
-  get: jest.fn(),
-  set: jest.fn(),
-};
-
-const mockCacheService = {
-  getCache: jest.fn(),
-  setCache: jest.fn(),
-};
-
-const mockProductService = {
+const mockCategoryService = {
+  create: jest.fn(),
   findAll: jest.fn(),
-  findUnique: jest.fn(),
+  findOne: jest.fn(),
+  update: jest.fn(),
+  remove: jest.fn(),
 };
 
-const mockCompaniesService = {
-  findUnique: jest.fn(),
+const dto = {
+  category_id: faker.string.uuid(),
+  company_id: faker.string.uuid(),
+  title: 'Test Category',
+  description: 'Test Description',
+  products: [],
 };
 
-const mockErrorHandler = {
-  handle: jest.fn(),
-};
+const headers = { company_id: dto.company_id } as IHeaders;
 
 describe('CategoryController', () => {
   let controller: CategoryController;
+  let categoryService: CategoryService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CategoryController],
-      providers: [
-        CategoryService,
-        { provide: PrismaService, useValue: mockPrismaService },
-        { provide: RedisService, useValue: mockRedisService },
-        { provide: CacheService, useValue: mockCacheService },
-        { provide: CompaniesService, useValue: mockCompaniesService },
-        { provide: ProductService, useValue: mockProductService },
-        { provide: ErrorHandler, useValue: mockErrorHandler },
-      ],
+      providers: [{ provide: CategoryService, useValue: mockCategoryService }],
     }).compile();
 
     controller = module.get<CategoryController>(CategoryController);
+    categoryService = module.get<CategoryService>(CategoryService);
   });
 
   it('Should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  describe('create', () => {
+    it('Should create a category', async () => {
+      await controller.create(headers, dto);
+
+      expect(categoryService.create).toHaveBeenCalledWith(
+        headers.company_id,
+        dto,
+      );
+    });
+
+    it('Should throw BadRequestException if company_id is missing', async () => {
+      expect(() => controller.create({} as IHeaders, dto)).toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('findAll', () => {
+    const query = { page: 1, limit: 10 };
+
+    it('Should return a list of categories', async () => {
+      await controller.findAll(headers, query);
+
+      expect(categoryService.findAll).toHaveBeenCalledWith(query);
+    });
+  });
+
+  describe('findOne', () => {
+    it('Should return a category', async () => {
+      await controller.findOne(dto.category_id);
+
+      expect(categoryService.findOne).toHaveBeenCalledWith(dto.category_id);
+    });
+  });
+
+  describe('update', () => {
+    it('Should update a category', async () => {
+      await controller.update(headers, dto.category_id, dto);
+
+      expect(categoryService.update).toHaveBeenCalledWith(dto.category_id, dto);
+    });
+
+    it('Should throw BadRequestException if company_id is missing', () => {
+      expect(() => controller.update({} as IHeaders, '1', {})).toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('remove', () => {
+    it('Should delete a category', async () => {
+      await controller.remove(dto.category_id);
+
+      expect(categoryService.remove).toHaveBeenCalledWith(dto.category_id);
+    });
   });
 });

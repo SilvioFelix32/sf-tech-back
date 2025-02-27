@@ -146,13 +146,12 @@ describe('ProductService', () => {
     });
 
     it('Should throw an NotFoundException if product there is no category_id', async () => {
+      jest
+        .spyOn(prismaService.productCategory, 'findUnique')
+        .mockResolvedValue(null);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new NotFoundException(error);
       });
-      jest
-        .spyOn(prismaService.productCategory, 'findUnique')
-        .mockResolvedValue({ category_id: '1234' } as ProductCategory)
-        .mockRejectedValue(new NotFoundException());
 
       await expect(
         service.create(createProductDto.category_id, createProductDto),
@@ -271,6 +270,181 @@ describe('ProductService', () => {
       expect(await service.update('1', updateProductDto)).toEqual(
         `Product ${result.product_id} updated successfully`,
       );
+    });
+
+    it('Should update a product and cache', async () => {
+      const updateProductDto: UpdateProductDto = { title: 'Updated Product' };
+      const result = { product_id: '1', ...updateProductDto } as Product;
+
+      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
+      jest.spyOn(prismaService.product, 'update').mockResolvedValue(result);
+
+      const fetchAndCacheProductsSpy = jest
+        .spyOn(service as any, 'fetchAndCacheProducts')
+        .mockResolvedValue(undefined);
+
+      jest.useFakeTimers();
+
+      await service.update('1', updateProductDto);
+
+      jest.runAllTimers();
+
+      expect(fetchAndCacheProductsSpy).toHaveBeenCalledWith(
+        1,
+        20,
+        'product',
+        60 * 60 * 24,
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('Should update a product and cache', async () => {
+      const updateProductDto: UpdateProductDto = { title: 'Updated Product' };
+      const result = { product_id: '1', ...updateProductDto } as Product;
+
+      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
+      jest.spyOn(prismaService.product, 'update').mockResolvedValue(result);
+
+      const fetchAndCacheProductsSpy = jest
+        .spyOn(service as any, 'fetchAndCacheProducts')
+        .mockResolvedValue(undefined);
+
+      jest.useFakeTimers();
+
+      await service.update('1', updateProductDto);
+
+      jest.runAllTimers();
+
+      expect(fetchAndCacheProductsSpy).toHaveBeenCalledWith(
+        1,
+        20,
+        'product',
+        60 * 60 * 24,
+      );
+
+      jest.useRealTimers();
+    });
+
+    it('Should handle empty data correctly in fetchAndCacheProducts', async () => {
+      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue([]);
+
+      const setCacheSpy = jest
+        .spyOn(cacheService, 'setCache')
+        .mockResolvedValue('Created');
+
+      const result = await (service as any).fetchAndCacheProducts(
+        1,
+        10,
+        'product',
+        86400,
+      );
+
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
+      expect(result.meta.lastPage).toBe(0);
+      expect(result.meta.currentPage).toBe(1);
+      expect(result.meta.prev).toBeNull();
+      expect(result.meta.next).toBeNull();
+
+      expect(setCacheSpy).toHaveBeenCalledWith(
+        'product',
+        expect.objectContaining({
+          data: [],
+          meta: {
+            total: 0,
+            lastPage: 0,
+            currentPage: 1,
+            perPage: 10,
+            prev: null,
+            next: null,
+          },
+        }),
+        86400,
+      );
+    });
+
+    it('Should handle null data correctly inside fetchAndCacheProducts', async () => {
+      jest
+        .spyOn(prismaService.product, 'findMany')
+        .mockResolvedValue(null as any);
+
+      const result = await (service as any).fetchAndCacheProducts(
+        1,
+        10,
+        'product',
+        86400,
+      );
+
+      expect(result.data).toEqual([]);
+      expect(result.meta.total).toBe(0);
+    });
+
+    it('Should use default perPage value if limit is not provided inside paginateData', async () => {
+      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue([]);
+
+      const result = await (service as any).fetchAndCacheProducts(
+        1,
+        undefined as any,
+        'product',
+        86400,
+      );
+
+      expect(result.meta.perPage).toBe(20);
+    });
+
+    it('Should set prevPage to page - 1 when page > 1', async () => {
+      const products = Array.from({ length: 50 }, (_, i) => ({
+        product_id: `${i + 1}`,
+        title: `Product ${i + 1}`,
+      })) as Product[];
+
+      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue(products);
+
+      const result = await (service as any).fetchAndCacheProducts(
+        2,
+        10,
+        'product',
+        86400,
+      );
+
+      expect(result.meta.prev).toBe(1); // page = 2, prevPage = 1
+    });
+
+    it('Should set prevPage to null when page <= 1', async () => {
+      const products = Array.from({ length: 50 }, (_, i) => ({
+        product_id: `${i + 1}`,
+        title: `Product ${i + 1}`,
+      })) as Product[];
+
+      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue(products);
+
+      const result = await (service as any).fetchAndCacheProducts(
+        1,
+        10,
+        'product',
+        86400,
+      );
+
+      expect(result.meta.prev).toBeNull(); // page = 1, prevPage = null
+    });
+
+    it('Should set nextPage to page + 1 when page < totalPages', async () => {
+      const products = Array.from({ length: 50 }, (_, i) => ({
+        product_id: `${i + 1}`,
+        title: `Product ${i + 1}`,
+      })) as Product[];
+
+      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue(products);
+
+      const result = await (service as any).fetchAndCacheProducts(
+        2,
+        10,
+        'product',
+        86400,
+      );
+
+      expect(result.meta.next).toBe(3); // page = 2, nextPage = 3
     });
 
     it('Should throw an error if product update fails', async () => {
