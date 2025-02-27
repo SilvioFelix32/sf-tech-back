@@ -74,6 +74,9 @@ export class RedisService implements OnModuleInit {
         return;
       } catch {
         if (this.connectionAttempts >= this.maxRetries) {
+          console.error(
+            `RedisService: Maximum retries (${this.maxRetries}) reached.`,
+          );
           throw new InternalServerErrorException(
             `Maximum connection attempts to Redis (${this.maxRetries}) reached.`,
           );

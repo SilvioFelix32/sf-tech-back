@@ -2,78 +2,46 @@
 
 ###
 
-<p align="left">Esse é um projeto pessoal de um e-commerce usando a melhor parte de minhas habilidades no backend até o momento...</p>
+<p align="left">Este é um projeto pessoal de e-commerce, onde utilizei Clean Architecture, Clean Code e as melhores práticas para desenvolvimento backend. O projeto foi construído com Nest.js, Prisma ORM e Jest, garantindo uma estrutura robusta, escalável e completamente testada</p>
 
 ## Demonstração:
 
-  <img src="public/sf-tech-front.vercel.app_.png"  alt="demonstration"  />
+ <p align="left">Este backend faz parte do projeto portifólio Sf-tech, veja mais em https://sf-tech-front.vercel.app/</p>
+
+## Cobertura de testes 100%:
+
+  <img src="public/test-coverage.jpeg"  alt="demonstration"  />
   
-###
+## 🛠 Tecnologias utilizadas
 
-<h2 align="left">Esse backend foi feito usando:</h2>
-###
+<h2 align="left">O backend foi desenvolvido com as seguintes tecnologias principais:</h2>
 
-<div align="left">
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" height="40" alt="javascript logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" height="40" alt="typescript logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg" height="40" alt="nodejs logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg" height="40" alt="mongodb logo"  />
-  <img width="12" />
-  <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nestjs/nestjs-plain.svg" height="40" alt="nestjs logo"  />
-</div>
+<p align="left">Nest.js – Framework para aplicações Node.js escaláveis e modulares.</p>
+<p align="left">Prisma ORM – ORM moderno para manipulação eficiente do banco de dados.</p>
+<p align="left">Jest – Framework de testes para garantir alta cobertura de código.</p>
+<p align="left">Redis – Cache eficiente para otimizar a performance da aplicação.</p>
+<p align="left">TypeScript – Tipagem estática para um código mais seguro e robusto.</p>
+<p align="left">Outras bibliotecas importantes incluem: Passport.js (autenticação), Class-Validator (validações), Axios (requisições HTTP), Swagger (documentação da API), Cache Manager, UUID, e muito mais.
+</p>
 
-###
+## ▶️ Rodando o projeto localmente:
 
-## TO RUN LOCAL
+### 📌 Instalação das dependências
 
-run yarn install
+yarn install
 
-# REDIS
+### 🔥 Executando o Redis
 
-install redis-server
-initiate redis server
-run redis-server
+redis-server
 
-# START
+### 🏃 Iniciando o servidor
 
-run yarn dev
-or
-run yarn debug // DEBUG MODE
+yarn dev
 
-## Dependencies
+## 📜 Licença
 
-- [@nest/axios](https://github.com/nestjs/axios#readme): Nest - modern, fast, powerful node.js web framework (@axios)
-- [@nestjs/cache-manager](https://github.com/nestjs/cache-manager#readme): Nest - modern, fast, powerful node.js web framework
-- [@nestjs/core](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
-- [@nestjs/jwt](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
-- [@nestjs/mapped-types](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
-- [@nestjs/passport](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
-- [@nestjs/latform-express](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
-- [@nestjs/swagger](https://github.com/nestjs/jwt#readme): Nest - modern, fast, powerful node.js web framework
-- [@prisma/client](https://www.prisma.io): Prisma Client is an auto-generated, type-safe and modern JavaScript/TypeScript ORM for Node.js that's tailored to your data. Supports MySQL, PostgreSQL, MariaDB, SQLite databases.
-- [bcrypt](https://github.com/kelektiv/node.bcrypt.js#readme): A bcrypt library for NodeJS.
-- [bcryptjs](https://github.com/dcodeIO/bcrypt.js#readme): Optimized bcrypt in plain JavaScript with zero dependencies.
-- [cache-manager](https://github.com/node-cache-manager/node-cache-manager#readme): Cache module for Node.js.
-- [cache-manager-redis-store](https://github.com/dabroek/node-cache-manager-redis-store#readme): Redis store for node-cache-manager.
-- [class-transformer](https://github.com/typestack/class-transformer#readme): Proper decorator-based transformation / serialization / deserialization of plain javascript objects to class constructors.
-- [class-validator](https://github.com/typestack/class-validator#readme): Decorator-based property validation for classes.
-- [cors](https://github.com/expressjs/cors#readme): Node.js CORS middleware.
-- [passport](https://www.passportjs.org/): Simple, unobtrusive authentication for Node.js.
-- [passport-jwt](https://github.com/mikenicholson/passport-jwt): Passport authentication strategy using JSON Web Tokens.
-- [passport-local](https://www.react-hook-form.com): Local username and password authentication strategy for Passport.
-- [prisma-pagination](https://github.com/enkot/prisma-pagination#readme): Pagination.
-- [redis](https://github.com/redis/node-redis): A modern, high performance Redis client.
-- [swagger-ui-express](https://github.com/scottie1984/swagger-ui-express): Swagger UI Express.
-- [uuid](https://github.com/uuidjs/uuid#readme):RFC4122 (v1, v4, and v5) UUIDs.
+Este projeto está sob a licença MIT.
 
-# :page_facing_up: License
+Feito com 💖 por Silvio Félix.
 
-This project is under the [MIT license](./LICENSE).
-Made with 💖 by [Silvio Félix](https://www.linkedin.com/in/silviofelix32/).
-
-Thank you! 🌠
-
-###
+Obrigado! 🌠
