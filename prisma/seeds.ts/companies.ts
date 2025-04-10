@@ -1,5 +1,4 @@
 import { Prisma } from '@prisma/client';
-import { userSeed } from './users';
 import { productCategoriesSeed } from './category';
 
 export const companiesSeed: Prisma.CompanyCreateInput[] = [
@@ -9,6 +8,6 @@ export const companiesSeed: Prisma.CompanyCreateInput[] = [
     fantasyName: 'sftech',
     name: 'sftech',
     productCategories: { create: productCategoriesSeed },
-    users: { createMany: { data: userSeed } },
+    //users: { createMany: { data: userSeed } },
   },
 ];

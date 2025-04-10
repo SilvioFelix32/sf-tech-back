@@ -52,6 +52,7 @@ export class ProductController {
   }
 
   @Patch(':id')
+  @IsPublic()
   update(
     @Headers() header: IHeaders,
     @Param('id') product_id: string,

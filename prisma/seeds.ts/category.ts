@@ -1,9 +1,12 @@
 import {
   chairsSeed,
   computersSeed,
+  keyboardsSeed,
+  memorySeed,
+  miceSeed,
   monitorsSeed,
   notebooksSeed,
-  peripheralsSeed,
+  processorsSeed,
 } from './products';
 
 export const productCategoriesSeed = [
@@ -23,13 +26,28 @@ export const productCategoriesSeed = [
     title: 'MONITORES',
   },
   {
-    description: 'PERIFÉRICOS',
-    products: { createMany: { data: peripheralsSeed } },
-    title: 'PERIFÉRICOS',
-  },
-  {
     description: 'CADEIRAS',
     products: { createMany: { data: chairsSeed } },
     title: 'CADEIRAS',
+  },
+  {
+    description: 'MOUSES',
+    products: { createMany: { data: miceSeed } },
+    title: 'MOUSES',
+  },
+  {
+    description: 'TECLADOS',
+    products: { createMany: { data: keyboardsSeed } },
+    title: 'TECLADOS',
+  },
+  {
+    description: 'PROCESSADORES',
+    products: { createMany: { data: processorsSeed } },
+    title: 'PROCESSADORES',
+  },
+  {
+    description: 'MEMÓRIAS',
+    products: { createMany: { data: memorySeed } },
+    title: 'MEMÓRIAS',
   },
 ];
