@@ -11,11 +11,11 @@ import {
   Query,
 } from '@nestjs/common';
 import { IsPublic } from 'src/infrasctructure/security/auth/decorators/is-public.decorator';
-import { IHeaders } from '../../../types/IHeaders';
+import type { IHeaders } from '../../../types/IHeaders';
 import { CategoryService } from '../../../../domain/services/categories/category.service';
 import { CreateCategoryDto } from '../../../../application/dtos/categories/create-category.dto';
 import { UpdateCategoryDto } from '../../../../application/dtos/categories/update-category.dto';
-import { IQueryPaginate } from '../../../../shared/paginator/i-query-paginate';
+import type { IQueryPaginate } from '../../../../shared/paginator/i-query-paginate.ts';
 
 @Controller('categories')
 export class CategoryController {

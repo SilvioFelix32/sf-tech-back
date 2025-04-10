@@ -11,12 +11,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { IsPublic } from 'src/infrasctructure/security/auth/decorators/is-public.decorator';
-import { IHeaders } from '../../../types/IHeaders';
+import type { IHeaders } from '../../../types/IHeaders';
 import { ProductService } from '../../../../domain/services/products/product.service';
 import { Product } from '../../../../domain/entities/products/product.entity';
 import { CreateProductDto } from '../../../../application/dtos/products/create-product.dto';
 import { UpdateProductDto } from '../../../../application/dtos/products/update-product.dto';
-import { IQueryPaginate } from '../../../../shared/paginator/i-query-paginate';
+import type { IQueryPaginate } from '../../../../shared/paginator/i-query-paginate';
 
 @Controller('products')
 export class ProductController {
