@@ -1,7 +1,15 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CacheService } from 'src/domain/services/cache/cache.service';
 import { environment } from 'src/shared/config/env';
-import * as jose from 'jose';
+import {
+  decodeJwt,
+  decodeProtectedHeader,
+  jwtVerify,
+  importJWK,
+  type JWK,
+  type JSONWebKeySet,
+} from 'jose';
+
 import axios from 'axios';
 
 @Injectable()
@@ -18,7 +26,7 @@ export class JwtStrategy {
 
   private async isTokenValid(token: string): Promise<boolean> {
     try {
-      const decoded = jose.decodeJwt(token);
+      const decoded = decodeJwt(token);
       console.info(
         'JwtStrategy.isTokenValid - Token Expiration:',
         new Date(decoded.exp! * 1000),
@@ -26,7 +34,7 @@ export class JwtStrategy {
       console.info('JwtStrategy.isTokenValid - Current Time:', new Date());
 
       const key = await this.getKey(token);
-      const { payload } = await jose.jwtVerify(token, key, {
+      const { payload } = await jwtVerify(token, key, {
         clockTolerance: 60 * 60 * 3, // 3 hours tolerance. this behavior is necessary because of diferent timezones
       });
 
@@ -43,9 +51,9 @@ export class JwtStrategy {
   }
 
   private async getKey(token: string) {
-    const { kid } = jose.decodeProtectedHeader(token);
+    const { kid } = decodeProtectedHeader(token);
 
-    let key = await this.cacheService.getCache<jose.JWK | undefined>('key');
+    let key = await this.cacheService.getCache<JWK | undefined>('key');
     if (!key) {
       const jwks = await this.getJwks();
       key = jwks.keys.find((jwk) => jwk.kid === kid);
@@ -58,17 +66,17 @@ export class JwtStrategy {
         'JwtStrategy.getKey: Key not found in jwks',
       );
     }
-    return await jose.importJWK(key, 'RS256');
+    return await importJWK(key, 'RS256');
   }
 
-  private async getJwks(): Promise<jose.JSONWebKeySet> {
+  private async getJwks(): Promise<JSONWebKeySet> {
     try {
       const region = environment.AWS_REGION;
       const userPoolId = environment.COGNITO_USER_POOL_ID;
       const jwksUri = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}/.well-known/jwks.json`;
 
       const response = await axios.get(jwksUri);
-      return response.data as jose.JSONWebKeySet;
+      return response.data as JSONWebKeySet;
     } catch (error) {
       throw new UnauthorizedException(
         `JwtStrategy.getJwks error while getting jwks: ${error}`,

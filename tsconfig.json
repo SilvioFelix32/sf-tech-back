@@ -7,7 +7,6 @@
     "skipLibCheck": true,
     "target": "es2022",
     "allowJs": true,
-    "resolveJsonModule": true,
     "moduleDetection": "force",
     "isolatedModules": true,
 
@@ -15,7 +14,8 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "outDir": "./dist",
-    "module": "CommonJS",
+    "module": "NodeNext",
+    "moduleResolution": "nodenext",
 
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
