@@ -4,9 +4,7 @@ import { companiesSeed } from './seeds.ts/companies';
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.sale.deleteMany({});
   await prisma.product.deleteMany({});
-  //await prisma.user.deleteMany({}); // deprecated using aws cognito to manage users
   await prisma.productCategory.deleteMany({});
   await prisma.company.deleteMany({});
 

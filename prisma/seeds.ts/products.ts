@@ -68,33 +68,33 @@ export const notebooksSeed: Prisma.ProductCreateManyInput[] = [
 
 export const computersSeed: Prisma.ProductCreateManyInput[] = [
   {
+    title: 'Computador Starter',
+    subtitle: 'Gamer Starter',
     description:
       'Intel Core i3-10300H, Memória8gb, 120Gb SSD PCIe, NVIDEA GeForce GTX 650 2gb',
     discount: Number(Math.floor(Math.random() * 100)),
     price: Number(Math.floor(Math.random() * 10000)),
     sku: faker.string.uuid(),
-    subtitle: 'Gamer Starter',
-    title: 'Computador',
     urlBanner: 'https://i.imgur.com/YvXrCsS.png',
   },
   {
+    title: 'Computador Evolution',
+    subtitle: 'Gamer Evolution',
     description:
       'Intel Core i5-10300H, Memória16gb, 240Gb SSD PCIe, NVIDEA GeForce GTX 950 4gb',
     discount: Number(Math.floor(Math.random() * 100)),
     price: Number(Math.floor(Math.random() * 10000)),
     sku: faker.string.uuid(),
-    subtitle: 'Gamer Evolution',
-    title: 'Computador',
     urlBanner: 'https://i.imgur.com/YvXrCsS.png',
   },
   {
+    title: 'Computador Master',
+    subtitle: 'Gamer Master',
     description:
       'Intel Core i7-10300H, Memória32gb, 480Gb SSD PCIe, NVIDEA GeForce GTX 1650 8gb',
     discount: Number(Math.floor(Math.random() * 100)),
     price: Number(Math.floor(Math.random() * 10000)),
     sku: faker.string.uuid(),
-    subtitle: 'Gamer Master',
-    title: 'Computador',
     urlBanner: 'https://i.imgur.com/YvXrCsS.png',
   },
 ];
@@ -136,22 +136,31 @@ export const chairsSeed: Prisma.ProductCreateManyInput[] = [
 export const processorsSeed: Prisma.ProductCreateManyInput[] = [
   {
     title: 'Processador Intel Core i3-10300H',
-    description: 'Processador Intel Core i3-10300H',
+    subtitle: 'Processador Intel Core i3-10300H',
+    description:
+      'O Processador Intel Core i3-10300H é um processador Intel Core i3-10300H com processadores Intel Core i3-10300H com processadores Intel Core i3-10300H com processadores Intel Core i3-10300H.',
     discount: Number(Math.floor(Math.random() * 100)),
+    sku: faker.string.uuid(),
     price: 1500,
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
   {
     title: 'Processador Intel Core i5-10300H',
-    description: 'Processador Intel Core i5-10300H',
+    subtitle: 'Processador Intel Core i5-10300H',
+    description:
+      'O Processador Intel Core i5-10300H é um processador Intel Core i5-10300H com processadores Intel Core i5-10300H com processadores Intel Core i5-10300H com processadores Intel Core i5-10300H.',
     discount: Number(Math.floor(Math.random() * 100)),
+    sku: faker.string.uuid(),
     price: 2500,
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
   {
     title: 'Processador Intel Core i7-10300H',
-    description: 'Processador Intel Core i7-10300H',
+    subtitle: 'Processador Intel Core i7-10300H',
+    description:
+      'O Processador Intel Core i7-10300H é um processador Intel Core i7-10300H com processadores Intel Core i7-10300H com processadores Intel Core i7-10300H com processadores Intel Core i7-10300H.',
     discount: Number(Math.floor(Math.random() * 100)),
+    sku: faker.string.uuid(),
     price: 3500,
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
@@ -160,23 +169,32 @@ export const processorsSeed: Prisma.ProductCreateManyInput[] = [
 export const motherboardsSeed: Prisma.ProductCreateManyInput[] = [
   {
     title: 'Placa-mãe Asus Prime A320M-A',
-    description: 'Placa-mãe Asus Prime A320M-A',
+    subtitle: 'Placa-mãe Asus Prime A320M-A',
+    description:
+      'A Asus Prime A320M-A é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000. Ela é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000. Ela é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000.',
     discount: Number(Math.floor(Math.random() * 100)),
     price: 1500,
+    sku: faker.string.uuid(),
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
   {
     title: 'Placa-mãe Asus Prime A320M-A',
-    description: 'Placa-mãe Asus Prime A320M-A',
+    subtitle: 'Placa-mãe Asus Prime A320M-A',
+    description:
+      'A Asus Prime A320M-A é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000. Ela é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000. Ela é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000.',
     discount: Number(Math.floor(Math.random() * 100)),
     price: 2500,
+    sku: faker.string.uuid(),
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
   {
     title: 'Placa-mãe Asus Prime A320M-A',
-    description: 'Placa-mãe Asus Prime A320M-A',
+    subtitle: 'Placa-mãe Asus Prime A320M-A',
+    description:
+      'A Asus Prime A320M-A é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000. Ela é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000. Ela é uma placa-mãe AMD Ryzen 3000 com processadores AMD Ryzen 3000.',
     discount: Number(Math.floor(Math.random() * 100)),
     price: 3500,
+    sku: faker.string.uuid(),
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
 ];
@@ -184,23 +202,32 @@ export const motherboardsSeed: Prisma.ProductCreateManyInput[] = [
 export const memorySeed: Prisma.ProductCreateManyInput[] = [
   {
     title: 'Memória DDR4 Kingston Fury Beast',
-    description: 'Memória DDR4 Kingston Fury Beast',
+    subtitle: 'Memória DDR4 Kingston Fury Beast',
+    description:
+      'Aumente o desempenho do seu computador com a memória Kingston Fury Beast DDR4. Com frequência de 3200 MHz, capacidade de 16GB e latência CL16, esta memória oferece um desempenho excepcional para jogos e aplicações intensas.',
     discount: Number(Math.floor(Math.random() * 100)),
     price: 300,
+    sku: faker.string.uuid(),
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
   {
     title: 'Memória DDR4 Kingston Fury Beast',
-    description: 'Memória DDR4 Kingston Fury Beast',
+    subtitle: 'Memória DDR4 Kingston Fury Beast',
+    description:
+      'Aumente o desempenho do seu computador com a memória Kingston Fury Beast DDR4. Com frequência de 3200 MHz, capacidade de 16GB e latência CL16, esta memória oferece um desempenho excepcional para jogos e aplicações intensas.',
     discount: Number(Math.floor(Math.random() * 100)),
     price: 400,
+    sku: faker.string.uuid(),
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
   {
     title: 'Memória DDR4 Kingston Fury Beast',
-    description: 'Memória DDR4 Kingston Fury Beast',
+    subtitle: 'Memória DDR4 Kingston Fury Beast',
+    description:
+      'Aumente o desempenho do seu computador com a memória Kingston Fury Beast DDR4. Com frequência de 3200 MHz, capacidade de 16GB e latência CL16, esta memória oferece um desempenho excepcional para jogos e aplicações intensas.',
     discount: Number(Math.floor(Math.random() * 100)),
     price: 500,
+    sku: faker.string.uuid(),
     urlBanner: 'https://i.imgur.com/Vnvcvi1.png',
   },
 ];
@@ -210,7 +237,8 @@ export const miceSeed: Prisma.ProductCreateManyInput[] = [
     sku: faker.string.uuid(),
     title: 'Mouse Dragon',
     subtitle: 'Mouse Dragon',
-    description: '500bpi',
+    description:
+      'O Mouse Dragon é um mouse com 500bpi. Controle de 12 botões. Iluminação RGB. Sensor óptico de 16000 DPI. Velocidade de 400 IPS. Ajuste de peso. Suporte para mão esquerda e direita.',
     urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 40,
     discount: Number(Math.floor(Math.random() * 10)),
@@ -219,7 +247,8 @@ export const miceSeed: Prisma.ProductCreateManyInput[] = [
     sku: faker.string.uuid(),
     title: 'Mouse Gamer',
     subtitle: 'Mouse Gamer Dragon',
-    description: '500bpi',
+    description:
+      'O Mouse Gamer Dragon é um mouse com 500bpi. Controle de 12 botões. Iluminação RGB. Sensor óptico de 16000 DPI. Velocidade de 400 IPS. Ajuste de peso. Suporte para mão esquerda e direita.',
     urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 80,
     discount: Number(Math.floor(Math.random() * 10)),
@@ -228,7 +257,8 @@ export const miceSeed: Prisma.ProductCreateManyInput[] = [
     sku: faker.string.uuid(),
     title: 'Mouse Letron',
     subtitle: 'Mouse letron',
-    description: '500bpi',
+    description:
+      'O Mouse Letron é um mouse com 500bpi. Controle de 12 botões. Iluminação RGB. Sensor óptico de 16000 DPI. Velocidade de 400 IPS. Ajuste de peso. Suporte para mão esquerda e direita.',
     urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 30,
     discount: Number(Math.floor(Math.random() * 10)),
@@ -237,7 +267,8 @@ export const miceSeed: Prisma.ProductCreateManyInput[] = [
     sku: faker.string.uuid(),
     title: 'Mouse Gamer Letron',
     subtitle: 'Mouse Gamer letron',
-    description: '500bpi',
+    description:
+      'O Mouse Gamer Letron é um mouse com 500bpi. Controle de 12 botões. Iluminação RGB. Sensor óptico de 16000 DPI. Velocidade de 400 IPS. Ajuste de peso. Suporte para mão esquerda e direita.',
     urlBanner: 'https://i.imgur.com/oREVNQt.png',
     price: 100,
     discount: Number(Math.floor(Math.random() * 10)),
