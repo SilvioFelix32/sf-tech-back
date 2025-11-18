@@ -9,6 +9,7 @@ import {
   SwaggerCustomOptions,
 } from '@nestjs/swagger';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
+import { PrismaService } from './domain/services/prisma/prisma.service';
 
 const port = environment.APP_PORT;
 
@@ -51,6 +52,11 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document, customOptions);
 
   app.enableCors();
+  
+  // Configura shutdown hooks para fechar conexões adequadamente
+  const prismaService = app.get(PrismaService);
+  await prismaService.enableShutdownHooks(app);
+  
   await app.listen(port);
   console.info(`Application is running on: http://localhost:${port}`);
   console.info(`Swagger UI is running on: http://localhost:${port}/api`);

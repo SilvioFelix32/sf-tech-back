@@ -1,15 +1,12 @@
 import {
   HttpException,
-  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  forwardRef,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
 import { PrismaService } from '../prisma/prisma.service';
-import { ProductService } from '../products/product.service';
 import { Category } from '../../entities/categories/category.entity';
 import { CreateCategoryDto } from '../../../application/dtos/categories/create-category.dto';
 import { UpdateCategoryDto } from '../../../application/dtos/categories/update-category.dto';
@@ -24,7 +21,6 @@ import { CacheService } from '../cache/cache.service';
 @Injectable()
 export class CategoryService {
   constructor(
-    @Inject(forwardRef(() => ProductService))
     private readonly errorHandler: ErrorHandler,
     private readonly prismaService: PrismaService,
     private readonly cacheService: CacheService,

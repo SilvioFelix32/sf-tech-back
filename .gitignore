@@ -40,3 +40,7 @@ package-lock.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.jsonpostgresql-data/
+
+# Additional lockfiles to ignore
+npm-shrinkwrap.json
+pnpm-lock.yaml

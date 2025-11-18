@@ -9,20 +9,28 @@ import { environment } from '../../../shared/config/env';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
-  private static instance: PrismaService | null = null;
   private readonly maxConnectionAttempts = 3;
   private connectionAttempts = 0;
   constructor() {
+    const databaseUrl = environment.DATABASE_URL;
+    const urlWithConnectionLimit = PrismaService.addConnectionLimitToUrl(databaseUrl);
+    
     super({
       datasources: {
         db: {
-          url: environment.DATABASE_URL,
+          url: urlWithConnectionLimit,
         },
       },
     });
-    if (PrismaService.instance === null) {
-      PrismaService.instance = this;
+  }
+
+  private static addConnectionLimitToUrl(url: string): string {
+    if (url.includes('connection_limit')) {
+      return url;
     }
+    
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}connection_limit=5&pool_timeout=10`;
   }
 
   async onModuleInit() {
@@ -60,6 +68,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
 
   async enableShutdownHooks(app: INestApplication) {
     process.on('beforeExit', async () => {
+      await this.$disconnect();
       await app.close();
     });
   }
