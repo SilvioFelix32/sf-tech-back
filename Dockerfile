@@ -1,5 +1,5 @@
 # Remember to change this if you change the node version in package.json
-FROM node:latest
+FROM node:22
 
 EXPOSE 3003
 

@@ -57,7 +57,7 @@
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.5",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.10.1",
+    "@types/node": "^22.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/passport-local": "^1.0.38",
     "@typescript-eslint/eslint-plugin": "^8.47.0",
@@ -78,7 +78,7 @@
     "typescript-eslint": "^8.47.0"
   },
   "engines": {
-    "node": ">=22.x",
+    "node": "22.x",
     "yarn": ">=1.22.0"
   }
 }
