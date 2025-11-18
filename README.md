@@ -38,6 +38,42 @@ redis-server
 
 yarn dev
 
+## 🐳 Rodando o projeto com Docker:
+
+### 📦 Opção 1: Usando Docker Compose (Recomendado)
+
+O Docker Compose já configura automaticamente o PostgreSQL, Redis e a aplicação:
+
+```bash
+# Construir e iniciar todos os serviços
+docker-compose up -d
+
+# Ver os logs da aplicação
+docker-compose logs -f app
+
+# Parar os serviços
+docker-compose down
+
+# Parar e remover volumes (limpar dados)
+docker-compose down -v
+```
+
+A aplicação estará disponível em `http://localhost:3003`
+
+**Nota:** Certifique-se de ter um arquivo `.env` configurado na raiz do projeto antes de executar.
+
+### 🔨 Opção 2: Build manual da imagem Docker
+
+```bash
+# Construir a imagem
+docker build -t sf-tech-backend .
+
+# Executar o container
+docker run -p 3003:3003 --env-file .env sf-tech-backend
+```
+
+**Importante:** Com esta opção, você precisará ter PostgreSQL e Redis rodando separadamente (localmente ou em outros containers).
+
 ## 📜 Licença
 
 Este projeto está sob a licença MIT.
