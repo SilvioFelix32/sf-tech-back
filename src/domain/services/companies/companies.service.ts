@@ -6,22 +6,22 @@ import {
 import { CreateCompanyDto } from '../../../application/dtos/company/create-company.dto';
 import { UpdateCompanyDto } from '../../../application/dtos/company/update-company.dto';
 import { Company } from '../../entities/company/company.entity';
-import { PrismaService } from '../prisma/prisma.service';
+import { DatabaseService } from '../database/database.service';
 import { ErrorHandler } from 'src/shared/errors/error-handler';
 
 @Injectable()
 export class CompaniesService {
   constructor(
-    private readonly prismaService: PrismaService,
+    private readonly databaseService: DatabaseService,
     private readonly errorHandler: ErrorHandler,
-  ) {}
+  ) { }
 
   async create(data: CreateCompanyDto): Promise<string> {
     const { name, email } = data;
     try {
       await this.companyExists(email, name);
 
-      const result = await this.prismaService.company.create({ data });
+      const result = await this.databaseService.company.create({ data });
       return `Company ${result.company_id} created successfully`;
     } catch (error) {
       throw this.errorHandler.handle(error);
@@ -30,7 +30,7 @@ export class CompaniesService {
 
   async findAll(): Promise<Company[]> {
     try {
-      return (await this.prismaService.company.findMany()) as Company[];
+      return (await this.databaseService.company.findMany()) as Company[];
     } catch (error) {
       throw this.errorHandler.handle(error);
     }
@@ -38,7 +38,7 @@ export class CompaniesService {
 
   async findOne(company_id: string): Promise<Company> {
     try {
-      const company = await this.prismaService.company.findUnique({
+      const company = await this.databaseService.company.findUnique({
         where: { company_id },
       });
 
@@ -59,7 +59,7 @@ export class CompaniesService {
         this.companyExists(String(data.email), String(data.name)),
       ]);
 
-      const result = await this.prismaService.company.update({
+      const result = await this.databaseService.company.update({
         data,
         where: { company_id },
       });
@@ -73,7 +73,7 @@ export class CompaniesService {
   async remove(company_id: string): Promise<string> {
     try {
       await this.companyIdExists(company_id);
-      await this.prismaService.company.delete({ where: { company_id } });
+      await this.databaseService.company.delete({ where: { company_id } });
       return `Company ${company_id} deleted!`;
     } catch (error) {
       throw this.errorHandler.handle(error);
@@ -81,7 +81,7 @@ export class CompaniesService {
   }
 
   private async companyIdExists(company_id: string): Promise<void> {
-    const response = await this.prismaService.company.findFirst({
+    const response = await this.databaseService.company.findFirst({
       where: { company_id },
     });
 
@@ -93,12 +93,12 @@ export class CompaniesService {
 
   private async companyExists(email: string, name: string): Promise<void> {
     const [validateEmail, validateName] = await Promise.all([
-      this.prismaService.company.findUnique({
+      this.databaseService.company.findUnique({
         where: {
           email,
         },
       }),
-      this.prismaService.company.findUnique({
+      this.databaseService.company.findUnique({
         where: {
           name,
         },

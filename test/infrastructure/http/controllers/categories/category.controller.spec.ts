@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoryService } from '../../../../../src/domain/services/categories/category.service';
-import { CategoryController } from '../../../../../src/infrasctructure/http/controllers/categories/category.controller';
+import { CategoryController } from '../../../../../src/infrastructure/http/controllers/categories/category.controller';
 import { BadRequestException } from '@nestjs/common';
-import { IHeaders } from '../../../../../src/infrasctructure/types/IHeaders';
+import { IHeaders } from '../../../../../src/infrastructure/types/IHeaders';
 import { faker } from '@faker-js/faker';
 
 const mockCategoryService = {

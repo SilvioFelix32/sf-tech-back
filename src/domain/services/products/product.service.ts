@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
-import { PrismaService } from '../prisma/prisma.service';
+import { DatabaseService } from '../database/database.service';
 import { Product } from '../../entities/products/product.entity';
 import { CreateProductDto } from '../../../application/dtos/products/create-product.dto';
 import { UpdateProductDto } from '../../../application/dtos/products/update-product.dto';
-import { IProductResponse } from '../../../infrasctructure/types/product-response';
+import { IProductResponse } from '../../../infrastructure/types/product-response';
 import { ErrorHandler } from '../../../shared/errors/error-handler';
 import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 import { CacheService } from '../cache/cache.service';
@@ -18,9 +18,9 @@ import { CacheService } from '../cache/cache.service';
 export class ProductService {
   constructor(
     private readonly errorHandler: ErrorHandler,
-    private readonly prismaService: PrismaService,
+    private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
-  ) {}
+  ) { }
 
   async create(category_id: string, dto: CreateProductDto): Promise<string> {
     try {
@@ -30,7 +30,7 @@ export class ProductService {
         ...dto,
         product_category: { connect: { category_id } },
       };
-      const result = await this.prismaService.product.create({ data });
+      const result = await this.databaseService.product.create({ data });
 
       this.updateCache();
 
@@ -82,7 +82,7 @@ export class ProductService {
 
   async search(query: string): Promise<Product[]> {
     try {
-      return (await this.prismaService.product.findMany({
+      return (await this.databaseService.product.findMany({
         where: {
           title: {
             contains: query,
@@ -107,7 +107,7 @@ export class ProductService {
     await this.validateProduct(product_id);
 
     try {
-      const result = await this.prismaService.product.update({
+      const result = await this.databaseService.product.update({
         data: { ...dto },
         where: { product_id },
       });
@@ -123,7 +123,7 @@ export class ProductService {
     await this.validateProduct(product_id);
 
     try {
-      const result = await this.prismaService.product.delete({
+      const result = await this.databaseService.product.delete({
         where: { product_id },
       });
       this.updateCache();
@@ -135,7 +135,7 @@ export class ProductService {
   }
 
   private async validateProduct(product_id: string): Promise<Product> {
-    const product = await this.prismaService.product.findUnique({
+    const product = await this.databaseService.product.findUnique({
       where: { product_id },
     });
 
@@ -147,7 +147,7 @@ export class ProductService {
   }
 
   private async validateCategory(category_id: string): Promise<void> {
-    const category = await this.prismaService.productCategory.findUnique({
+    const category = await this.databaseService.productCategory.findUnique({
       where: { category_id },
     });
 
@@ -176,7 +176,7 @@ export class ProductService {
     cacheExpiryTime: number,
   ): Promise<PaginatedResult<Product>> {
     try {
-      const products = await this.prismaService.product.findMany();
+      const products = await this.databaseService.product.findMany();
       const paginatedData: PaginatedResult<Product> = this.paginateData(
         products as Product[],
         page,

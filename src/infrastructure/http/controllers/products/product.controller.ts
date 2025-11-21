@@ -10,7 +10,7 @@ import {
   BadRequestException,
   Query,
 } from '@nestjs/common';
-import { IsPublic } from 'src/infrasctructure/security/auth/decorators/is-public.decorator';
+import { IsPublic } from 'src/infrastructure/security/auth/decorators/is-public.decorator';
 import type { IHeaders } from '../../../types/IHeaders';
 import { ProductService } from '../../../../domain/services/products/product.service';
 import { Product } from '../../../../domain/entities/products/product.entity';

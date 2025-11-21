@@ -6,23 +6,23 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
-import { PrismaService } from '../prisma/prisma.service';
 import { Category } from '../../entities/categories/category.entity';
 import { CreateCategoryDto } from '../../../application/dtos/categories/create-category.dto';
 import { UpdateCategoryDto } from '../../../application/dtos/categories/update-category.dto';
 import {
   categoryResponse,
   ICategoryResponse,
-} from '../../../infrasctructure/types/category-response';
+} from '../../../infrastructure/types/category-response';
 import { ErrorHandler } from '../../../shared/errors/error-handler';
 import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 import { CacheService } from '../cache/cache.service';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class CategoryService {
   constructor(
     private readonly errorHandler: ErrorHandler,
-    private readonly prismaService: PrismaService,
+    private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
   ) {}
 
@@ -33,7 +33,7 @@ export class CategoryService {
         company: { connect: { company_id } },
       };
 
-      const result = await this.prismaService.productCategory.create({
+      const result = await this.databaseService.productCategory.create({
         data,
       });
       this.updateCache();
@@ -88,7 +88,7 @@ export class CategoryService {
     try {
       await this.validateCategory(category_id);
 
-      return (await this.prismaService.productCategory.findUnique({
+      return (await this.databaseService.productCategory.findUnique({
         where: {
           category_id,
         },
@@ -102,7 +102,7 @@ export class CategoryService {
   async update(category_id: string, dto: UpdateCategoryDto): Promise<string> {
     try {
       await this.validateCategory(category_id);
-      const response = await this.prismaService.productCategory.update({
+      const response = await this.databaseService.productCategory.update({
         data: {
           ...dto,
         },
@@ -123,7 +123,7 @@ export class CategoryService {
     try {
       await this.validateCategory(category_id);
 
-      const response = await this.prismaService.productCategory.delete({
+      const response = await this.databaseService.productCategory.delete({
         where: {
           category_id,
         },
@@ -137,7 +137,7 @@ export class CategoryService {
   }
 
   private async validateCategory(category_id: string) {
-    const productExists = await this.prismaService.productCategory.findUnique({
+    const productExists = await this.databaseService.productCategory.findUnique({
       where: { category_id },
     });
 
@@ -166,7 +166,7 @@ export class CategoryService {
     cacheExpiryTime: number,
   ): Promise<PaginatedResult<Category>> {
     try {
-      const categories = await this.prismaService.productCategory.findMany({
+      const categories = await this.databaseService.productCategory.findMany({
         select: categoryResponse,
       });
 

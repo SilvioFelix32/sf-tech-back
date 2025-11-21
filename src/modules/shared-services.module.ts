@@ -1,5 +1,5 @@
 import { Global, Module } from '@nestjs/common';
-import { PrismaService } from '../domain/services/prisma/prisma.service';
+import { DatabaseService } from '../domain/services/database/database.service';
 import { RedisService } from '../domain/services/redis/redis.service';
 import { CacheService } from '../domain/services/cache/cache.service';
 import { ErrorHandler } from 'src/shared/errors/error-handler';
@@ -8,18 +8,18 @@ import { JwtService } from '@nestjs/jwt';
 @Global()
 @Module({
   exports: [
-    PrismaService,
+    DatabaseService,
     RedisService,
     CacheService,
     ErrorHandler,
     JwtService,
   ],
   providers: [
-    PrismaService,
+    DatabaseService,
     RedisService,
     CacheService,
     ErrorHandler,
     JwtService,
   ],
 })
-export class SharedServicesModule {}
+export class SharedServicesModule { }

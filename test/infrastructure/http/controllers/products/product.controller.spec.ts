@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductService } from '../../../../../src/domain/services/products/product.service';
-import { ProductController } from '../../../../../src/infrasctructure/http/controllers/products/product.controller';
+import { ProductController } from '../../../../../src/infrastructure/http/controllers/products/product.controller';
 import { faker } from '@faker-js/faker';
-import { IHeaders } from '../../../../../src/infrasctructure/types/IHeaders';
+import { IHeaders } from '../../../../../src/infrastructure/types/IHeaders';
 import { BadRequestException } from '@nestjs/common';
 
 const mockProductService = {

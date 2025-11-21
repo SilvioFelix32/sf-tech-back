@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import { Company } from '@prisma/client';
 import { CompaniesService } from '../../../../src/domain/services/companies/companies.service';
 import { UpdateCompanyDto } from '../../../../src/application/dtos/company/update-company.dto';
-import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
+import { DatabaseService } from '../../../../src/domain/services/database/database.service';
 import {
   ConflictException,
   InternalServerErrorException,
@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 
-const mockPrismaService = {
+const mockDatabaseService = {
   company: {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -28,18 +28,18 @@ const mockErrorHandler = {
 
 describe('CompaniesService', () => {
   let service: CompaniesService;
-  let prismaService: PrismaService;
+  let databaseService: DatabaseService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CompaniesService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: DatabaseService, useValue: mockDatabaseService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
       ],
     }).compile();
 
-    prismaService = module.get<PrismaService>(PrismaService);
+    databaseService = module.get<DatabaseService>(DatabaseService);
     service = module.get<CompaniesService>(CompaniesService);
   });
 
@@ -58,10 +58,10 @@ describe('CompaniesService', () => {
     const result = data as Company;
     it('Should create a company', async () => {
       jest
-        .spyOn(prismaService.company, 'findFirst')
+        .spyOn(databaseService.company, 'findFirst')
         .mockResolvedValue({} as Company);
       jest
-        .spyOn(prismaService.company, 'create')
+        .spyOn(databaseService.company, 'create')
         .mockResolvedValue(result as Company);
 
       expect(await service.create(data)).toEqual(
@@ -71,7 +71,7 @@ describe('CompaniesService', () => {
 
     it('Should throw a ConflictException when email already exists', async () => {
       jest
-        .spyOn(prismaService.company, 'findUnique')
+        .spyOn(databaseService.company, 'findUnique')
         .mockResolvedValueOnce({ email: 'existing@email.com' } as Company)
         .mockResolvedValueOnce(null);
       mockErrorHandler.handle.mockImplementation((error) => {
@@ -85,15 +85,15 @@ describe('CompaniesService', () => {
         }),
       ).rejects.toThrow(ConflictException);
 
-      expect(prismaService.company.findUnique).toHaveBeenCalledTimes(2);
-      expect(prismaService.company.create).toHaveBeenCalledTimes(0);
+      expect(databaseService.company.findUnique).toHaveBeenCalledTimes(2);
+      expect(databaseService.company.create).toHaveBeenCalledTimes(0);
     });
 
     it('Should throw a ConflictException when name already exists', async () => {
       const fakeName = faker.company.name();
 
       jest
-        .spyOn(prismaService.company, 'findUnique')
+        .spyOn(databaseService.company, 'findUnique')
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce({ name: fakeName } as Company);
       mockErrorHandler.handle.mockImplementation((error) => {
@@ -104,20 +104,20 @@ describe('CompaniesService', () => {
         ConflictException,
       );
 
-      expect(prismaService.company.findUnique).toHaveBeenCalledTimes(2);
-      expect(prismaService.company.create).toHaveBeenCalledTimes(0);
+      expect(databaseService.company.findUnique).toHaveBeenCalledTimes(2);
+      expect(databaseService.company.create).toHaveBeenCalledTimes(0);
     });
 
     it('Should throw a InternalServerErrorException', async () => {
       jest
-        .spyOn(prismaService.company, 'findFirst')
+        .spyOn(databaseService.company, 'findFirst')
         .mockResolvedValue({ ...data, name: '', email: '' } as Company);
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue(null);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.company, 'create')
+        .spyOn(databaseService.company, 'create')
         .mockRejectedValue(
           new InternalServerErrorException('Failed to create company'),
         );
@@ -139,7 +139,7 @@ describe('CompaniesService', () => {
     ] as Company[];
 
     it('Should return all companies', async () => {
-      jest.spyOn(prismaService.company, 'findMany').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'findMany').mockResolvedValue(data);
 
       expect(await service.findAll()).toEqual(data);
     });
@@ -149,7 +149,7 @@ describe('CompaniesService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.company, 'findMany')
+        .spyOn(databaseService.company, 'findMany')
         .mockRejectedValue(
           new InternalServerErrorException('Failed to fetch companies'),
         );
@@ -169,13 +169,13 @@ describe('CompaniesService', () => {
     } as Company;
 
     it('Should return a company', async () => {
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue(data);
 
       expect(await service.findOne(data.company_id)).toEqual(data);
     });
 
     it('Should throw NotFoundException when company not found', async () => {
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue(null);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new NotFoundException(error);
       });
@@ -190,7 +190,7 @@ describe('CompaniesService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.company, 'findUnique')
+        .spyOn(databaseService.company, 'findUnique')
         .mockRejectedValue(
           new InternalServerErrorException('Failed to fetch companies'),
         );
@@ -210,9 +210,9 @@ describe('CompaniesService', () => {
     } as Company;
 
     it('Should update a company', async () => {
-      jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(data);
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue(null);
-      jest.spyOn(prismaService.company, 'update').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'findFirst').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(databaseService.company, 'update').mockResolvedValue(data);
 
       expect(
         await service.update(data.company_id, data as UpdateCompanyDto),
@@ -220,15 +220,15 @@ describe('CompaniesService', () => {
     });
 
     it('Shold return ConflictException when data alredy exists', async () => {
-      jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'findFirst').mockResolvedValue(data);
       jest
-        .spyOn(prismaService.company, 'findUnique')
+        .spyOn(databaseService.company, 'findUnique')
         .mockResolvedValue({ ...data, email: 'alredy@email.com' } as Company);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new ConflictException(error);
       });
       jest
-        .spyOn(prismaService.company, 'update')
+        .spyOn(databaseService.company, 'update')
         .mockRejectedValue(new ConflictException('email already exists'));
 
       await expect(
@@ -244,7 +244,7 @@ describe('CompaniesService', () => {
         return new NotFoundException(error);
       });
       jest
-        .spyOn(prismaService.company, 'findFirst')
+        .spyOn(databaseService.company, 'findFirst')
         .mockRejectedValue(new NotFoundException('Company not found'));
 
       await expect(
@@ -262,8 +262,8 @@ describe('CompaniesService', () => {
     } as Company;
 
     it('Should delete a company', async () => {
-      jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(data);
-      jest.spyOn(prismaService.company, 'delete').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'findFirst').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'delete').mockResolvedValue(data);
 
       expect(await service.remove(data.company_id)).toEqual(
         `Company ${data.company_id} deleted!`,
@@ -271,7 +271,7 @@ describe('CompaniesService', () => {
     });
 
     it('Should return NotFoundException when company not found', async () => {
-      jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(null);
+      jest.spyOn(databaseService.company, 'findFirst').mockResolvedValue(null);
 
       mockErrorHandler.handle.mockImplementation((error) => {
         return new NotFoundException(error);
@@ -283,12 +283,12 @@ describe('CompaniesService', () => {
     });
 
     it('Shold return InternalServerErrorException', async () => {
-      jest.spyOn(prismaService.company, 'findFirst').mockResolvedValue(data);
+      jest.spyOn(databaseService.company, 'findFirst').mockResolvedValue(data);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.company, 'delete')
+        .spyOn(databaseService.company, 'delete')
         .mockRejectedValue(
           new InternalServerErrorException('Failed to delete company'),
         );

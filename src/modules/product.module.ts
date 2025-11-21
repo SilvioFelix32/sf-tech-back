@@ -1,5 +1,5 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ProductController } from '../infrasctructure/http/controllers/products/product.controller';
+import { ProductController } from '../infrastructure/http/controllers/products/product.controller';
 import { ProductService } from '../domain/services/products/product.service';
 import { SharedServicesModule } from './shared-services.module';
 import { CategoryModule } from './category.module';

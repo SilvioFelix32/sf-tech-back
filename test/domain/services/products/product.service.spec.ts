@@ -9,12 +9,12 @@ import { faker } from '@faker-js/faker';
 import { CategoryService } from '../../../../src/domain/services/categories/category.service';
 import { CreateProductDto } from '../../../../src/application/dtos/products/create-product.dto';
 import { UpdateProductDto } from '../../../../src/application/dtos/products/update-product.dto';
-import { IProductResponse } from '../../../../src/infrasctructure/types/product-response';
-import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
+import { IProductResponse } from '../../../../src/infrastructure/types/product-response';
+import { DatabaseService } from '../../../../src/domain/services/database/database.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 import { CacheService } from '../../../../src/domain/services/cache/cache.service';
 
-const mockPrismaService = {
+const mockDatabaseService = {
   product: {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -77,14 +77,14 @@ const mockErrorHandler = {
 
 describe('ProductService', () => {
   let service: ProductService;
-  let prismaService: PrismaService;
+  let databaseService: DatabaseService;
   let cacheService: CacheService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: DatabaseService, useValue: mockDatabaseService },
         { provide: CacheService, useValue: mockCacheService },
         { provide: CategoryService, useValue: mockCategoryService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
@@ -92,7 +92,7 @@ describe('ProductService', () => {
     }).compile();
 
     service = module.get<ProductService>(ProductService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
   });
 
@@ -113,11 +113,11 @@ describe('ProductService', () => {
 
     it('Should create a product', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue({
           category_id: createProductDto.category_id,
         } as ProductCategory);
-      jest.spyOn(prismaService.product, 'create').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'create').mockResolvedValue(result);
 
       expect(
         await service.create(
@@ -129,12 +129,12 @@ describe('ProductService', () => {
 
     it('Should throw an error if product creation fails', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue({
           category_id: createProductDto.category_id,
         } as ProductCategory);
       jest
-        .spyOn(prismaService.product, 'create')
+        .spyOn(databaseService.product, 'create')
         .mockRejectedValue(new Error());
 
       await expect(
@@ -147,7 +147,7 @@ describe('ProductService', () => {
 
     it('Should throw an NotFoundException if product there is no category_id', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue(null);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new NotFoundException(error);
@@ -156,7 +156,7 @@ describe('ProductService', () => {
       await expect(
         service.create(createProductDto.category_id, createProductDto),
       ).rejects.toThrow(NotFoundException);
-      expect(prismaService.productCategory.findUnique).toHaveBeenCalledTimes(1);
+      expect(databaseService.productCategory.findUnique).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -166,7 +166,7 @@ describe('ProductService', () => {
         .spyOn(cacheService, 'getCache')
         .mockResolvedValue(cachedDataResponse);
       jest
-        .spyOn(prismaService.product, 'findMany')
+        .spyOn(databaseService.product, 'findMany')
         .mockResolvedValue(dbData.data);
 
       expect(await service.findAll({ page: 1, limit: 10 })).toEqual(
@@ -177,7 +177,7 @@ describe('ProductService', () => {
     it('Should return products from database if cache is not available', async () => {
       jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest
-        .spyOn(prismaService.product, 'findMany')
+        .spyOn(databaseService.product, 'findMany')
         .mockResolvedValue(dbDataResponse.data as Product[]);
       jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
@@ -193,7 +193,7 @@ describe('ProductService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.product, 'findMany')
+        .spyOn(databaseService.product, 'findMany')
         .mockRejectedValue(
           new InternalServerErrorException('Error retrieving products'),
         );
@@ -208,7 +208,7 @@ describe('ProductService', () => {
     it('Should search products by title', async () => {
       const result = [{ product_id: '1', title: 'Test Product' }] as Product[];
 
-      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'findMany').mockResolvedValue(result);
 
       expect(await service.search('Test')).toEqual(result);
     });
@@ -218,7 +218,7 @@ describe('ProductService', () => {
         return new NotFoundException(error);
       });
       jest
-        .spyOn(prismaService.product, 'findMany')
+        .spyOn(databaseService.product, 'findMany')
         .mockRejectedValue(new NotFoundException('No products found'));
 
       await expect(service.search('Test')).rejects.toThrow(NotFoundException);
@@ -229,7 +229,7 @@ describe('ProductService', () => {
     it('Should find a product by id', async () => {
       const result = { product_id: '1', title: 'Test Product' } as Product;
 
-      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
 
       expect(await service.findOne('1')).toEqual(result);
     });
@@ -238,7 +238,7 @@ describe('ProductService', () => {
       mockErrorHandler.handle.mockImplementation((error) => {
         return new NotFoundException(error);
       });
-      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(null);
 
       await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
     });
@@ -248,7 +248,7 @@ describe('ProductService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.product, 'findUnique')
+        .spyOn(databaseService.product, 'findUnique')
         .mockRejectedValue(
           new InternalServerErrorException('Error finding product'),
         );
@@ -264,8 +264,8 @@ describe('ProductService', () => {
       const updateProductDto: UpdateProductDto = { title: 'Updated Product' };
       const result = { product_id: '1', ...updateProductDto } as Product;
 
-      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
-      jest.spyOn(prismaService.product, 'update').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'update').mockResolvedValue(result);
 
       expect(await service.update('1', updateProductDto)).toEqual(
         `Product ${result.product_id} updated successfully`,
@@ -276,8 +276,8 @@ describe('ProductService', () => {
       const updateProductDto: UpdateProductDto = { title: 'Updated Product' };
       const result = { product_id: '1', ...updateProductDto } as Product;
 
-      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
-      jest.spyOn(prismaService.product, 'update').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'update').mockResolvedValue(result);
 
       const fetchAndCacheProductsSpy = jest
         .spyOn(service as any, 'fetchAndCacheProducts')
@@ -303,8 +303,8 @@ describe('ProductService', () => {
       const updateProductDto: UpdateProductDto = { title: 'Updated Product' };
       const result = { product_id: '1', ...updateProductDto } as Product;
 
-      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
-      jest.spyOn(prismaService.product, 'update').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'update').mockResolvedValue(result);
 
       const fetchAndCacheProductsSpy = jest
         .spyOn(service as any, 'fetchAndCacheProducts')
@@ -327,7 +327,7 @@ describe('ProductService', () => {
     });
 
     it('Should handle empty data correctly in fetchAndCacheProducts', async () => {
-      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue([]);
+      jest.spyOn(databaseService.product, 'findMany').mockResolvedValue([]);
 
       const setCacheSpy = jest
         .spyOn(cacheService, 'setCache')
@@ -366,7 +366,7 @@ describe('ProductService', () => {
 
     it('Should handle null data correctly inside fetchAndCacheProducts', async () => {
       jest
-        .spyOn(prismaService.product, 'findMany')
+        .spyOn(databaseService.product, 'findMany')
         .mockResolvedValue(null as any);
 
       const result = await (service as any).fetchAndCacheProducts(
@@ -381,7 +381,7 @@ describe('ProductService', () => {
     });
 
     it('Should use default perPage value if limit is not provided inside paginateData', async () => {
-      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue([]);
+      jest.spyOn(databaseService.product, 'findMany').mockResolvedValue([]);
 
       const result = await (service as any).fetchAndCacheProducts(
         1,
@@ -399,7 +399,7 @@ describe('ProductService', () => {
         title: `Product ${i + 1}`,
       })) as Product[];
 
-      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue(products);
+      jest.spyOn(databaseService.product, 'findMany').mockResolvedValue(products);
 
       const result = await (service as any).fetchAndCacheProducts(
         2,
@@ -417,7 +417,7 @@ describe('ProductService', () => {
         title: `Product ${i + 1}`,
       })) as Product[];
 
-      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue(products);
+      jest.spyOn(databaseService.product, 'findMany').mockResolvedValue(products);
 
       const result = await (service as any).fetchAndCacheProducts(
         1,
@@ -435,7 +435,7 @@ describe('ProductService', () => {
         title: `Product ${i + 1}`,
       })) as Product[];
 
-      jest.spyOn(prismaService.product, 'findMany').mockResolvedValue(products);
+      jest.spyOn(databaseService.product, 'findMany').mockResolvedValue(products);
 
       const result = await (service as any).fetchAndCacheProducts(
         2,
@@ -453,7 +453,7 @@ describe('ProductService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.product, 'update')
+        .spyOn(databaseService.product, 'update')
         .mockRejectedValue(
           new InternalServerErrorException('Error updating product'),
         );
@@ -467,8 +467,8 @@ describe('ProductService', () => {
   describe('remove', () => {
     it('Should delete a product', async () => {
       const result = { product_id: '1', title: 'Test Product' } as Product;
-      jest.spyOn(prismaService.product, 'findUnique').mockResolvedValue(result);
-      jest.spyOn(prismaService.product, 'delete').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
+      jest.spyOn(databaseService.product, 'delete').mockResolvedValue(result);
 
       expect(await service.remove('1')).toEqual(
         `Product ${result.product_id} deleted successfully`,
@@ -480,7 +480,7 @@ describe('ProductService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.product, 'delete')
+        .spyOn(databaseService.product, 'delete')
         .mockRejectedValue(
           new InternalServerErrorException('Error deleting product'),
         );

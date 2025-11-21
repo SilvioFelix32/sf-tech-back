@@ -5,9 +5,9 @@ import { SharedServicesModule } from './modules/shared-services.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { CategoryModule, CompaniesModule, ProductModule } from './modules';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
-import { CognitoAuthGuard } from './infrasctructure/security/auth/guards/cognito-auth.guard';
+import { CognitoAuthGuard } from './infrastructure/security/auth/guards/cognito-auth.guard';
 import { JwtService } from '@nestjs/jwt';
-import { JwtStrategy } from './infrasctructure/security/auth/strategies/jwt.strategy';
+import { JwtStrategy } from './infrastructure/security/auth/strategies/jwt.strategy';
 
 @Module({
   controllers: [],

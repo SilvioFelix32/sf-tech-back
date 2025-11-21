@@ -10,12 +10,12 @@ import { UpdateCategoryDto } from '../../../../src/application/dtos/categories/u
 import { Category } from '../../../../src/domain/entities/categories/category.entity';
 import { CompaniesService } from '../../../../src/domain/services/companies/companies.service';
 import { ProductService } from '../../../../src/domain/services/products/product.service';
-import { ICategoryResponse } from '../../../../src/infrasctructure/types/category-response';
-import { PrismaService } from '../../../../src/domain/services/prisma/prisma.service';
+import { ICategoryResponse } from '../../../../src/infrastructure/types/category-response';
+import { DatabaseService } from '../../../../src/domain/services/database/database.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 import { CacheService } from '../../../../src/domain/services/cache/cache.service';
 
-const mockPrismaService = {
+const mockDatabaseService = {
   productCategory: {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -90,14 +90,14 @@ const cachedDataResponse = {
 
 describe('CategoryService', () => {
   let service: CategoryService;
-  let prismaService: PrismaService;
+  let databaseService: DatabaseService;
   let cacheService: CacheService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CategoryService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: DatabaseService, useValue: mockDatabaseService },
         { provide: CacheService, useValue: mockcacheService },
         { provide: CompaniesService, useValue: mockCompaniesService },
         { provide: ProductService, useValue: mockProductService },
@@ -106,7 +106,7 @@ describe('CategoryService', () => {
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
-    prismaService = module.get<PrismaService>(PrismaService);
+    databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
   });
 
@@ -127,7 +127,7 @@ describe('CategoryService', () => {
 
     it('Should create a category', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'create')
+        .spyOn(databaseService.productCategory, 'create')
         .mockResolvedValue(result as ProductCategory);
 
       expect(
@@ -143,7 +143,7 @@ describe('CategoryService', () => {
         return new Error(error);
       });
       jest
-        .spyOn(prismaService.productCategory, 'create')
+        .spyOn(databaseService.productCategory, 'create')
         .mockRejectedValue(new Error());
 
       await expect(
@@ -159,7 +159,7 @@ describe('CategoryService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.productCategory, 'create')
+        .spyOn(databaseService.productCategory, 'create')
         .mockRejectedValue(
           new InternalServerErrorException('Error creating product'),
         );
@@ -175,7 +175,7 @@ describe('CategoryService', () => {
 
   describe('findAll', () => {
     it('Should return categories from cache if available', async () => {
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue({
+      jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue({
         company_id,
         name: 'Test Company',
       } as Company);
@@ -183,7 +183,7 @@ describe('CategoryService', () => {
         .spyOn(cacheService, 'getCache')
         .mockResolvedValue(cachedDataResponse);
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+        .spyOn(databaseService.productCategory, 'findMany')
         .mockResolvedValue(dbData.data);
 
       expect(
@@ -195,13 +195,13 @@ describe('CategoryService', () => {
     });
 
     it('Should return categories from database if cache is not available', async () => {
-      jest.spyOn(prismaService.company, 'findUnique').mockResolvedValue({
+      jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue({
         company_id,
         name: 'Test Company',
       } as Company);
       jest.spyOn(cacheService, 'getCache').mockResolvedValue(null);
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+          .spyOn(databaseService.productCategory, 'findMany')
         .mockResolvedValue(dbDataResponse.data as ProductCategory[]);
       jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
@@ -220,7 +220,7 @@ describe('CategoryService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+        .spyOn(databaseService.productCategory, 'findMany')
         .mockRejectedValue(
           new InternalServerErrorException('Error retrieving products'),
         );
@@ -236,7 +236,7 @@ describe('CategoryService', () => {
         return new NotFoundException(error);
       });
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+        .spyOn(databaseService.productCategory, 'findMany')
         .mockRejectedValue(new NotFoundException('Error retrieving products'));
 
       await expect(service.findAll({ page: 1, limit: 10 })).rejects.toThrow(
@@ -253,7 +253,7 @@ describe('CategoryService', () => {
       } as ProductCategory;
 
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue(result);
 
       expect(await service.findOne('1')).toEqual(result);
@@ -261,7 +261,7 @@ describe('CategoryService', () => {
 
     it('Should throw a NotFoundException if category is not found', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue(null);
       mockErrorHandler.handle.mockImplementation((error) => {
         return new NotFoundException(error);
@@ -275,7 +275,7 @@ describe('CategoryService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockRejectedValue(
           new InternalServerErrorException('Error finding category'),
         );
@@ -299,10 +299,10 @@ describe('CategoryService', () => {
       } as ProductCategory;
 
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue(result);
       jest
-        .spyOn(prismaService.productCategory, 'update')
+        .spyOn(databaseService.productCategory, 'update')
         .mockResolvedValue(result);
 
       expect(await service.update('1', updateProductDto)).toEqual(
@@ -322,10 +322,10 @@ describe('CategoryService', () => {
       } as ProductCategory;
 
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue(result);
       jest
-        .spyOn(prismaService.productCategory, 'update')
+        .spyOn(databaseService.productCategory, 'update')
         .mockResolvedValue(result);
 
       const fetchAndCacheCategoriesSpy = jest
@@ -355,7 +355,7 @@ describe('CategoryService', () => {
       })) as ProductCategory[];
 
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+        .spyOn(databaseService.productCategory, 'findMany')
         .mockResolvedValue(categories);
 
       const setCacheSpy = jest
@@ -399,7 +399,7 @@ describe('CategoryService', () => {
 
     it('Should handle empty data correctly in fetchAndCacheCategories', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+        .spyOn(databaseService.productCategory, 'findMany')
         .mockResolvedValue([]);
 
       const setCacheSpy = jest
@@ -439,7 +439,7 @@ describe('CategoryService', () => {
 
     it('Should handle null data correctly inside fetchAndCacheCategories', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+        .spyOn(databaseService.productCategory, 'findMany')
         .mockResolvedValue(null as any);
 
       const result = await (service as any).fetchAndCacheCategories(
@@ -455,7 +455,7 @@ describe('CategoryService', () => {
 
     it('Should use default perPage value if limit is not provided inside paginateData', async () => {
       jest
-        .spyOn(prismaService.productCategory, 'findMany')
+        .spyOn(databaseService.productCategory, 'findMany')
         .mockResolvedValue([]);
 
       const result = await (service as any).fetchAndCacheCategories(
@@ -474,7 +474,7 @@ describe('CategoryService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.productCategory, 'update')
+        .spyOn(databaseService.productCategory, 'update')
         .mockRejectedValue(
           new InternalServerErrorException('Error updating category'),
         );
@@ -492,10 +492,10 @@ describe('CategoryService', () => {
         title: 'Test Category',
       } as ProductCategory;
       jest
-        .spyOn(prismaService.productCategory, 'findUnique')
+        .spyOn(databaseService.productCategory, 'findUnique')
         .mockResolvedValue(result);
       jest
-        .spyOn(prismaService.productCategory, 'delete')
+        .spyOn(databaseService.productCategory, 'delete')
         .mockResolvedValue(result);
 
       expect(await service.remove('1')).toEqual(
@@ -508,7 +508,7 @@ describe('CategoryService', () => {
         return new InternalServerErrorException(error);
       });
       jest
-        .spyOn(prismaService.productCategory, 'delete')
+        .spyOn(databaseService.productCategory, 'delete')
         .mockRejectedValue(
           new InternalServerErrorException('Error deleting product'),
         );

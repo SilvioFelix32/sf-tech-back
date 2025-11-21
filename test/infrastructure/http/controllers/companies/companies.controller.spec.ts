@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CompaniesController } from '../../../../../src/infrasctructure/http/controllers/companies/companies.controller';
+import { CompaniesController } from '../../../../../src/infrastructure/http/controllers/companies/companies.controller';
 import { CompaniesService } from '../../../../../src/domain/services/companies/companies.service';
 import { faker } from '@faker-js/faker';
 
