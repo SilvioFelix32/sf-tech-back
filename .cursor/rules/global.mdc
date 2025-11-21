@@ -1,0 +1,44 @@
+---
+description: "Aggregator: centralizes .mdc rules (rules/*.mdc and .cursor/rules/*.mdc)"
+globs: "**/*"
+alwaysApply: true
+---
+
+## Purpose
+This file serves as a **central context source** for AI-assisted development.  
+It helps the AI understand:
+- Project architecture and goals
+- Code style and conventions
+- Functional and technical boundaries
+- Documentation and improvement workflows
+
+Use this file as a **reference anchor** for all `.mdc` rule sets.
+
+## AI Behavior Rules
+- Always reference this file (`global.mdc`) as the **primary context** before generating code, documentation, or analysis.
+- Prioritize **clarity, maintainability, and consistency** with project conventions defined in `/rules/*.mdc`.
+- When unsure about implementation details, **refer to existing project patterns** (e.g., folder structure, naming, DAL conventions).
+- Use **TypeScript** as the default language unless stated otherwise..
+- Prefer concise and professional English when generating documentation or comments.
+
+# Global Rules (global.mdc)
+
+- **Always** - use the MCP context7 - for DOCs consults
+
+Central file that references and aggregates all `.mdc` rules in the project.  
+Keep the original files in `/rules` and `/.cursor/rules`. Use this file as the single source of truth.
+
+## Referenced Files
+- `./rules/rules.mdc` — Details the project structure, App Router, DAL design, and component best practices.
+- `./rules/self-improvement.mdc` — Contains AI self-optimization and evolution rules for improving context understanding and responses.
+- `./.cursor/rules/cursor-rules.mdc` — Explains how to create, edit, and organize `.mdc` rule files for the Cursor environment.
+
+## Quick Links
+[rules.mdc](./rules/rules.mdc)  
+[cursor-rules.mdc](./.cursor/rules/cursor-rules.mdc)
+[self-improvement.mdc](./self-improvement.mdc)
+
+## Operational Notes
+- If Cursor cannot automatically resolve local links, run the aggregation script to generate `./rules/global.mdc` with all referenced content.
+- Avoid including `global.mdc` in the concatenation process to prevent recursive loops.
+- Regularly review `self-improvement.mdc` for AI behavior updates and improvements.

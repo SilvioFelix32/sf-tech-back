@@ -1,0 +1,173 @@
+---
+alwaysApply: true
+---
+# Data Access Layer (DAL) and Services:
+
+Avoid mixing data fetching logic directly in controllers.
+Always create a directory for services and keep business logic in domain services.
+
+# Directory Structure for DAL:
+
+Use a consistent folder structure for data access within each module, following Clean Architecture principles:
+
+- src/
+  - domain/
+    - services/ # Domain services (business logic)
+  - infrastructure/
+    - http/
+      - controllers/ # REST Controllers (HTTP layer only)
+
+# Service and Module Placement Guidelines
+
+## 1. Module-Level
+
+- **Always check** When creating a new project structure or folder, file, service, DTO, etc... always follow the following Example:
+    ```
+src/
+├── main.ts                          # Application entry point
+├── app.module.ts                    # NestJS root module
+│
+├── application/                     # Application Layer
+│   ├── dtos/                        # Data Transfer Objects
+│   │   ├── example/
+│   │   │   └── example-file.dto.ts
+│   └── exceptions/
+│       └── example-filter.ts        # Global exception filter
+│
+├── domain/                          # Domain Layer (business rules)
+│   ├── entities/                    # Domain entities
+│   │   ├── example/
+│   │   │   └── example.entity.ts
+│   └── services/                    # Domain services
+│       ├── cache/
+│       │   └── example.service.ts
+│       ├── categories/
+│       │   └── example.service.ts
+│       ├── example/
+│       │   └── example.service.ts
+│       ├── database/               
+│       │   └── example.service.ts
+│       └── redis/
+│           └── example.service.ts
+│
+├── infrasctructure/                 # Infrastructure Layer
+│   ├── http/                        # HTTP Layer
+│   │   └── controllers/             # REST Controllers
+│   │       ├── categories/
+│   │       │   └── example.controller.ts
+│   ├── security/                    # Security and authentication
+│   │   └── auth/
+│   │       ├── decorators/
+│   │       │   └── example.decorator.ts
+│   │       ├── guards/
+│   │       │   └── example.guard.ts
+│   │       └── strategies/
+│   │           └── example.strategy.ts
+│   └── types/                       # Infrastructure types/interfaces
+│       └── example-type.ts
+│
+├── modules/                         # NestJS Modules
+│   ├── example.module.ts
+│   ├── index.ts                     # Barrel export
+│   └── shared-services.module.ts    # Shared services (Global)
+│
+└── shared/                          # Shared code
+    ├── config/
+    │   └── example.config.ts        # Environment configurations
+    ├── errors/
+    │   └── example-handler.ts       # Error handling
+    └── paginator/
+        └── example-paginate.ts
+    ```
+
+# Reusable and Functions:
+
+Keep services, controllers, and modules small and focused on a single responsibility.
+
+# Clean Code Principles:
+
+Follow SOLID principles where applicable.
+Use meaningful variable names and avoid magic numbers.
+Never write unnecessary comments. Code should be self-explanatory through clear naming and structure.
+
+# Clean Arch Principles:
+Follow Clean Arch principles always.
+
+# Avoid Anti-Patterns:
+
+No large, monolithic functions.
+Performance Optimization
+
+# Testing Strategy:
+
+Use Jest Library for unit and integration tests.
+Aim for high test coverage on critical services, controllers, and domain logic.
+
+# Documentation:
+
+Keep README files updated for each module or library used.
+Security and Best Practices
+
+# Environment Variables:
+
+Use .env files for secrets and configuration.
+Never commit sensitive keys to version control. Use environment variables for all sensitive data.
+
+# Input Validation and Sanitization:
+
+Use schema validation to prevent bad data.
+Sanitize all inputs to prevent XSS and SQL injection.
+
+# Logging and Error Handling:
+
+Always use appropriate log levels for different scenarios:
+- Use `log.info()` or `console.log()` for important informational messages
+- Use `log.error()` or `console.error()` for errors and exceptions
+- Use `log.warn()` or `console.warn()` for warnings
+- Use `log.debug()` or `console.debug()` for debug information
+
+Use tools like Sentry for error tracking and performance monitoring.
+Implement graceful error handling with proper exception filters and error responses.
+
+# Connection Instance Management:
+
+When creating connection files that use instances (e.g., database connections, Redis clients, external service clients):
+- Always implement singleton pattern or instance management to ensure only one instance is created
+- Use static counters and instance tracking to monitor and prevent multiple instances
+- Throw an exception if more than one instance is detected during initialization
+- This is critical for services with connection limits (e.g., free tier databases with limited connections)
+- Log instance creation and connection status appropriately
+
+Example pattern:
+```typescript
+private static instanceCount = 0;
+private static connectedInstanceId: string | null = null;
+
+constructor() {
+  super();
+  DatabaseService.instanceCount++;
+  
+  if (DatabaseService.instanceCount > 1) {
+    throw new InternalServerErrorException(
+      `Multiple instances detected! Only 1 instance is allowed.`
+    );
+  }
+}
+```
+
+# Scaling Strategies:
+
+Plan for horizontal scaling with serverless or containerized deployments.
+Optimize database queries with Prisma or Drizzle for efficient data access.
+Continuous Improvement
+
+# Code Reviews and PR Guidelines:
+
+Set clear code review guidelines to catch issues early.
+Use pull request templates to ensure consistency.
+
+# Performance Audits:
+
+Regularly monitor API response times, database query performance, and memory usage.
+Use performance monitoring tools (e.g., APM tools, New Relic, DataDog) to track improvements.
+Monitor connection pool usage and optimize database queries.
