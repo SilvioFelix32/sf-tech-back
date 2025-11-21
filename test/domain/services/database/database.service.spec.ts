@@ -1,5 +1,4 @@
 import { Test } from '@nestjs/testing';
-import { InternalServerErrorException } from '@nestjs/common';
 import { DatabaseService } from '../../../../src/domain/services/database/database.service';
 
 describe('DatabaseService', () => {
@@ -23,10 +22,22 @@ describe('DatabaseService', () => {
 
   it('Should connect to the database successfully on the first attempt', async () => {
     jest.spyOn(databaseService, '$connect').mockResolvedValueOnce();
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
 
     await databaseService.onModuleInit();
 
     expect(databaseService.$connect).toHaveBeenCalledTimes(1);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[DatabaseService] Connection attempt 1/3 to database...',
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[DatabaseService] ✅ Service connected to database',
+    );
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[DatabaseService] 📊 Active instance: DatabaseService',
+    );
+
+    consoleLogSpy.mockRestore();
   });
 
   it('Should retry connection and succeed on the second attempt', async () => {
@@ -40,64 +51,68 @@ describe('DatabaseService', () => {
     expect(databaseService.$connect).toHaveBeenCalledTimes(2);
   });
 
-  it('Should throw InternalServerErrorException after maximum connection attempts', async () => {
+  it('Should throw Error after maximum connection attempts', async () => {
     jest
-        .spyOn(databaseService, '$connect')
+      .spyOn(databaseService, '$connect')
       .mockRejectedValue(new Error('Connection failed'));
 
     await expect((databaseService as any).connectWithRetry()).rejects.toThrow(
-      InternalServerErrorException,
+      'Maximum connection attempts to connect to the database (3) reached.',
     );
 
     expect(databaseService.$connect).toHaveBeenCalledTimes(3);
   });
 
-  it('Should log error message when connection fails', async () => {
-    const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-    const consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
+  it('Should log connection attempts when retrying', async () => {
+    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
 
     jest
       .spyOn(databaseService, '$connect')
-      .mockRejectedValue(new Error('Connection failed'));
+      .mockRejectedValueOnce(new Error('First attempt failed'))
+      .mockResolvedValueOnce();
 
-    await databaseService.onModuleInit();
+    await databaseService['connectWithRetry']();
 
-    expect(consoleInfoSpy).toHaveBeenCalledWith(
-      'DatabaseService.onModuleInit(): Started creating connection with DB',
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[DatabaseService] Connection attempt 1/3 to database...',
     );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'DatabaseService.connectWithRetry(): attempt 1 to connect failed with the database, Error:',
-      ),
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[DatabaseService] Connection attempt 2/3 to database...',
     );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'DatabaseService.connectWithRetry(): attempt 2 to connect failed with the database, Error:',
-      ),
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[DatabaseService] ✅ Service connected to database',
     );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'DatabaseService.connectWithRetry(): attempt 3 to connect failed with the database, Error:',
-      ),
-    );
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'DatabaseService.onModuleInit(): Failed to connect to database:',
-      ),
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      '[DatabaseService] 📊 Active instance: DatabaseService',
     );
 
-    consoleErrorSpy.mockRestore();
-    consoleInfoSpy.mockRestore();
+    consoleLogSpy.mockRestore();
   });
 
-  it('Should enable shutdown hooks', async () => {
+  it('Should disconnect on module destroy', async () => {
+    jest.spyOn(databaseService, '$disconnect').mockResolvedValueOnce();
+
+    await databaseService.onModuleDestroy();
+
+    expect(databaseService.$disconnect).toHaveBeenCalledTimes(1);
+  });
+
+  it('Should enable shutdown hooks and disconnect on beforeExit', async () => {
     const mockApp: any = {
       close: jest.fn().mockResolvedValue(undefined),
     };
 
-    await databaseService.enableShutdownHooks(mockApp);
-    process.emit('beforeExit', 0);
+    jest.spyOn(databaseService, '$disconnect').mockResolvedValueOnce();
 
+    await databaseService.enableShutdownHooks(mockApp);
+
+    const beforeExitListeners = process.listeners('beforeExit');
+    expect(beforeExitListeners.length).toBeGreaterThan(0);
+
+    process.emit('beforeExit', 0);
+    await new Promise((resolve) => setTimeout(resolve, 10));
+
+    expect(databaseService.$disconnect).toHaveBeenCalled();
     expect(mockApp.close).toHaveBeenCalled();
   });
 });
