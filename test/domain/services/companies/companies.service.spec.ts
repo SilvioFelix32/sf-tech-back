@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { faker } from '@faker-js/faker';
 import { Company } from '@prisma/client';
+import { TestData } from '../../../helpers/test-data';
 import { CompaniesService } from '../../../../src/domain/services/companies/companies.service';
 import { UpdateCompanyDto } from '../../../../src/application/dtos/company/update-company.dto';
 import { DatabaseService } from '../../../../src/domain/services/database/database.service';
@@ -10,6 +10,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
+import { Logger } from '../../../../src/shared/logger/logger.service';
 
 const mockDatabaseService = {
   company: {
@@ -26,6 +27,14 @@ const mockErrorHandler = {
   handle: jest.fn(),
 };
 
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  log: jest.fn(),
+};
+
 describe('CompaniesService', () => {
   let service: CompaniesService;
   let databaseService: DatabaseService;
@@ -36,11 +45,13 @@ describe('CompaniesService', () => {
         CompaniesService,
         { provide: DatabaseService, useValue: mockDatabaseService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
+        { provide: Logger, useValue: mockLogger },
       ],
     }).compile();
 
     databaseService = module.get<DatabaseService>(DatabaseService);
     service = module.get<CompaniesService>(CompaniesService);
+    jest.clearAllMocks();
   });
 
   it('Should be defined', () => {
@@ -49,10 +60,10 @@ describe('CompaniesService', () => {
 
   describe('create', () => {
     const data = {
-      company_id: faker.string.uuid(),
-      name: faker.person.firstName(),
-      fantasyName: faker.person.fullName(),
-      email: faker.internet.email(),
+      company_id: TestData.uuid(),
+      name: TestData.firstName(),
+      fantasyName: TestData.fullName(),
+      email: TestData.email(),
     };
 
     const result = data as Company;
@@ -90,7 +101,7 @@ describe('CompaniesService', () => {
     });
 
     it('Should throw a ConflictException when name already exists', async () => {
-      const fakeName = faker.company.name();
+      const fakeName = TestData.companyName();
 
       jest
         .spyOn(databaseService.company, 'findUnique')
@@ -131,10 +142,10 @@ describe('CompaniesService', () => {
   describe('findAll', () => {
     const data = [
       {
-        company_id: faker.string.uuid(),
-        name: faker.person.firstName(),
-        fantasyName: faker.person.fullName(),
-        email: faker.internet.email(),
+        company_id: TestData.uuid(),
+        name: TestData.firstName(),
+        fantasyName: TestData.fullName(),
+        email: TestData.email(),
       },
     ] as Company[];
 
@@ -162,10 +173,10 @@ describe('CompaniesService', () => {
 
   describe('findOne', () => {
     const data = {
-      company_id: faker.string.uuid(),
-      name: faker.person.firstName(),
-      fantasyName: faker.person.fullName(),
-      email: faker.internet.email(),
+      company_id: TestData.uuid(),
+      name: TestData.firstName(),
+      fantasyName: TestData.fullName(),
+      email: TestData.email(),
     } as Company;
 
     it('Should return a company', async () => {
@@ -203,10 +214,10 @@ describe('CompaniesService', () => {
 
   describe('update', () => {
     const data = {
-      company_id: faker.string.uuid(),
-      name: faker.person.firstName(),
-      fantasyName: faker.person.fullName(),
-      email: faker.internet.email(),
+      company_id: TestData.uuid(),
+      name: TestData.firstName(),
+      fantasyName: TestData.fullName(),
+      email: TestData.email(),
     } as Company;
 
     it('Should update a company', async () => {
@@ -255,10 +266,10 @@ describe('CompaniesService', () => {
 
   describe('delete', () => {
     const data = {
-      company_id: faker.string.uuid(),
-      name: faker.person.firstName(),
-      fantasyName: faker.person.fullName(),
-      email: faker.internet.email(),
+      company_id: TestData.uuid(),
+      name: TestData.firstName(),
+      fantasyName: TestData.fullName(),
+      email: TestData.email(),
     } as Company;
 
     it('Should delete a company', async () => {

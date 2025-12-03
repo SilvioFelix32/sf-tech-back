@@ -3,7 +3,7 @@ import { CategoryService } from '../../../../../src/domain/services/categories/c
 import { CategoryController } from '../../../../../src/infrastructure/http/controllers/categories/category.controller';
 import { BadRequestException } from '@nestjs/common';
 import { IHeaders } from '../../../../../src/infrastructure/types/IHeaders';
-import { faker } from '@faker-js/faker';
+import { TestData } from '../../../../helpers/test-data';
 
 const mockCategoryService = {
   create: jest.fn(),
@@ -14,8 +14,8 @@ const mockCategoryService = {
 };
 
 const dto = {
-  category_id: faker.string.uuid(),
-  company_id: faker.string.uuid(),
+  category_id: TestData.uuid(),
+  company_id: TestData.uuid(),
   title: 'Test Category',
   description: 'Test Description',
   products: [],

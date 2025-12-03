@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductService } from '../../../../../src/domain/services/products/product.service';
 import { ProductController } from '../../../../../src/infrastructure/http/controllers/products/product.controller';
-import { faker } from '@faker-js/faker';
+import { TestData } from '../../../../helpers/test-data';
 import { IHeaders } from '../../../../../src/infrastructure/types/IHeaders';
 import { BadRequestException } from '@nestjs/common';
 
@@ -15,17 +15,17 @@ const mockProductService = {
 };
 
 const dto = {
-  company_id: faker.string.uuid(),
-  category_id: faker.string.uuid(),
-  sku: faker.string.uuid(),
-  title: faker.commerce.productName(),
-  subtitle: faker.commerce.productDescription(),
-  description: faker.commerce.productDescription(),
-  urlBanner: faker.internet.url(),
-  price: faker.number.int(),
-  discount: faker.number.int(),
-  highlighted: faker.datatype.boolean(),
-  active: faker.datatype.boolean(),
+  company_id: TestData.uuid(),
+  category_id: TestData.uuid(),
+  sku: TestData.uuid(),
+  title: TestData.word(),
+  subtitle: TestData.sentence(),
+  description: TestData.sentence(),
+  urlBanner: TestData.url(),
+  price: TestData.number(1, 1000),
+  discount: TestData.number(0, 100),
+  highlighted: TestData.boolean(),
+  active: TestData.boolean(),
 };
 
 const headers = {

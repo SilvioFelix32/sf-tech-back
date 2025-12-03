@@ -1,15 +1,30 @@
 import { Test } from '@nestjs/testing';
 import { DatabaseService } from '../../../../src/domain/services/database/database.service';
+import { Logger } from '../../../../src/shared/logger/logger.service';
+
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  log: jest.fn(),
+};
 
 describe('DatabaseService', () => {
   let databaseService: DatabaseService;
+  let logger: Logger;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [DatabaseService],
+      providers: [
+        DatabaseService,
+        { provide: Logger, useValue: mockLogger },
+      ],
     }).compile();
 
     databaseService = moduleRef.get<DatabaseService>(DatabaseService);
+    logger = moduleRef.get<Logger>(Logger);
+    jest.clearAllMocks();
   });
 
   afterEach(async () => {
@@ -22,22 +37,17 @@ describe('DatabaseService', () => {
 
   it('Should connect to the database successfully on the first attempt', async () => {
     jest.spyOn(databaseService, '$connect').mockResolvedValueOnce();
-    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
 
     await databaseService.onModuleInit();
 
     expect(databaseService.$connect).toHaveBeenCalledTimes(1);
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[DatabaseService] Connection attempt 1/3 to database...',
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'DatabaseService.connectWithRetry() - Connection attempt 1/3 to database',
+      { metadata: { attempt: 1, maxAttempts: 3 } },
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[DatabaseService] ✅ Service connected to database',
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'DatabaseService.connectWithRetry() - Service connected to database successfully',
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[DatabaseService] 📊 Active instance: DatabaseService',
-    );
-
-    consoleLogSpy.mockRestore();
   });
 
   it('Should retry connection and succeed on the second attempt', async () => {
@@ -61,11 +71,16 @@ describe('DatabaseService', () => {
     );
 
     expect(databaseService.$connect).toHaveBeenCalledTimes(3);
+    expect(mockLogger.error).toHaveBeenCalledWith(
+      'DatabaseService.connectWithRetry() - Maximum connection attempts reached',
+      expect.objectContaining({
+        error: expect.any(Error),
+        metadata: { attempts: 3, maxAttempts: 3 },
+      }),
+    );
   });
 
   it('Should log connection attempts when retrying', async () => {
-    const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-
     jest
       .spyOn(databaseService, '$connect')
       .mockRejectedValueOnce(new Error('First attempt failed'))
@@ -73,20 +88,21 @@ describe('DatabaseService', () => {
 
     await databaseService['connectWithRetry']();
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[DatabaseService] Connection attempt 1/3 to database...',
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'DatabaseService.connectWithRetry() - Connection attempt 1/3 to database',
+      { metadata: { attempt: 1, maxAttempts: 3 } },
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[DatabaseService] Connection attempt 2/3 to database...',
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'DatabaseService.connectWithRetry() - Retrying connection in 1 second',
+      { metadata: { attempt: 1, maxAttempts: 3 } },
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[DatabaseService] ✅ Service connected to database',
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'DatabaseService.connectWithRetry() - Connection attempt 2/3 to database',
+      { metadata: { attempt: 2, maxAttempts: 3 } },
     );
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[DatabaseService] 📊 Active instance: DatabaseService',
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'DatabaseService.connectWithRetry() - Service connected to database successfully',
     );
-
-    consoleLogSpy.mockRestore();
   });
 
   it('Should disconnect on module destroy', async () => {

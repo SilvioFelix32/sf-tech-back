@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CompaniesController } from '../../../../../src/infrastructure/http/controllers/companies/companies.controller';
 import { CompaniesService } from '../../../../../src/domain/services/companies/companies.service';
-import { faker } from '@faker-js/faker';
+import { TestData } from '../../../../helpers/test-data';
 
 const mockCompaniesService = {
   create: jest.fn(),
@@ -12,11 +12,11 @@ const mockCompaniesService = {
 };
 
 const dto = {
-  company_id: faker.string.uuid(),
-  name: faker.company.name(),
-  fantasyName: faker.company.name(),
-  email: faker.internet.email(),
-  urlBanner: faker.internet.url(),
+  company_id: TestData.uuid(),
+  name: TestData.companyName(),
+  fantasyName: TestData.companyName(),
+  email: TestData.email(),
+  urlBanner: TestData.url(),
 };
 
 describe('CompaniesController', () => {

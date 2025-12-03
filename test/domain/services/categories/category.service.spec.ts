@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Company, ProductCategory } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+import { TestData } from '../../../helpers/test-data';
 import { CategoryService } from '../../../../src/domain/services/categories/category.service';
 import { UpdateCategoryDto } from '../../../../src/application/dtos/categories/update-category.dto';
 import { Category } from '../../../../src/domain/entities/categories/category.entity';
@@ -14,6 +14,7 @@ import { ICategoryResponse } from '../../../../src/infrastructure/types/category
 import { DatabaseService } from '../../../../src/domain/services/database/database.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 import { CacheService } from '../../../../src/domain/services/cache/cache.service';
+import { Logger } from '../../../../src/shared/logger/logger.service';
 
 const mockDatabaseService = {
   productCategory: {
@@ -49,14 +50,22 @@ const mockErrorHandler = {
   handle: jest.fn(),
 };
 
-const company_id = faker.string.uuid();
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  log: jest.fn(),
+};
+
+const company_id = TestData.uuid();
 const dbData = {
   data: [
     {
       company_id,
-      category_id: faker.string.uuid(),
-      title: faker.lorem.word(),
-      description: faker.lorem.word(),
+      category_id: TestData.uuid(),
+      title: TestData.word(),
+      description: TestData.sentence(),
       products: [],
     },
   ] as unknown as ProductCategory[],
@@ -66,9 +75,9 @@ const dbDataResponse = {
   data: [
     {
       company_id,
-      category_id: faker.string.uuid(),
-      title: faker.lorem.word(),
-      description: faker.lorem.word(),
+      category_id: TestData.uuid(),
+      title: TestData.word(),
+      description: TestData.sentence(),
       products: [],
     },
   ],
@@ -102,12 +111,14 @@ describe('CategoryService', () => {
         { provide: CompaniesService, useValue: mockCompaniesService },
         { provide: ProductService, useValue: mockProductService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
+        { provide: Logger, useValue: mockLogger },
       ],
     }).compile();
 
     service = module.get<CategoryService>(CategoryService);
     databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
+    jest.clearAllMocks();
   });
 
   it('Should be defined', () => {
@@ -116,8 +127,8 @@ describe('CategoryService', () => {
 
   describe('create', () => {
     const createCategoryDto = {
-      category_id: faker.string.uuid(),
-      company_id: faker.string.uuid(),
+      category_id: TestData.uuid(),
+      company_id: TestData.uuid(),
       title: 'Test Category',
       description: 'Test Description',
       products: [],

@@ -5,7 +5,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Product, ProductCategory } from '@prisma/client';
-import { faker } from '@faker-js/faker';
+import { TestData } from '../../../helpers/test-data';
 import { CategoryService } from '../../../../src/domain/services/categories/category.service';
 import { CreateProductDto } from '../../../../src/application/dtos/products/create-product.dto';
 import { UpdateProductDto } from '../../../../src/application/dtos/products/update-product.dto';
@@ -13,6 +13,7 @@ import { IProductResponse } from '../../../../src/infrastructure/types/product-r
 import { DatabaseService } from '../../../../src/domain/services/database/database.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 import { CacheService } from '../../../../src/domain/services/cache/cache.service';
+import { Logger } from '../../../../src/shared/logger/logger.service';
 
 const mockDatabaseService = {
   product: {
@@ -40,8 +41,8 @@ const mockCategoryService = {
 const dbData = {
   data: [
     {
-      category_id: faker.string.uuid(),
-      product_id: faker.string.uuid(),
+      category_id: TestData.uuid(),
+      product_id: TestData.uuid(),
       title: 'Test Product',
     },
   ] as unknown as Product[],
@@ -50,8 +51,8 @@ const dbData = {
 const dbDataResponse = {
   data: [
     {
-      category_id: faker.string.uuid(),
-      product_id: faker.string.uuid(),
+      category_id: TestData.uuid(),
+      product_id: TestData.uuid(),
       title: 'Test Product',
     },
   ],
@@ -75,6 +76,14 @@ const mockErrorHandler = {
   handle: jest.fn(),
 };
 
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  log: jest.fn(),
+};
+
 describe('ProductService', () => {
   let service: ProductService;
   let databaseService: DatabaseService;
@@ -88,12 +97,14 @@ describe('ProductService', () => {
         { provide: CacheService, useValue: mockCacheService },
         { provide: CategoryService, useValue: mockCategoryService },
         { provide: ErrorHandler, useValue: mockErrorHandler },
+        { provide: Logger, useValue: mockLogger },
       ],
     }).compile();
 
     service = module.get<ProductService>(ProductService);
     databaseService = module.get<DatabaseService>(DatabaseService);
     cacheService = module.get<CacheService>(CacheService);
+    jest.clearAllMocks();
   });
 
   it('Should be defined', () => {
@@ -102,12 +113,12 @@ describe('ProductService', () => {
 
   describe('create', () => {
     const createProductDto = {
-      category_id: faker.string.uuid(),
+      category_id: TestData.uuid(),
       title: 'Test Product',
     } as CreateProductDto;
 
     const result = {
-      product_id: faker.string.uuid(),
+      product_id: TestData.uuid(),
       ...createProductDto,
     } as Product;
 
@@ -136,6 +147,10 @@ describe('ProductService', () => {
       jest
         .spyOn(databaseService.product, 'create')
         .mockRejectedValue(new Error());
+
+      mockErrorHandler.handle.mockImplementation((error) => {
+        return error instanceof Error ? error : new Error(String(error));
+      });
 
       await expect(
         service.create(

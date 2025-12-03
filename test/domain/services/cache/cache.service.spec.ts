@@ -2,6 +2,15 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from '../../../../src/domain/services/cache/cache.service';
 import { RedisService } from '../../../../src/domain/services/redis/redis.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
+import { Logger } from '../../../../src/shared/logger/logger.service';
+
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn(),
+  log: jest.fn(),
+};
 
 describe('CacheService', () => {
   let service: CacheService;
@@ -26,11 +35,13 @@ describe('CacheService', () => {
             handleError: jest.fn(),
           },
         },
+        { provide: Logger, useValue: mockLogger },
       ],
     }).compile();
 
     service = module.get<CacheService>(CacheService);
     redisService = module.get<RedisService>(RedisService);
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
