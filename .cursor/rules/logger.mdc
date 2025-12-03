@@ -1,0 +1,142 @@
+---
+description: Padrão de logging usando a classe Logger em todos os serviços
+globs: "**/*.service.ts"
+alwaysApply: true
+---
+
+# Logger Service - Padrão de Logging
+
+## Regras Gerais
+
+- **Sempre** use a classe `Logger` importada de `src/shared/logger/logger.service`
+- **Nunca** use `console.log()`, `console.error()`, `console.info()`, etc. diretamente
+- **Sempre** injete o `Logger` via construtor em todos os serviços
+- **Foque** apenas em `Logger.info()` e `Logger.error()` para logs principais
+
+## Padrão de Mensagens
+
+Todas as mensagens de log devem seguir o padrão:
+
+```
+Logger.info('Classe.método() - mensagem descritiva', contextoOpcional)
+Logger.error('Classe.método() - mensagem descritiva', contextoOpcional)
+```
+
+### Exemplos Corretos
+
+```typescript
+// ✅ Log de sucesso com metadata
+this.logger.info(
+  `CompaniesService.create() - Company ${result.company_id} created successfully`,
+  { metadata: { company_id: result.company_id } },
+);
+
+// ✅ Log de erro com error e metadata
+this.logger.error(
+  `CompaniesService.create() - Error creating company`,
+  {
+    error: error instanceof Error ? error : new Error(String(error)),
+    metadata: { company_id },
+  },
+);
+
+// ✅ Log simples sem contexto
+this.logger.info(
+  `CategoryService.findAll() - Categories retrieved from cache`,
+);
+
+// ✅ Log com metadata útil
+this.logger.info(
+  `ProductService.findAll() - Products retrieved from database`,
+  { metadata: { page, limit, total: dbData.meta.total } },
+);
+```
+
+### Exemplos Incorretos
+
+```typescript
+// ❌ Não use console.log diretamente
+console.log('Company created');
+
+// ❌ Não use padrão diferente
+this.logger.info('Creating company...');
+
+// ❌ Não exponha dados sensíveis
+this.logger.info(
+  `UserService.login() - User logged in`,
+  { metadata: { password: user.password, token: jwtToken } }, // ❌ NUNCA faça isso
+);
+
+// ❌ Não use mensagens genéricas
+this.logger.error('Error occurred');
+```
+
+## Estrutura do Contexto
+
+O contexto opcional (`LoggerContext`) aceita:
+
+```typescript
+interface LoggerContext {
+  error?: Error;                    // Para erros com stack trace
+  metadata?: Record<string, unknown>; // Dados adicionais relevantes
+}
+```
+
+### Quando Usar Metadata
+
+- IDs de entidades (company_id, product_id, category_id, etc.)
+- Parâmetros de paginação (page, limit, total)
+- Contadores e estatísticas
+- Chaves de cache
+- Tentativas de conexão
+- **NUNCA** inclua:
+  - Senhas
+  - Tokens JWT
+  - Dados pessoais sensíveis
+  - Credenciais de API
+  - Informações de pagamento
+
+### Quando Usar Error
+
+- Sempre em blocos `catch`
+- Quando capturar exceções
+- Para erros de conexão
+- Para erros de validação
+
+## Onde Adicionar Logs
+
+### Logs de Info
+
+- Após operações bem-sucedidas (create, update, delete)
+- Ao recuperar dados (findOne, findAll)
+- Ao conectar serviços externos
+- Ao atualizar cache
+- Operações importantes do sistema
+
+### Logs de Error
+
+- Em todos os blocos `catch`
+- Antes de lançar exceções
+- Em retry de conexões
+- Em validações que falham
+
+## Injeção de Dependência
+
+```typescript
+@Injectable()
+export class MyService {
+  constructor(
+    private readonly databaseService: DatabaseService,
+    private readonly logger: Logger, // ✅ Sempre injete o Logger
+  ) {}
+}
+```
+
+## Integração com SharedServicesModule
+
+O `Logger` já está registrado no `SharedServicesModule` como serviço global, então pode ser injetado em qualquer serviço sem necessidade de importar módulos adicionais.
+
+## Referências
+
+- Classe Logger: `src/shared/logger/logger.service.ts`
+- Módulo compartilhado: `src/modules/shared-services.module.ts`

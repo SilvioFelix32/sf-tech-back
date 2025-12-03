@@ -1,0 +1,394 @@
+---
+alwaysApply: true
+---
+
+# Technology Stack - SF Tech Backend
+
+## Core Framework
+- **NestJS**: 11.1.9 (Modular Architecture, Dependency Injection)
+- **Node.js**: 22.x (Runtime Environment)
+- **TypeScript**: 5.9.3 (Type Safety, Strict Mode)
+- **Express**: ^11.1.9 (via @nestjs/platform-express) (HTTP Server)
+
+## Database & ORM
+- **Prisma**: 6.19.0 (ORM, Type-Safe Database Client)
+- **@prisma/client**: 6.19.0 (Prisma Client)
+- **@prisma/adapter-pg**: 6.19.0 (PostgreSQL Adapter)
+- **prisma-pagination**: 0.2.3 (Pagination Utilities)
+
+## Caching & Performance
+- **ioredis**: 5.8.2 (Redis Client)
+- **@nestjs/cache-manager**: 3.0.1 (Cache Management)
+
+## Authentication & Security
+- **@nestjs/jwt**: 11.0.1 (JWT Token Management)
+- **@nestjs/passport**: 11.0.5 (Authentication Strategy)
+- **passport**: 0.7.0 (Authentication Middleware)
+- **passport-jwt**: 4.0.1 (JWT Strategy)
+- **passport-local**: 1.0.0 (Local Strategy)
+- **jose**: 6.1.2 (JWT/JWE/JWS/JWK)
+- **bcrypt**: 6.0.0 (Password Hashing)
+
+## Validation & Transformation
+- **class-validator**: 0.14.2 (DTO Validation)
+- **class-transformer**: 0.5.1 (Object Transformation)
+- **@nestjs/mapped-types**: * (DTO Mapping Utilities)
+
+## HTTP & API
+- **@nestjs/axios**: 4.0.1 (HTTP Client Module)
+- **axios**: 1.13.2 (HTTP Client)
+- **@nestjs/swagger**: 11.2.3 (API Documentation)
+
+## Configuration & Environment
+- **@nestjs/config**: 4.0.2 (Configuration Management)
+- **dotenv**: 17.2.3 (Environment Variables)
+
+## Testing
+- **jest**: 30.2.0 (Testing Framework)
+- **@nestjs/testing**: 11.1.9 (NestJS Testing Utilities)
+- **ts-jest**: 29.4.5 (TypeScript Jest Transformer)
+- **@faker-js/faker**: 10.1.0 (Test Data Generation)
+- **jest-silent-reporter**: 0.6.0 (Silent Test Reporter)
+
+## Code Quality & Linting
+- **eslint**: 9.39.1 (Linter)
+- **@typescript-eslint/eslint-plugin**: 8.47.0 (TypeScript ESLint Rules)
+- **@typescript-eslint/parser**: 8.47.0 (TypeScript ESLint Parser)
+- **eslint-config-prettier**: 10.1.8 (Prettier Integration)
+- **eslint-plugin-prettier**: 5.5.4 (Prettier as ESLint Rule)
+- **eslint-plugin-import**: 2.32.0 (Import/Export Linting)
+- **eslint-plugin-unused-imports**: 4.3.0 (Unused Imports Detection)
+- **prettier**: 3.6.2 (Code Formatter)
+
+## Development Tools
+- **@nestjs/cli**: 11.0.11 (NestJS CLI)
+- **@nestjs/schematics**: 11.0.9 (Code Generators)
+- **ts-node**: 10.9.2 (TypeScript Execution)
+- **ts-loader**: 9.5.4 (TypeScript Webpack Loader)
+- **tsconfig-paths**: 4.2.0 (Path Mapping)
+
+## Type Definitions
+- **@types/bcrypt**: 6.0.0
+- **@types/express**: 5.0.5
+- **@types/jest**: 30.0.0
+- **@types/node**: 22.0.0
+- **@types/passport-jwt**: 4.0.1
+- **@types/passport-local**: 1.0.38
+
+## Core Dependencies
+- **reflect-metadata**: 0.2.2 (Metadata Reflection API)
+
+## Best Practices by Version
+
+### NestJS 11.1.9 or --latest
+- ✅ Use Dependency Injection for all services
+- ✅ Implement Guards for authentication/authorization
+- ✅ Use Interceptors for cross-cutting concerns
+- ✅ Leverage Pipes for validation and transformation
+- ✅ Implement Exception Filters for error handling
+- ⚠️ Avoid mixing business logic in controllers
+- ⚠️ Keep modules focused and cohesive
+
+### TypeScript 5.9.3 or --latest
+- ✅ Enable strict mode in tsconfig.json
+- ✅ Use `satisfies` operator for type inference
+- ✅ Implement branded types for IDs
+- ✅ Use utility types (Partial, Pick, Omit)
+- ⚠️ Avoid `any`, use `unknown` when necessary
+- ⚠️ Prefer interfaces for object shapes, types for unions/intersections
+
+### Prisma 6.19.0 or --latest
+- ✅ Use Prisma Client for type-safe queries
+- ✅ Implement connection pooling
+- ✅ Use transactions for multi-step operations
+- ✅ Leverage Prisma migrations for schema changes
+- ✅ Use `select` to fetch only needed fields
+- ⚠️ Avoid N+1 queries (use `include` or `select` wisely)
+- ⚠️ Implement singleton pattern for PrismaClient instance
+
+### Jest 30.2.0 or --latest
+- ✅ Write unit tests for services
+- ✅ Write integration tests for controllers
+- ✅ Use test coverage reports
+- ✅ Mock external dependencies
+- ✅ Use `describe` and `it` for test organization
+- ⚠️ Keep tests isolated and independent
+- ⚠️ Avoid testing implementation details
+
+### Redis (ioredis) 5.8.2 or --latest
+- ✅ Use connection pooling
+- ✅ Implement cache invalidation strategies
+- ✅ Set appropriate TTL for cached data
+- ✅ Handle connection errors gracefully
+- ⚠️ Monitor memory usage
+- ⚠️ Implement singleton pattern for Redis client
+
+### Passport 0.7.0 or --latest
+- ✅ Use JWT strategy for stateless authentication
+- ✅ Implement refresh token mechanism
+- ✅ Validate tokens on every request
+- ✅ Use Guards to protect routes
+- ⚠️ Never expose secrets in code
+- ⚠️ Implement proper token expiration
+
+## Code Patterns
+
+### Service Structure (Clean Architecture)
+```typescript
+// ✅ Good example - Domain Service
+@Injectable()
+export class ProductService {
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly cacheService: CacheService,
+  ) {}
+
+  async findById(id: string): Promise<Product> {
+    const cacheKey = `product:${id}`;
+    const cached = await this.cacheService.get(cacheKey);
+    
+    if (cached) return cached;
+    
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
+    
+    await this.cacheService.set(cacheKey, product, 3600);
+    return product;
+  }
+}
+```
+
+### Controller Structure
+```typescript
+// ✅ Good example - HTTP Controller
+@Controller('products')
+export class ProductController {
+  constructor(private readonly productService: ProductService) {}
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findOne(@Param('id') id: string): Promise<ProductResponse> {
+    return this.productService.findById(id);
+  }
+}
+```
+
+### DTO Validation
+```typescript
+// ✅ Good example - DTO with validation
+export class CreateProductDto {
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
+  name: string;
+
+  @IsNumber()
+  @IsPositive()
+  price: number;
+
+  @IsUUID()
+  categoryId: string;
+}
+```
+
+### Error Handling
+```typescript
+// ✅ Good example
+try {
+  const result = await this.service.method();
+  return result;
+} catch (error) {
+  console.error('ProductService Error:', error);
+  throw new InternalServerErrorException(
+    `ProductService Error: ${error.message}`
+  );
+}
+```
+
+### Module Structure
+```typescript
+// ✅ Good example - Feature Module
+@Module({
+  imports: [SharedServicesModule],
+  controllers: [ProductController],
+  providers: [ProductService],
+  exports: [ProductService],
+})
+export class ProductModule {}
+```
+
+## Important Configurations
+
+### NestJS Configuration
+- Use `ConfigModule.forRoot({ isGlobal: true })` for environment variables
+- Configure CORS properly in `main.ts`
+- Enable API versioning with `VersioningType.URI`
+- Set up global validation pipes with `whitelist: true`
+
+### TypeScript Config
+- Enable strict mode in `tsconfig.json`
+- Configure path mapping for absolute imports
+- Use `baseUrl` for cleaner imports
+- Set appropriate `target` and `module` options
+
+### Prisma Configuration
+- Configure connection pooling in `schema.prisma`
+- Use environment variables for database URLs
+- Implement singleton pattern for PrismaClient
+- Set up proper migration strategy
+
+### ESLint Config
+- Use `@typescript-eslint/recommended` rules
+- Configure import ordering
+- Enable unused imports detection
+- Integrate with Prettier
+
+### Jest Configuration
+- Configure test environment
+- Set up path mapping for tests
+- Configure coverage thresholds
+- Use `ts-jest` for TypeScript support
+
+## Performance
+
+### Database Optimization
+- Use Prisma `select` to fetch only needed fields
+- Implement database indexes for frequently queried fields
+- Use connection pooling
+- Avoid N+1 queries with proper `include`/`select`
+
+### Caching Strategy
+- Cache frequently accessed data (products, categories)
+- Implement cache invalidation on updates
+- Set appropriate TTL values
+- Use Redis for distributed caching
+
+### API Performance
+- Implement pagination for list endpoints
+- Use compression middleware
+- Optimize response payloads
+- Monitor API response times
+
+### Memory Management
+- Implement singleton pattern for database/Redis connections
+- Monitor connection pool usage
+- Clean up resources in `OnModuleDestroy` hooks
+- Use proper shutdown hooks
+
+## Security
+
+### Authentication & Authorization
+- Use JWT tokens with proper expiration
+- Implement refresh token mechanism
+- Validate all inputs with DTOs
+- Use Guards to protect routes
+- Never expose secrets in code
+
+### Data Validation
+- Use `class-validator` for all DTOs
+- Sanitize user inputs
+- Validate UUIDs and IDs
+- Implement rate limiting
+
+### Environment Variables
+- Never commit `.env` files
+- Use `@nestjs/config` for configuration
+- Validate environment variables on startup
+- Use different configs for dev/staging/prod
+
+### Database Security
+- Use parameterized queries (Prisma handles this)
+- Implement proper access controls
+- Use connection strings from environment variables
+- Monitor database access logs
+
+## Testing Strategy
+
+### Unit Tests
+- Test services in isolation
+- Mock external dependencies
+- Test business logic thoroughly
+- Aim for high coverage on domain services
+
+### Integration Tests
+- Test controller endpoints
+- Test database interactions
+- Test authentication flows
+- Use test database for integration tests
+
+### Test Coverage
+- Maintain 100% coverage on critical services
+- Use `jest --coverage` to track coverage
+- Focus on domain logic coverage
+- Don't test implementation details
+
+## Logging & Monitoring
+
+### Logging
+- Use appropriate log levels (info, error, warn, debug)
+- Log errors with context
+- Implement structured logging
+- Use console methods appropriately
+
+### Error Tracking
+- Implement global exception filters
+- Log errors with stack traces
+- Return appropriate HTTP status codes
+- Don't expose internal errors to clients
+
+### Monitoring
+- Monitor API response times
+- Track database query performance
+- Monitor Redis cache hit rates
+- Set up alerts for critical errors
+
+## Architecture Patterns
+
+### Clean Architecture
+- **Domain Layer**: Entities and domain services (business logic)
+- **Application Layer**: DTOs and exception filters
+- **Infrastructure Layer**: Controllers, security, external services
+- **Modules**: NestJS modules for feature organization
+
+### Dependency Injection
+- Use constructor injection
+- Register providers in modules
+- Use interfaces for abstraction
+- Leverage NestJS DI container
+
+### Service Organization
+- Keep services focused on single responsibility
+- Separate domain services from infrastructure services
+- Use shared services module for common functionality
+- Implement proper service lifecycle hooks
+
+## Database Migrations
+
+### Prisma Migrations
+- Use `prisma migrate dev` for development
+- Use `prisma migrate deploy` for production
+- Never edit migration files manually
+- Test migrations in staging first
+
+### Seeding
+- Use `prisma db seed` for initial data
+- Keep seed data in `prisma/seed.ts`
+- Make seeds idempotent
+- Use Faker for test data generation
+
+## Deployment
+
+### Docker
+- Use multi-stage builds
+- Optimize image size
+- Set up health checks
+- Configure proper environment variables
+
+### Production Considerations
+- Use environment-specific configurations
+- Set up proper logging
+- Configure CORS for production domains
+- Implement graceful shutdown
+- Monitor application health
+

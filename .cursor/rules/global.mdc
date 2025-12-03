@@ -30,13 +30,17 @@ Keep the original files in `/rules` and `/.cursor/rules`. Use this file as the s
 
 ## Referenced Files
 - `./rules/rules.mdc` — Details the project structure, App Router, DAL design, and component best practices.
+- `./tech-stack.mdc` - Details package 
 - `./rules/self-improvement.mdc` — Contains AI self-optimization and evolution rules for improving context understanding and responses.
 - `./.cursor/rules/cursor-rules.mdc` — Explains how to create, edit, and organize `.mdc` rule files for the Cursor environment.
+- `./.cursor/rules/logger.mdc` — Defines logging patterns and standards using the Logger class.
 
 ## Quick Links
 [rules.mdc](./rules/rules.mdc)  
+[tech-stach.mdc](./tech-stack.mdc)
 [cursor-rules.mdc](./.cursor/rules/cursor-rules.mdc)
 [self-improvement.mdc](./self-improvement.mdc)
+[logger.mdc](./.cursor/rules/logger.mdc)
 
 ## Operational Notes
 - If Cursor cannot automatically resolve local links, run the aggregation script to generate `./rules/global.mdc` with all referenced content.
