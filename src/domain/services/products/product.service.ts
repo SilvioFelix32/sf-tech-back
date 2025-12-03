@@ -13,6 +13,7 @@ import { IProductResponse } from '../../../infrastructure/types/product-response
 import { ErrorHandler } from '../../../shared/errors/error-handler';
 import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 import { CacheService } from '../cache/cache.service';
+import { Logger } from '../../../shared/logger/logger.service';
 
 @Injectable()
 export class ProductService {
@@ -20,6 +21,7 @@ export class ProductService {
     private readonly errorHandler: ErrorHandler,
     private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
+    private readonly logger: Logger,
   ) { }
 
   async create(category_id: string, dto: CreateProductDto): Promise<string> {
@@ -34,8 +36,16 @@ export class ProductService {
 
       this.updateCache();
 
+      this.logger.info(
+        `ProductService.create() - Product ${result.product_id} created successfully`,
+        { metadata: { product_id: result.product_id, category_id } },
+      );
       return `Product ${result.product_id} created successfully`;
     } catch (error) {
+      this.logger.error(
+        `ProductService.create() - Error creating product`,
+        { error: error instanceof Error ? error : new Error(String(error)) },
+      );
       throw this.validateError(error);
     }
   }
@@ -57,6 +67,10 @@ export class ProductService {
           cacheExpiryTime,
         );
 
+        this.logger.info(
+          `ProductService.findAll() - Products retrieved from database`,
+          { metadata: { page, limit, total: dbData.meta.total } },
+        );
         return {
           message: 'Products retrieved from database',
           data: dbData.data,
@@ -70,19 +84,30 @@ export class ProductService {
         limit,
       );
 
+      this.logger.info(
+        `ProductService.findAll() - Products retrieved from cache`,
+        { metadata: { page, limit, total: paginatedCacheData.meta.total } },
+      );
       return {
         message: 'Products retrieved from cache',
         data: paginatedCacheData.data,
         meta: paginatedCacheData.meta,
       };
     } catch (error) {
+      this.logger.error(
+        `ProductService.findAll() - Error retrieving products`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { page, limit },
+        },
+      );
       throw this.validateError(error);
     }
   }
 
   async search(query: string): Promise<Product[]> {
     try {
-      return (await this.databaseService.product.findMany({
+      const products = (await this.databaseService.product.findMany({
         where: {
           title: {
             contains: query,
@@ -90,15 +115,39 @@ export class ProductService {
           },
         },
       })) as Product[];
+      this.logger.info(
+        `ProductService.search() - Found ${products.length} products for query: ${query}`,
+        { metadata: { query, count: products.length } },
+      );
+      return products;
     } catch (error) {
+      this.logger.error(
+        `ProductService.search() - Error searching products`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { query },
+        },
+      );
       throw this.validateError(error);
     }
   }
 
   async findOne(product_id: string): Promise<Product> {
     try {
-      return await this.validateProduct(product_id);
+      const product = await this.validateProduct(product_id);
+      this.logger.info(
+        `ProductService.findOne() - Product ${product_id} retrieved successfully`,
+        { metadata: { product_id } },
+      );
+      return product;
     } catch (error) {
+      this.logger.error(
+        `ProductService.findOne() - Error retrieving product ${product_id}`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { product_id },
+        },
+      );
       throw this.validateError(error);
     }
   }
@@ -113,8 +162,19 @@ export class ProductService {
       });
       this.updateCache();
 
+      this.logger.info(
+        `ProductService.update() - Product ${result.product_id} updated successfully`,
+        { metadata: { product_id: result.product_id } },
+      );
       return `Product ${result.product_id} updated successfully`;
     } catch (error) {
+      this.logger.error(
+        `ProductService.update() - Error updating product ${product_id}`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { product_id },
+        },
+      );
       throw this.validateError(error);
     }
   }
@@ -128,8 +188,19 @@ export class ProductService {
       });
       this.updateCache();
 
+      this.logger.info(
+        `ProductService.remove() - Product ${result.product_id} deleted successfully`,
+        { metadata: { product_id: result.product_id } },
+      );
       return `Product ${result.product_id} deleted successfully`;
     } catch (error) {
+      this.logger.error(
+        `ProductService.remove() - Error deleting product ${product_id}`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { product_id },
+        },
+      );
       throw this.validateError(error);
     }
   }
@@ -160,12 +231,15 @@ export class ProductService {
     const cachedData = await this.cacheService.getCache<
       PaginatedResult<Product> & { timestamp: number }
     >(key);
-    console.info(`Retrieved cache for key: ${key}`);
+    this.logger.info(`ProductService.getCache() - Retrieved cache for key: ${key}`);
     return cachedData;
   }
 
   private async setCache(key: string, data: any, ttl: number) {
-    console.info(`Setting cache for key: ${key}, data:`, data.data.length);
+    this.logger.info(
+      `ProductService.setCache() - Setting cache for key: ${key}`,
+      { metadata: { key, dataLength: data.data.length, ttl } },
+    );
     await this.cacheService.setCache(key, data, ttl);
   }
 
@@ -192,9 +266,9 @@ export class ProductService {
 
       return paginatedData;
     } catch (error) {
-      console.error(
-        'ProductService.fetchAndCacheProducts: Error fetching and caching products',
-        (error as Error).message,
+      this.logger.error(
+        `ProductService.fetchAndCacheProducts() - Error fetching and caching products`,
+        { error: error instanceof Error ? error : new Error(String(error)) },
       );
       throw this.validateError(error);
     }
@@ -203,7 +277,7 @@ export class ProductService {
   private updateCache(): void {
     setTimeout(() => {
       this.fetchAndCacheProducts(1, 20, 'product', 60 * 60 * 24); //24 HOURS
-      console.info('ProductService.updateCache: Cache updated!');
+      this.logger.info('ProductService.updateCache() - Cache update scheduled');
     }, 0);
   }
 

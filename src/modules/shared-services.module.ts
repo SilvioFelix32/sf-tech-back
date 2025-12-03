@@ -4,6 +4,7 @@ import { RedisService } from '../domain/services/redis/redis.service';
 import { CacheService } from '../domain/services/cache/cache.service';
 import { ErrorHandler } from 'src/shared/errors/error-handler';
 import { JwtService } from '@nestjs/jwt';
+import { Logger } from '../shared/logger/logger.service';
 
 @Global()
 @Module({
@@ -13,6 +14,7 @@ import { JwtService } from '@nestjs/jwt';
     CacheService,
     ErrorHandler,
     JwtService,
+    Logger,
   ],
   providers: [
     DatabaseService,
@@ -20,6 +22,7 @@ import { JwtService } from '@nestjs/jwt';
     CacheService,
     ErrorHandler,
     JwtService,
+    Logger,
   ],
 })
 export class SharedServicesModule { }

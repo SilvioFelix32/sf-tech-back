@@ -9,15 +9,22 @@ import {
   type JWK,
   type JSONWebKeySet,
 } from 'jose';
+import { Logger } from 'src/shared/logger/logger.service';
 
 import axios from 'axios';
 
 @Injectable()
 export class JwtStrategy {
-  constructor(private readonly cacheService: CacheService) {}
+  constructor(
+    private readonly cacheService: CacheService,
+    private readonly logger: Logger,
+  ) {}
 
   async validate(token: string): Promise<boolean> {
     if (!token) {
+      this.logger.error(
+        `JwtStrategy.validate() - Token not provided`,
+      );
       return false;
     }
 
@@ -26,24 +33,24 @@ export class JwtStrategy {
 
   private async isTokenValid(token: string): Promise<boolean> {
     try {
-      const decoded = decodeJwt(token);
-      console.info(
-        'JwtStrategy.isTokenValid - Token Expiration:',
-        new Date(decoded.exp! * 1000),
-      );
-      console.info('JwtStrategy.isTokenValid - Current Time:', new Date());
-
       const key = await this.getKey(token);
       const { payload } = await jwtVerify(token, key, {
         clockTolerance: 60 * 60 * 3, // 3 hours tolerance. this behavior is necessary because of diferent timezones
       });
 
       if (!payload) {
+        this.logger.error(
+          `JwtStrategy.isTokenValid() - Token payload is empty`,
+        );
         return false;
       }
 
       return true;
     } catch (error) {
+      this.logger.error(
+        `JwtStrategy.isTokenValid() - Error validating token`,
+        { error: error instanceof Error ? error : new Error(String(error)) },
+      );
       throw new UnauthorizedException(
         `JwtStrategy.verifyToken error: ${error}`,
       );
@@ -62,6 +69,9 @@ export class JwtStrategy {
       }
     }
     if (!key) {
+      this.logger.error(
+        `JwtStrategy.getKey() - Key not found in jwks`,
+      );
       throw new UnauthorizedException(
         'JwtStrategy.getKey: Key not found in jwks',
       );
@@ -78,6 +88,12 @@ export class JwtStrategy {
       const response = await axios.get(jwksUri);
       return response.data as JSONWebKeySet;
     } catch (error) {
+      this.logger.error(
+        `JwtStrategy.getJwks() - Error fetching JWKS from Cognito`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+        },
+      );
       throw new UnauthorizedException(
         `JwtStrategy.getJwks error while getting jwks: ${error}`,
       );

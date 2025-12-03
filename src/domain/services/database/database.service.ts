@@ -5,12 +5,16 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { Logger } from '../../../shared/logger/logger.service';
 
 @Injectable()
 export class DatabaseService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-  private static readonly LOG_PREFIX = '[DatabaseService]';
   private connectionAttempts = 0;
   private readonly maxConnectionAttempts = 3;
+
+  constructor(private readonly logger: Logger) {
+    super();
+  }
 
   async onModuleInit() {
     await this.connectWithRetry();
@@ -23,17 +27,15 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
   private async connectWithRetry() {
     while (this.connectionAttempts < this.maxConnectionAttempts) {
       try {
-        console.log(
-          `${DatabaseService.LOG_PREFIX} Connection attempt ${this.connectionAttempts + 1}/${this.maxConnectionAttempts} to database...`,
+        this.logger.info(
+          `DatabaseService.connectWithRetry() - Connection attempt ${this.connectionAttempts + 1}/${this.maxConnectionAttempts} to database`,
+          { metadata: { attempt: this.connectionAttempts + 1, maxAttempts: this.maxConnectionAttempts } },
         );
 
         await this.$connect();
 
-        console.log(
-          `${DatabaseService.LOG_PREFIX} ✅ Service connected to database`,
-        );
-        console.log(
-          `${DatabaseService.LOG_PREFIX} 📊 Active instance: DatabaseService`,
+        this.logger.info(
+          `DatabaseService.connectWithRetry() - Service connected to database successfully`,
         );
 
         return;
@@ -41,7 +43,19 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
         this.connectionAttempts++;
 
         if (this.connectionAttempts < this.maxConnectionAttempts) {
+          this.logger.info(
+            `DatabaseService.connectWithRetry() - Retrying connection in 1 second`,
+            { metadata: { attempt: this.connectionAttempts, maxAttempts: this.maxConnectionAttempts } },
+          );
           await new Promise((resolve) => setTimeout(resolve, 1000));
+        } else {
+          this.logger.error(
+            `DatabaseService.connectWithRetry() - Maximum connection attempts reached`,
+            {
+              error: err instanceof Error ? err : new Error(String(err)),
+              metadata: { attempts: this.connectionAttempts, maxAttempts: this.maxConnectionAttempts },
+            },
+          );
         }
       }
     }

@@ -17,6 +17,7 @@ import { ErrorHandler } from '../../../shared/errors/error-handler';
 import { IQueryPaginate } from '../../../shared/paginator/i-query-paginate';
 import { CacheService } from '../cache/cache.service';
 import { DatabaseService } from '../database/database.service';
+import { Logger } from '../../../shared/logger/logger.service';
 
 @Injectable()
 export class CategoryService {
@@ -24,6 +25,7 @@ export class CategoryService {
     private readonly errorHandler: ErrorHandler,
     private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
+    private readonly logger: Logger,
   ) {}
 
   async create(company_id: string, dto: CreateCategoryDto): Promise<string> {
@@ -38,8 +40,16 @@ export class CategoryService {
       });
       this.updateCache();
 
+      this.logger.info(
+        `CategoryService.create() - Category ${result.category_id} created successfully`,
+        { metadata: { category_id: result.category_id, company_id } },
+      );
       return `Category ${result.category_id} created successfully`;
     } catch (error) {
+      this.logger.error(
+        `CategoryService.create() - Error creating category`,
+        { error: error instanceof Error ? error : new Error(String(error)) },
+      );
       throw this.validateError(error);
     }
   }
@@ -62,6 +72,10 @@ export class CategoryService {
           cacheExpiryTime,
         );
 
+        this.logger.info(
+          `CategoryService.findAll() - Categories retrieved from database`,
+          { metadata: { page, limit, total: dbData.meta.total } },
+        );
         return {
           message: 'Categories retrieved from database',
           data: dbData.data,
@@ -74,12 +88,23 @@ export class CategoryService {
         limit,
       );
 
+      this.logger.info(
+        `CategoryService.findAll() - Categories retrieved from cache`,
+        { metadata: { page, limit, total: paginatedCacheData.meta.total } },
+      );
       return {
         message: 'Categories retrieved from cache',
         data: paginatedCacheData.data,
         meta: paginatedCacheData.meta,
       };
     } catch (error) {
+      this.logger.error(
+        `CategoryService.findAll() - Error retrieving categories`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { page, limit },
+        },
+      );
       throw this.validateError(error);
     }
   }
@@ -88,13 +113,26 @@ export class CategoryService {
     try {
       await this.validateCategory(category_id);
 
-      return (await this.databaseService.productCategory.findUnique({
+      const category = (await this.databaseService.productCategory.findUnique({
         where: {
           category_id,
         },
         select: categoryResponse,
       })) as Category;
+
+      this.logger.info(
+        `CategoryService.findOne() - Category ${category_id} retrieved successfully`,
+        { metadata: { category_id } },
+      );
+      return category;
     } catch (error) {
+      this.logger.error(
+        `CategoryService.findOne() - Error retrieving category ${category_id}`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { category_id },
+        },
+      );
       throw this.validateError(error);
     }
   }
@@ -113,8 +151,19 @@ export class CategoryService {
 
       this.updateCache();
 
+      this.logger.info(
+        `CategoryService.update() - Category ${response.category_id} updated successfully`,
+        { metadata: { category_id: response.category_id } },
+      );
       return `Category ${response.category_id} updated successfully`;
     } catch (error) {
+      this.logger.error(
+        `CategoryService.update() - Error updating category ${category_id}`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { category_id },
+        },
+      );
       throw this.validateError(error);
     }
   }
@@ -130,8 +179,19 @@ export class CategoryService {
       });
       this.updateCache();
 
+      this.logger.info(
+        `CategoryService.remove() - Category ${response.category_id} deleted successfully`,
+        { metadata: { category_id: response.category_id } },
+      );
       return `Category ${response.category_id} deleted successfully`;
     } catch (error) {
+      this.logger.error(
+        `CategoryService.remove() - Error deleting category ${category_id}`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { category_id },
+        },
+      );
       throw this.validateError(error);
     }
   }
@@ -150,12 +210,15 @@ export class CategoryService {
     const cachedData = await this.cacheService.getCache<
       PaginatedResult<Category> & { timestamp: number }
     >(key);
-    console.info(`Retrieved cache for key: ${key}`);
+    this.logger.info(`CategoryService.getCache() - Retrieved cache for key: ${key}`);
     return cachedData;
   }
 
   private async setCache(key: string, data: any, ttl: number) {
-    console.info(`Setting cache for key: ${key}, data:`, data.data.length);
+    this.logger.info(
+      `CategoryService.setCache() - Setting cache for key: ${key}`,
+      { metadata: { key, dataLength: data.data.length, ttl } },
+    );
     await this.cacheService.setCache(key, data, ttl);
   }
 
@@ -195,7 +258,7 @@ export class CategoryService {
   private updateCache(): void {
     setTimeout(() => {
       this.fetchAndCacheCategories(1, 20, 'category', 60 * 60 * 24); //24 HOURS
-      console.info('CategoryService.updateCache: Cache updated!');
+      this.logger.info('CategoryService.updateCache() - Cache update scheduled');
     }, 0);
   }
 
