@@ -8,9 +8,10 @@ import { GlobalExceptionFilter } from './application/exceptions/exceptions-filte
 import { CognitoAuthGuard } from './infrastructure/security/auth/guards/cognito-auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { JwtStrategy } from './infrastructure/security/auth/strategies/jwt.strategy';
+import { HealthController } from './infrastructure/http/controllers/app.controller';
 
 @Module({
-  controllers: [],
+  controllers: [HealthController],
   exports: [],
   imports: [
     ConfigModule.forRoot({
@@ -35,4 +36,4 @@ import { JwtStrategy } from './infrastructure/security/auth/strategies/jwt.strat
     },
   ],
 })
-export class AppModule {}
+export class AppModule { }
