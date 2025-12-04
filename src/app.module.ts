@@ -36,4 +36,4 @@ import { HealthController } from './infrastructure/http/controllers/app.controll
     },
   ],
 })
-export class AppModule { }
+export class AppModule {}

@@ -8,7 +8,10 @@ import { PrismaClient } from '@prisma/client';
 import { Logger } from '../../../shared/logger/logger.service';
 
 @Injectable()
-export class DatabaseService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class DatabaseService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   private connectionAttempts = 0;
   private readonly maxConnectionAttempts = 3;
 
@@ -29,7 +32,12 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
       try {
         this.logger.info(
           `DatabaseService.connectWithRetry() - Connection attempt ${this.connectionAttempts + 1}/${this.maxConnectionAttempts} to database`,
-          { metadata: { attempt: this.connectionAttempts + 1, maxAttempts: this.maxConnectionAttempts } },
+          {
+            metadata: {
+              attempt: this.connectionAttempts + 1,
+              maxAttempts: this.maxConnectionAttempts,
+            },
+          },
         );
 
         await this.$connect();
@@ -45,7 +53,12 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
         if (this.connectionAttempts < this.maxConnectionAttempts) {
           this.logger.info(
             `DatabaseService.connectWithRetry() - Retrying connection in 1 second`,
-            { metadata: { attempt: this.connectionAttempts, maxAttempts: this.maxConnectionAttempts } },
+            {
+              metadata: {
+                attempt: this.connectionAttempts,
+                maxAttempts: this.maxConnectionAttempts,
+              },
+            },
           );
           await new Promise((resolve) => setTimeout(resolve, 1000));
         } else {
@@ -53,7 +66,10 @@ export class DatabaseService extends PrismaClient implements OnModuleInit, OnMod
             `DatabaseService.connectWithRetry() - Maximum connection attempts reached`,
             {
               error: err instanceof Error ? err : new Error(String(err)),
-              metadata: { attempts: this.connectionAttempts, maxAttempts: this.maxConnectionAttempts },
+              metadata: {
+                attempts: this.connectionAttempts,
+                maxAttempts: this.maxConnectionAttempts,
+              },
             },
           );
         }

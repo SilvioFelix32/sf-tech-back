@@ -25,4 +25,4 @@ import { Logger } from '../shared/logger/logger.service';
     Logger,
   ],
 })
-export class SharedServicesModule { }
+export class SharedServicesModule {}

@@ -72,7 +72,10 @@ export class RedisService implements OnModuleInit {
               `RedisService.connectWithRetry() - Connection attempt ${this.connectionAttempts + 1} failed`,
               {
                 error: err instanceof Error ? err : new Error(String(err)),
-                metadata: { attempt: this.connectionAttempts + 1, maxRetries: this.maxRetries },
+                metadata: {
+                  attempt: this.connectionAttempts + 1,
+                  maxRetries: this.maxRetries,
+                },
               },
             );
             this.connectionAttempts++;
@@ -85,7 +88,12 @@ export class RedisService implements OnModuleInit {
         if (this.connectionAttempts >= this.maxRetries) {
           this.logger.error(
             `RedisService.connectWithRetry() - Maximum retries reached`,
-            { metadata: { attempts: this.connectionAttempts, maxRetries: this.maxRetries } },
+            {
+              metadata: {
+                attempts: this.connectionAttempts,
+                maxRetries: this.maxRetries,
+              },
+            },
           );
           throw new InternalServerErrorException(
             `Maximum connection attempts to Redis (${this.maxRetries}) reached.`,

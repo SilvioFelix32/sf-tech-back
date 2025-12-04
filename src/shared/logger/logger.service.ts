@@ -29,7 +29,11 @@ export class Logger {
     this.writeLog('log', message, context);
   }
 
-  private writeLog(level: LogLevel, message: string, context?: LoggerContext): void {
+  private writeLog(
+    level: LogLevel,
+    message: string,
+    context?: LoggerContext,
+  ): void {
     const timestamp = new Date().toISOString();
     const logEntry: Record<string, unknown> = {
       timestamp,
@@ -69,8 +73,11 @@ export class Logger {
     }
   }
 
-  private formatMessage(timestamp: string, level: LogLevel, message: string): string {
+  private formatMessage(
+    timestamp: string,
+    level: LogLevel,
+    message: string,
+  ): string {
     return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
   }
 }
-

@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CacheService } from 'src/domain/services/cache/cache.service';
 import { environment } from 'src/shared/config/env';
 import {
-  decodeJwt,
   decodeProtectedHeader,
   jwtVerify,
   importJWK,
@@ -22,9 +21,7 @@ export class JwtStrategy {
 
   async validate(token: string): Promise<boolean> {
     if (!token) {
-      this.logger.error(
-        `JwtStrategy.validate() - Token not provided`,
-      );
+      this.logger.error(`JwtStrategy.validate() - Token not provided`);
       return false;
     }
 
@@ -47,10 +44,9 @@ export class JwtStrategy {
 
       return true;
     } catch (error) {
-      this.logger.error(
-        `JwtStrategy.isTokenValid() - Error validating token`,
-        { error: error instanceof Error ? error : new Error(String(error)) },
-      );
+      this.logger.error(`JwtStrategy.isTokenValid() - Error validating token`, {
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
       throw new UnauthorizedException(
         `JwtStrategy.verifyToken error: ${error}`,
       );
@@ -69,9 +65,7 @@ export class JwtStrategy {
       }
     }
     if (!key) {
-      this.logger.error(
-        `JwtStrategy.getKey() - Key not found in jwks`,
-      );
+      this.logger.error(`JwtStrategy.getKey() - Key not found in jwks`);
       throw new UnauthorizedException(
         'JwtStrategy.getKey: Key not found in jwks',
       );

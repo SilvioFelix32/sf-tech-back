@@ -16,7 +16,7 @@ export class CompaniesService {
     private readonly databaseService: DatabaseService,
     private readonly errorHandler: ErrorHandler,
     private readonly logger: Logger,
-  ) { }
+  ) {}
 
   async create(data: CreateCompanyDto): Promise<string> {
     const { name, email } = data;
@@ -30,17 +30,17 @@ export class CompaniesService {
       );
       return `Company ${result.company_id} created successfully`;
     } catch (error) {
-      this.logger.error(
-        `CompaniesService.create() - Error creating company`,
-        { error: error instanceof Error ? error : new Error(String(error)) },
-      );
+      this.logger.error(`CompaniesService.create() - Error creating company`, {
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
       throw this.errorHandler.handle(error);
     }
   }
 
   async findAll(): Promise<Company[]> {
     try {
-      const companies = (await this.databaseService.company.findMany()) as Company[];
+      const companies =
+        (await this.databaseService.company.findMany()) as Company[];
       this.logger.info(
         `CompaniesService.findAll() - Retrieved ${companies.length} companies`,
       );
