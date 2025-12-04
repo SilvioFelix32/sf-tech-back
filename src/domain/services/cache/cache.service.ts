@@ -47,4 +47,22 @@ export class CacheService {
       throw new Error('Error setting cache', { cause: error });
     }
   }
+
+  async invalidateCache(key: string): Promise<void> {
+    try {
+      await this.redisService.getClient().del(key);
+      this.logger.info(
+        `CacheService.invalidateCache() - Cache invalidated for key: ${key}`,
+        { metadata: { key } },
+      );
+    } catch (error) {
+      this.logger.error(
+        `CacheService.invalidateCache() - Error invalidating cache for key: ${key}`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { key },
+        },
+      );
+    }
+  }
 }

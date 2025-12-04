@@ -23,6 +23,7 @@ const mockDatabaseService = {
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   product: {
     findUnique: jest.fn(),
@@ -35,6 +36,7 @@ const mockDatabaseService = {
 const mockcacheService = {
   getCache: jest.fn(),
   setCache: jest.fn(),
+  invalidateCache: jest.fn(),
 };
 
 const mockProductService = {
@@ -140,6 +142,9 @@ describe('CategoryService', () => {
       jest
         .spyOn(databaseService.productCategory, 'create')
         .mockResolvedValue(result as ProductCategory);
+      jest
+        .spyOn(cacheService, 'invalidateCache')
+        .mockResolvedValue(undefined);
 
       expect(
         await service.create(
@@ -147,6 +152,7 @@ describe('CategoryService', () => {
           createCategoryDto,
         ),
       ).toEqual(`Category ${result.category_id} created successfully`);
+      expect(cacheService.invalidateCache).toHaveBeenCalledWith('category');
     });
 
     it('Should throw an error if category creation fails', async () => {
@@ -185,24 +191,62 @@ describe('CategoryService', () => {
   });
 
   describe('findAll', () => {
-    it('Should return categories from cache if available', async () => {
+    it('Should return categories from cache if available and synchronized', async () => {
       jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue({
         company_id,
         name: 'Test Company',
       } as Company);
+      const cachedDataWithTimestamp = {
+        ...cachedDataResponse,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
       jest
         .spyOn(cacheService, 'getCache')
-        .mockResolvedValue(cachedDataResponse);
+        .mockResolvedValue(cachedDataWithTimestamp);
+      jest
+        .spyOn(databaseService.productCategory, 'count')
+        .mockResolvedValue(1);
+
+      const result = await service.findAll({
+        page: 1,
+        limit: 10,
+      });
+
+      expect(result.message).toBe('Categories retrieved from cache');
+      expect(cacheService.getCache).toHaveBeenCalledWith('category');
+      expect(databaseService.productCategory.count).toHaveBeenCalled();
+    });
+
+    it('Should return categories from database if cache is out of sync', async () => {
+      jest.spyOn(databaseService.company, 'findUnique').mockResolvedValue({
+        company_id,
+        name: 'Test Company',
+      } as Company);
+      const cachedDataWithTimestamp = {
+        ...cachedDataResponse,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+      jest
+        .spyOn(cacheService, 'getCache')
+        .mockResolvedValue(cachedDataWithTimestamp);
+      jest
+        .spyOn(databaseService.productCategory, 'count')
+        .mockResolvedValue(5);
       jest
         .spyOn(databaseService.productCategory, 'findMany')
-        .mockResolvedValue(dbData.data);
+        .mockResolvedValue(dbDataResponse.data as ProductCategory[]);
+      jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
-      expect(
-        await service.findAll({
-          page: 1,
-          limit: 10,
-        }),
-      ).toEqual(cachedDataResponse);
+      const result = await service.findAll({
+        page: 1,
+        limit: 10,
+      });
+
+      expect(result.message).toBe(
+        'Categories retrieved from database (cache refreshed)',
+      );
+      expect(databaseService.productCategory.count).toHaveBeenCalled();
+      expect(databaseService.productCategory.findMany).toHaveBeenCalled();
     });
 
     it('Should return categories from database if cache is not available', async () => {
@@ -321,7 +365,7 @@ describe('CategoryService', () => {
       );
     });
 
-    it('Should update a category end cache', async () => {
+    it('Should update a category and invalidate cache', async () => {
       const updateProductDto: UpdateCategoryDto = {
         title: 'Updated Product',
       };
@@ -338,25 +382,13 @@ describe('CategoryService', () => {
       jest
         .spyOn(databaseService.productCategory, 'update')
         .mockResolvedValue(result);
-
-      const fetchAndCacheCategoriesSpy = jest
-        .spyOn(service as any, 'fetchAndCacheCategories')
+      jest
+        .spyOn(cacheService, 'invalidateCache')
         .mockResolvedValue(undefined);
-
-      jest.useFakeTimers();
 
       await service.update('1', updateProductDto);
 
-      jest.runAllTimers();
-
-      expect(fetchAndCacheCategoriesSpy).toHaveBeenCalledWith(
-        1,
-        20,
-        'category',
-        60 * 60 * 24,
-      );
-
-      jest.useRealTimers();
+      expect(cacheService.invalidateCache).toHaveBeenCalledWith('category');
     });
 
     it('Should correctly paginate data inside fetchAndCacheCategories', async () => {
@@ -497,7 +529,7 @@ describe('CategoryService', () => {
   });
 
   describe('remove', () => {
-    it('Should delete a product', async () => {
+    it('Should delete a category and invalidate cache', async () => {
       const result = {
         category_id: '1',
         title: 'Test Category',
@@ -508,10 +540,14 @@ describe('CategoryService', () => {
       jest
         .spyOn(databaseService.productCategory, 'delete')
         .mockResolvedValue(result);
+      jest
+        .spyOn(cacheService, 'invalidateCache')
+        .mockResolvedValue(undefined);
 
       expect(await service.remove('1')).toEqual(
         `Category ${result.category_id} deleted successfully`,
       );
+      expect(cacheService.invalidateCache).toHaveBeenCalledWith('category');
     });
 
     it('Should throw an error if product deletion fails', async () => {

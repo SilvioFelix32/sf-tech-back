@@ -38,7 +38,7 @@ export class CategoryService {
       const result = await this.databaseService.productCategory.create({
         data,
       });
-      this.updateCache();
+      await this.updateCache();
 
       this.logger.info(
         `CategoryService.create() - Category ${result.category_id} created successfully`,
@@ -46,10 +46,9 @@ export class CategoryService {
       );
       return `Category ${result.category_id} created successfully`;
     } catch (error) {
-      this.logger.error(
-        `CategoryService.create() - Error creating category`,
-        { error: error instanceof Error ? error : new Error(String(error)) },
-      );
+      this.logger.error(`CategoryService.create() - Error creating category`, {
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
       throw this.validateError(error);
     }
   }
@@ -82,6 +81,27 @@ export class CategoryService {
           meta: dbData.meta,
         };
       }
+
+      const isCacheValid = await this.validateCacheSync(cacheKey, cachedData);
+      if (!isCacheValid) {
+        this.logger.info(
+          `CategoryService.findAll() - Cache out of sync, refreshing from database`,
+          { metadata: { page, limit } },
+        );
+        const dbData = await this.fetchAndCacheCategories(
+          page,
+          limit,
+          cacheKey,
+          cacheExpiryTime,
+        );
+
+        return {
+          message: 'Categories retrieved from database (cache refreshed)',
+          data: dbData.data,
+          meta: dbData.meta,
+        };
+      }
+
       const paginatedCacheData = this.paginateData(
         cachedData.data,
         page,
@@ -149,7 +169,7 @@ export class CategoryService {
         },
       });
 
-      this.updateCache();
+      await this.updateCache();
 
       this.logger.info(
         `CategoryService.update() - Category ${response.category_id} updated successfully`,
@@ -177,7 +197,7 @@ export class CategoryService {
           category_id,
         },
       });
-      this.updateCache();
+      await this.updateCache();
 
       this.logger.info(
         `CategoryService.remove() - Category ${response.category_id} deleted successfully`,
@@ -197,9 +217,11 @@ export class CategoryService {
   }
 
   private async validateCategory(category_id: string) {
-    const productExists = await this.databaseService.productCategory.findUnique({
-      where: { category_id },
-    });
+    const productExists = await this.databaseService.productCategory.findUnique(
+      {
+        where: { category_id },
+      },
+    );
 
     if (!productExists) {
       throw new NotFoundException('Category of products not found');
@@ -210,7 +232,9 @@ export class CategoryService {
     const cachedData = await this.cacheService.getCache<
       PaginatedResult<Category> & { timestamp: number }
     >(key);
-    this.logger.info(`CategoryService.getCache() - Retrieved cache for key: ${key}`);
+    this.logger.info(
+      `CategoryService.getCache() - Retrieved cache for key: ${key}`,
+    );
     return cachedData;
   }
 
@@ -255,11 +279,47 @@ export class CategoryService {
     }
   }
 
-  private updateCache(): void {
-    setTimeout(() => {
-      this.fetchAndCacheCategories(1, 20, 'category', 60 * 60 * 24); //24 HOURS
-      this.logger.info('CategoryService.updateCache() - Cache update scheduled');
-    }, 0);
+  private async updateCache(): Promise<void> {
+    await this.cacheService.invalidateCache('category');
+    this.logger.info(
+      `CategoryService.updateCache() - Cache invalidated, will be refreshed on next request`,
+    );
+  }
+
+  private async validateCacheSync(
+    cacheKey: string,
+    cachedData: PaginatedResult<Category> & { timestamp: number },
+  ): Promise<boolean> {
+    try {
+      const dbCount = await this.databaseService.productCategory.count();
+      const cacheCount = cachedData.meta.total;
+
+      if (dbCount !== cacheCount) {
+        this.logger.info(
+          `CategoryService.validateCacheSync() - Cache mismatch detected`,
+          {
+            metadata: {
+              cacheKey,
+              dbCount,
+              cacheCount,
+              difference: Math.abs(dbCount - cacheCount),
+            },
+          },
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `CategoryService.validateCacheSync() - Error validating cache sync`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { cacheKey },
+        },
+      );
+      return false;
+    }
   }
 
   private paginateData(

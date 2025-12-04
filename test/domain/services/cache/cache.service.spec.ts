@@ -26,6 +26,7 @@ describe('CacheService', () => {
             getClient: jest.fn().mockReturnValue({
               get: jest.fn(),
               set: jest.fn(),
+              del: jest.fn(),
             }),
           },
         },
@@ -119,6 +120,26 @@ describe('CacheService', () => {
         'EX',
         ttl,
       );
+    });
+  });
+
+  describe('invalidateCache', () => {
+    it('Should invalidate a cache', async () => {
+      const key = 'test-key';
+      const mockDel = redisService.getClient().del as jest.Mock;
+      mockDel.mockResolvedValue(1);
+
+      await service.invalidateCache(key);
+      expect(mockDel).toHaveBeenCalledWith(key);
+    });
+
+    it('Should handle errors gracefully when invalidating cache', async () => {
+      const key = 'test-key';
+      const mockDel = redisService.getClient().del as jest.Mock;
+      mockDel.mockRejectedValue(new Error('Redis error'));
+
+      await expect(service.invalidateCache(key)).resolves.not.toThrow();
+      expect(mockDel).toHaveBeenCalledWith(key);
     });
   });
 });

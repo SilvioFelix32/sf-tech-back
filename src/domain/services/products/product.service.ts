@@ -1,8 +1,4 @@
-import {
-  HttpException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
 import { DatabaseService } from '../database/database.service';
@@ -22,7 +18,7 @@ export class ProductService {
     private readonly databaseService: DatabaseService,
     private readonly cacheService: CacheService,
     private readonly logger: Logger,
-  ) { }
+  ) {}
 
   async create(category_id: string, dto: CreateProductDto): Promise<string> {
     try {
@@ -34,7 +30,7 @@ export class ProductService {
       };
       const result = await this.databaseService.product.create({ data });
 
-      this.updateCache();
+      await this.updateCache();
 
       this.logger.info(
         `ProductService.create() - Product ${result.product_id} created successfully`,
@@ -42,10 +38,9 @@ export class ProductService {
       );
       return `Product ${result.product_id} created successfully`;
     } catch (error) {
-      this.logger.error(
-        `ProductService.create() - Error creating product`,
-        { error: error instanceof Error ? error : new Error(String(error)) },
-      );
+      this.logger.error(`ProductService.create() - Error creating product`, {
+        error: error instanceof Error ? error : new Error(String(error)),
+      });
       throw this.validateError(error);
     }
   }
@@ -73,6 +68,26 @@ export class ProductService {
         );
         return {
           message: 'Products retrieved from database',
+          data: dbData.data,
+          meta: dbData.meta,
+        };
+      }
+
+      const isCacheValid = await this.validateCacheSync(cacheKey, cachedData);
+      if (!isCacheValid) {
+        this.logger.info(
+          `ProductService.findAll() - Cache out of sync, refreshing from database`,
+          { metadata: { page, limit } },
+        );
+        const dbData = await this.fetchAndCacheProducts(
+          page,
+          limit,
+          cacheKey,
+          cacheExpiryTime,
+        );
+
+        return {
+          message: 'Products retrieved from database (cache refreshed)',
           data: dbData.data,
           meta: dbData.meta,
         };
@@ -121,13 +136,10 @@ export class ProductService {
       );
       return products;
     } catch (error) {
-      this.logger.error(
-        `ProductService.search() - Error searching products`,
-        {
-          error: error instanceof Error ? error : new Error(String(error)),
-          metadata: { query },
-        },
-      );
+      this.logger.error(`ProductService.search() - Error searching products`, {
+        error: error instanceof Error ? error : new Error(String(error)),
+        metadata: { query },
+      });
       throw this.validateError(error);
     }
   }
@@ -160,7 +172,7 @@ export class ProductService {
         data: { ...dto },
         where: { product_id },
       });
-      this.updateCache();
+      await this.updateCache();
 
       this.logger.info(
         `ProductService.update() - Product ${result.product_id} updated successfully`,
@@ -186,7 +198,7 @@ export class ProductService {
       const result = await this.databaseService.product.delete({
         where: { product_id },
       });
-      this.updateCache();
+      await this.updateCache();
 
       this.logger.info(
         `ProductService.remove() - Product ${result.product_id} deleted successfully`,
@@ -231,7 +243,9 @@ export class ProductService {
     const cachedData = await this.cacheService.getCache<
       PaginatedResult<Product> & { timestamp: number }
     >(key);
-    this.logger.info(`ProductService.getCache() - Retrieved cache for key: ${key}`);
+    this.logger.info(
+      `ProductService.getCache() - Retrieved cache for key: ${key}`,
+    );
     return cachedData;
   }
 
@@ -274,11 +288,47 @@ export class ProductService {
     }
   }
 
-  private updateCache(): void {
-    setTimeout(() => {
-      this.fetchAndCacheProducts(1, 20, 'product', 60 * 60 * 24); //24 HOURS
-      this.logger.info('ProductService.updateCache() - Cache update scheduled');
-    }, 0);
+  private async updateCache(): Promise<void> {
+    await this.cacheService.invalidateCache('product');
+    this.logger.info(
+      `ProductService.updateCache() - Cache invalidated, will be refreshed on next request`,
+    );
+  }
+
+  private async validateCacheSync(
+    cacheKey: string,
+    cachedData: PaginatedResult<Product> & { timestamp: number },
+  ): Promise<boolean> {
+    try {
+      const dbCount = await this.databaseService.product.count();
+      const cacheCount = cachedData.meta.total;
+
+      if (dbCount !== cacheCount) {
+        this.logger.info(
+          `ProductService.validateCacheSync() - Cache mismatch detected`,
+          {
+            metadata: {
+              cacheKey,
+              dbCount,
+              cacheCount,
+              difference: Math.abs(dbCount - cacheCount),
+            },
+          },
+        );
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      this.logger.error(
+        `ProductService.validateCacheSync() - Error validating cache sync`,
+        {
+          error: error instanceof Error ? error : new Error(String(error)),
+          metadata: { cacheKey },
+        },
+      );
+      return false;
+    }
   }
 
   private paginateData(

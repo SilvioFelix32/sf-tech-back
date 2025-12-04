@@ -22,6 +22,7 @@ const mockDatabaseService = {
     findUnique: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
+    count: jest.fn(),
   },
   productCategory: {
     findUnique: jest.fn(),
@@ -31,6 +32,7 @@ const mockDatabaseService = {
 const mockCacheService = {
   getCache: jest.fn(),
   setCache: jest.fn(),
+  invalidateCache: jest.fn(),
 };
 
 const mockCategoryService = {
@@ -129,6 +131,9 @@ describe('ProductService', () => {
           category_id: createProductDto.category_id,
         } as ProductCategory);
       jest.spyOn(databaseService.product, 'create').mockResolvedValue(result);
+      jest
+        .spyOn(cacheService, 'invalidateCache')
+        .mockResolvedValue(undefined);
 
       expect(
         await service.create(
@@ -136,6 +141,7 @@ describe('ProductService', () => {
           createProductDto,
         ),
       ).toEqual(`Product ${result.product_id} created successfully`);
+      expect(cacheService.invalidateCache).toHaveBeenCalledWith('product');
     });
 
     it('Should throw an error if product creation fails', async () => {
@@ -176,17 +182,44 @@ describe('ProductService', () => {
   });
 
   describe('findAll', () => {
-    it('Should return products from cache if available', async () => {
+    it('Should return products from cache if available and synchronized', async () => {
+      const cachedDataWithTimestamp = {
+        ...cachedDataResponse,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
       jest
         .spyOn(cacheService, 'getCache')
-        .mockResolvedValue(cachedDataResponse);
+        .mockResolvedValue(cachedDataWithTimestamp);
+      jest.spyOn(databaseService.product, 'count').mockResolvedValue(1);
+
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(result.message).toBe('Products retrieved from cache');
+      expect(cacheService.getCache).toHaveBeenCalledWith('product');
+      expect(databaseService.product.count).toHaveBeenCalled();
+    });
+
+    it('Should return products from database if cache is out of sync', async () => {
+      const cachedDataWithTimestamp = {
+        ...cachedDataResponse,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+      jest
+        .spyOn(cacheService, 'getCache')
+        .mockResolvedValue(cachedDataWithTimestamp);
+      jest.spyOn(databaseService.product, 'count').mockResolvedValue(5);
       jest
         .spyOn(databaseService.product, 'findMany')
-        .mockResolvedValue(dbData.data);
+        .mockResolvedValue(dbDataResponse.data as Product[]);
+      jest.spyOn(cacheService, 'setCache').mockResolvedValue('Created');
 
-      expect(await service.findAll({ page: 1, limit: 10 })).toEqual(
-        cachedDataResponse,
+      const result = await service.findAll({ page: 1, limit: 10 });
+
+      expect(result.message).toBe(
+        'Products retrieved from database (cache refreshed)',
       );
+      expect(databaseService.product.count).toHaveBeenCalled();
+      expect(databaseService.product.findMany).toHaveBeenCalled();
     });
 
     it('Should return products from database if cache is not available', async () => {
@@ -287,58 +320,19 @@ describe('ProductService', () => {
       );
     });
 
-    it('Should update a product and cache', async () => {
+    it('Should update a product and invalidate cache', async () => {
       const updateProductDto: UpdateProductDto = { title: 'Updated Product' };
       const result = { product_id: '1', ...updateProductDto } as Product;
 
       jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
       jest.spyOn(databaseService.product, 'update').mockResolvedValue(result);
-
-      const fetchAndCacheProductsSpy = jest
-        .spyOn(service as any, 'fetchAndCacheProducts')
+      jest
+        .spyOn(cacheService, 'invalidateCache')
         .mockResolvedValue(undefined);
-
-      jest.useFakeTimers();
 
       await service.update('1', updateProductDto);
 
-      jest.runAllTimers();
-
-      expect(fetchAndCacheProductsSpy).toHaveBeenCalledWith(
-        1,
-        20,
-        'product',
-        60 * 60 * 24,
-      );
-
-      jest.useRealTimers();
-    });
-
-    it('Should update a product and cache', async () => {
-      const updateProductDto: UpdateProductDto = { title: 'Updated Product' };
-      const result = { product_id: '1', ...updateProductDto } as Product;
-
-      jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
-      jest.spyOn(databaseService.product, 'update').mockResolvedValue(result);
-
-      const fetchAndCacheProductsSpy = jest
-        .spyOn(service as any, 'fetchAndCacheProducts')
-        .mockResolvedValue(undefined);
-
-      jest.useFakeTimers();
-
-      await service.update('1', updateProductDto);
-
-      jest.runAllTimers();
-
-      expect(fetchAndCacheProductsSpy).toHaveBeenCalledWith(
-        1,
-        20,
-        'product',
-        60 * 60 * 24,
-      );
-
-      jest.useRealTimers();
+      expect(cacheService.invalidateCache).toHaveBeenCalledWith('product');
     });
 
     it('Should handle empty data correctly in fetchAndCacheProducts', async () => {
@@ -480,14 +474,18 @@ describe('ProductService', () => {
   });
 
   describe('remove', () => {
-    it('Should delete a product', async () => {
+    it('Should delete a product and invalidate cache', async () => {
       const result = { product_id: '1', title: 'Test Product' } as Product;
       jest.spyOn(databaseService.product, 'findUnique').mockResolvedValue(result);
       jest.spyOn(databaseService.product, 'delete').mockResolvedValue(result);
+      jest
+        .spyOn(cacheService, 'invalidateCache')
+        .mockResolvedValue(undefined);
 
       expect(await service.remove('1')).toEqual(
         `Product ${result.product_id} deleted successfully`,
       );
+      expect(cacheService.invalidateCache).toHaveBeenCalledWith('product');
     });
 
     it('Should throw an error if product deletion fails', async () => {
