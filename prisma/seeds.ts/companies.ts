@@ -8,6 +8,5 @@ export const companiesSeed: Prisma.CompanyCreateInput[] = [
     fantasyName: 'sftech',
     name: 'sftech',
     productCategories: { create: productCategoriesSeed },
-    //users: { createMany: { data: userSeed } },
   },
 ];

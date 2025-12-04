@@ -5,6 +5,7 @@ import {
   memorySeed,
   miceSeed,
   monitorsSeed,
+  motherboardsSeed,
   notebooksSeed,
   processorsSeed,
 } from './products';
@@ -44,6 +45,11 @@ export const productCategoriesSeed = [
     description: 'PROCESSADORES',
     products: { createMany: { data: processorsSeed } },
     title: 'PROCESSADORES',
+  },
+  {
+    description: 'PLACAS-MÃE',
+    products: { createMany: { data: motherboardsSeed } },
+    title: 'PLACAS-MÃE',
   },
   {
     description: 'MEMÓRIAS',
