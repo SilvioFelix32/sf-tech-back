@@ -171,3 +171,42 @@ Use pull request templates to ensure consistency.
 Regularly monitor API response times, database query performance, and memory usage.
 Use performance monitoring tools (e.g., APM tools, New Relic, DataDog) to track improvements.
 Monitor connection pool usage and optimize database queries.
+
+# Prisma Migrations:
+
+**CRITICAL RULE: NEVER DELETE EXISTING TABLES OR DATA**
+
+When creating Prisma migrations:
+- **ALWAYS** create migrations manually when there are existing tables in the database
+- **NEVER** use `prisma db push` or `prisma migrate dev` if it would delete existing tables
+- **NEVER** drop tables, columns, or data that already exists in the database
+- **ONLY** add new tables, columns, indexes, and constraints
+- If `prisma migrate dev` warns about data loss, create the migration SQL file manually
+- Manual migrations should be placed in `prisma/migrations/TIMESTAMP_migration_name/migration.sql`
+- Always test migrations in a development environment before applying to production
+- When in doubt, create migrations manually to have full control over what changes are applied
+
+Example of safe migration (only adding new tables):
+```sql
+-- CreateEnum
+CREATE TYPE "Gender" AS ENUM ('Male', 'Female', 'Other');
+
+-- CreateTable (ONLY new tables, never DROP existing ones)
+CREATE TABLE "new_table" (
+    "_id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    CONSTRAINT "new_table_pkey" PRIMARY KEY ("_id")
+);
+
+-- CreateIndex (only for new tables)
+CREATE UNIQUE INDEX "new_table_name_key" ON "new_table"("name");
+```
+
+**NEVER DO THIS:**
+```sql
+-- ❌ NEVER drop existing tables
+DROP TABLE "existing_table";
+
+-- ❌ NEVER drop existing columns
+ALTER TABLE "existing_table" DROP COLUMN "existing_column";
+```
