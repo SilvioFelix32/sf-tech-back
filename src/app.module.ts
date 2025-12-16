@@ -3,7 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { SharedServicesModule } from './modules/shared-services.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { CategoryModule, CompaniesModule, ProductModule } from './modules';
+import { CategoryModule, CompaniesModule, ProductModule, SfTechUserModule } from './modules';
 import { GlobalExceptionFilter } from './application/exceptions/exceptions-filter';
 import { CognitoAuthGuard } from './infrastructure/security/auth/guards/cognito-auth.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -21,6 +21,7 @@ import { HealthController } from './infrastructure/http/controllers/app.controll
     CompaniesModule,
     CategoryModule,
     ProductModule,
+    SfTechUserModule,
     SharedServicesModule,
   ],
   providers: [

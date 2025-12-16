@@ -53,3 +53,52 @@ model Product {
 
   @@map("product")
 }
+
+enum Gender {
+  Male
+  Female
+  Other
+}
+
+enum AddressType {
+  House
+  Work
+  Temporary
+}
+
+model SfTechUser {
+  user_id    String    @id @default(uuid()) @map("_id")
+  first_name String
+  last_name  String
+  email      String    @unique
+  cpf        String    @unique
+  cellphone  String
+  birthdate  String
+  gender     Gender    @default(Other)
+  addresses  Address[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sftech_users")
+}
+
+model Address {
+  address_id        String      @id @default(uuid()) @map("_id")
+  user              SfTechUser  @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
+  user_id           String
+  address_type      AddressType @default(House)
+  address_preference AddressType @default(House)
+  street            String
+  number            String
+  neighborhood      String
+  city              String
+  cep               String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("address")
+}
+
+
