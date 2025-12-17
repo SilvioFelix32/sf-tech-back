@@ -19,6 +19,10 @@ export enum Gender {
 export class CreateSfTechUserDto {
   @IsString()
   @IsNotEmpty()
+  declare user_id: string;
+
+  @IsString()
+  @IsNotEmpty()
   declare first_name: string;
 
   @IsString()

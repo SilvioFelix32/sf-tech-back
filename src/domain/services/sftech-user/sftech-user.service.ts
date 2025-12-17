@@ -19,12 +19,13 @@ export class SfTechUserService {
   ) {}
 
   async create(data: CreateSfTechUserDto): Promise<string> {
-    const { email, cpf, addresses } = data;
+    const { user_id, email, cpf, addresses } = data;
     try {
-      await this.userExists(email, cpf);
+      await this.userExists(user_id, email, cpf);
 
       const result = await this.databaseService.sfTechUser.create({
         data: {
+          user_id: data.user_id,
           first_name: data.first_name,
           last_name: data.last_name,
           email: data.email,
@@ -174,19 +175,28 @@ export class SfTechUserService {
     }
   }
 
-  private async userExists(email: string, cpf: string): Promise<void> {
-    const [validateEmail, validateCpf] = await Promise.all([
-      this.databaseService.sfTechUser.findUnique({
-        where: { email },
-      }),
-      this.databaseService.sfTechUser.findUnique({
-        where: { cpf },
-      }),
-    ]);
+  private async userExists(
+    user_id: string,
+    email: string,
+    cpf: string,
+  ): Promise<void> {
+    const existingUser = await this.databaseService.sfTechUser.findFirst({
+      where: {
+        OR: [
+          { user_id },
+          { email },
+          { cpf },
+        ],
+      },
+    });
 
-    if (validateEmail || validateCpf) {
+    if (existingUser) {
+      let conflictField = 'user_id';
+      if (existingUser.email === email) conflictField = 'email';
+      else if (existingUser.cpf === cpf) conflictField = 'cpf';
+
       throw new ConflictException(
-        `User with this ${validateEmail ? 'email' : 'cpf'} already exists`,
+        `User with this ${conflictField} already exists`,
       );
     }
   }

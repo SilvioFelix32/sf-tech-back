@@ -13,6 +13,7 @@ const mockSfTechUserService = {
 };
 
 const createUserDto: CreateSfTechUserDto = {
+  user_id: TestData.uuid(),
   first_name: TestData.firstName(),
   last_name: TestData.string(8),
   email: TestData.email(),

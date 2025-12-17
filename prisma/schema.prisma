@@ -67,7 +67,7 @@ enum AddressType {
 }
 
 model SfTechUser {
-  user_id    String    @id @default(uuid()) @map("_id")
+  user_id    String    @id @unique
   first_name String
   last_name  String
   email      String    @unique
