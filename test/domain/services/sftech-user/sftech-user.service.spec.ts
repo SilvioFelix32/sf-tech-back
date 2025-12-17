@@ -126,9 +126,8 @@ describe('SfTechUserService', () => {
       });
 
       jest
-        .spyOn(databaseService.sfTechUser, 'findUnique')
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+        .spyOn(databaseService.sfTechUser, 'findFirst')
+        .mockResolvedValue(null);
       jest
         .spyOn(databaseService.sfTechUser, 'create')
         .mockResolvedValue(createdUser as any);
@@ -155,9 +154,8 @@ describe('SfTechUserService', () => {
       });
 
       jest
-        .spyOn(databaseService.sfTechUser, 'findUnique')
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+        .spyOn(databaseService.sfTechUser, 'findFirst')
+        .mockResolvedValue(null);
       jest
         .spyOn(databaseService.sfTechUser, 'create')
         .mockResolvedValue(createdUser as any);
@@ -177,14 +175,13 @@ describe('SfTechUserService', () => {
     it('Should throw ConflictException when email already exists', async () => {
       const createDto = mockCreateUserDto();
       jest
-        .spyOn(databaseService.sfTechUser, 'findUnique')
-        .mockResolvedValueOnce({ email: createDto.email } as any)
-        .mockResolvedValueOnce(null);
+        .spyOn(databaseService.sfTechUser, 'findFirst')
+        .mockResolvedValue({ email: createDto.email } as any);
       mockErrorHandler.handle.mockImplementation((error) => new ConflictException(error));
 
       await expect(service.create(createDto)).rejects.toThrow(ConflictException);
 
-      expect(databaseService.sfTechUser.findUnique).toHaveBeenCalledTimes(2);
+      expect(databaseService.sfTechUser.findFirst).toHaveBeenCalled();
       expect(databaseService.sfTechUser.create).not.toHaveBeenCalled();
       expect(mockLogger.error).toHaveBeenCalled();
     });
@@ -192,23 +189,21 @@ describe('SfTechUserService', () => {
     it('Should throw ConflictException when cpf already exists', async () => {
       const createDto = mockCreateUserDto();
       jest
-        .spyOn(databaseService.sfTechUser, 'findUnique')
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce({ cpf: createDto.cpf } as any);
+        .spyOn(databaseService.sfTechUser, 'findFirst')
+        .mockResolvedValue({ cpf: createDto.cpf } as any);
       mockErrorHandler.handle.mockImplementation((error) => new ConflictException(error));
 
       await expect(service.create(createDto)).rejects.toThrow(ConflictException);
 
-      expect(databaseService.sfTechUser.findUnique).toHaveBeenCalledTimes(2);
+      expect(databaseService.sfTechUser.findFirst).toHaveBeenCalled();
       expect(databaseService.sfTechUser.create).not.toHaveBeenCalled();
     });
 
     it('Should throw InternalServerErrorException on create error', async () => {
       const createDto = mockCreateUserDto();
       jest
-        .spyOn(databaseService.sfTechUser, 'findUnique')
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+        .spyOn(databaseService.sfTechUser, 'findFirst')
+        .mockResolvedValue(null);
       mockErrorHandler.handle.mockImplementation((error) => new InternalServerErrorException(error));
       jest
         .spyOn(databaseService.sfTechUser, 'create')
@@ -224,6 +219,7 @@ describe('SfTechUserService', () => {
 
     it('Should return a user with addresses', async () => {
       const user = mockUser({ user_id, addresses: [mockAddress(user_id)] });
+      mockErrorHandler.handle.mockImplementation((error) => error);
       jest.spyOn(databaseService.sfTechUser, 'findUnique').mockResolvedValue(user as any);
 
       const result = await service.findById(user_id);
@@ -296,7 +292,12 @@ describe('SfTechUserService', () => {
       jest
         .spyOn(databaseService.sfTechUser, 'findUnique')
         .mockResolvedValue({ user_id: TestData.uuid(), email: updateWithEmail.email } as any);
-      mockErrorHandler.handle.mockImplementation((error) => new ConflictException(error));
+      mockErrorHandler.handle.mockImplementation((error) => {
+        if (error instanceof ConflictException) {
+          return error;
+        }
+        return new NotFoundException(error);
+      });
 
       await expect(service.update(user_id, updateWithEmail)).rejects.toThrow(ConflictException);
       expect(databaseService.sfTechUser.update).not.toHaveBeenCalled();
@@ -309,10 +310,16 @@ describe('SfTechUserService', () => {
       jest
         .spyOn(databaseService.sfTechUser, 'findUnique')
         .mockResolvedValue({ user_id: TestData.uuid(), cpf: updateWithCpf.cpf } as any);
-      mockErrorHandler.handle.mockImplementation((error) => new ConflictException(error));
+      mockErrorHandler.handle.mockImplementation((error) => {
+        if (error instanceof ConflictException) {
+          return error;
+        }
+        return new NotFoundException(error);
+      });
 
       await expect(service.update(user_id, updateWithCpf)).rejects.toThrow(ConflictException);
       expect(databaseService.sfTechUser.update).not.toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('Should allow update when email/cpf belongs to the same user', async () => {
