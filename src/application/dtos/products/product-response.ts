@@ -10,6 +10,8 @@ export const productResponse = {
   price: true,
   product_id: true,
   sku: true,
+  stock: true,
+  stock_level: true,
   subtitle: true,
   title: true,
   urlBanner: true,

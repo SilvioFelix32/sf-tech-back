@@ -4,7 +4,7 @@ import {
   NotFoundException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Product, ProductCategory } from '@prisma/client';
+import { Product, ProductCategory, StockLevel } from '@prisma/client';
 import { TestData } from '../../../helpers/test-data';
 import { CategoryService } from '../../../../src/domain/services/categories/category.service';
 import { CreateProductDto } from '../../../../src/application/dtos/products/create-product.dto';
@@ -164,6 +164,52 @@ describe('ProductService', () => {
           createProductDto,
         ),
       ).rejects.toThrow();
+    });
+
+    it('Should calculate stock_level from stock on create (OutOfStock, Low, Medium, High)', async () => {
+      const category_id = TestData.uuid();
+      jest
+        .spyOn(databaseService.productCategory, 'findUnique')
+        .mockResolvedValue({ category_id } as ProductCategory);
+
+      const createCalls: { stock: number; stock_level: StockLevel }[] = [];
+      jest.spyOn(databaseService.product, 'create').mockImplementation((args: any) => {
+        createCalls.push({ stock: args.data.stock, stock_level: args.data.stock_level });
+        return Promise.resolve({ product_id: TestData.uuid(), ...args.data } as Product);
+      });
+      jest.spyOn(cacheService, 'invalidateCache').mockResolvedValue(undefined);
+
+      await service.create(category_id, {
+        category_id,
+        title: 'Product',
+        price: 100,
+        stock: 0,
+      } as CreateProductDto);
+      expect(createCalls[0].stock_level).toBe(StockLevel.OutOfStock);
+
+      await service.create(category_id, {
+        category_id,
+        title: 'Product',
+        price: 100,
+        stock: 5,
+      } as CreateProductDto);
+      expect(createCalls[1].stock_level).toBe(StockLevel.Low);
+
+      await service.create(category_id, {
+        category_id,
+        title: 'Product',
+        price: 100,
+        stock: 30,
+      } as CreateProductDto);
+      expect(createCalls[2].stock_level).toBe(StockLevel.Medium);
+
+      await service.create(category_id, {
+        category_id,
+        title: 'Product',
+        price: 100,
+        stock: 100,
+      } as CreateProductDto);
+      expect(createCalls[3].stock_level).toBe(StockLevel.High);
     });
 
     it('Should throw an NotFoundException if product there is no category_id', async () => {

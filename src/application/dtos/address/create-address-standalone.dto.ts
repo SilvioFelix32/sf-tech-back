@@ -3,7 +3,7 @@ import {
   IsNotEmpty,
   IsString,
 } from 'class-validator';
-import { AddressType } from '../sftech-user/create-address.dto';
+import { AddressPreference, AddressType } from '../sftech-user/create-address.dto';
 
 export class CreateAddressStandaloneDto {
   @IsString()
@@ -14,9 +14,9 @@ export class CreateAddressStandaloneDto {
   @IsNotEmpty()
   declare address_type: AddressType;
 
-  @IsEnum(AddressType)
+  @IsEnum(AddressPreference)
   @IsNotEmpty()
-  declare address_preference: AddressType;
+  declare address_preference: AddressPreference;
 
   @IsString()
   @IsNotEmpty()

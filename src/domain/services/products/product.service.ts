@@ -1,5 +1,5 @@
 import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma, StockLevel } from '@prisma/client';
 import { PaginatedResult } from 'prisma-pagination';
 import { DatabaseService } from '../database/database.service';
 import { Product } from '../../entities/products/product.entity';
@@ -24,8 +24,13 @@ export class ProductService {
     try {
       await this.validateCategory(category_id);
 
+      const stock = dto.stock ?? 0;
+      const stock_level = this.calculateStockLevel(stock);
+
       const data: Prisma.ProductCreateInput = {
         ...dto,
+        stock,
+        stock_level,
         product_category: { connect: { category_id } },
       };
       const result = await this.databaseService.product.create({ data });
@@ -168,8 +173,14 @@ export class ProductService {
     await this.validateProduct(product_id);
 
     try {
+      const updateData: Prisma.ProductUpdateInput = { ...dto };
+      if (dto.stock !== undefined) {
+        updateData.stock = dto.stock;
+        updateData.stock_level = this.calculateStockLevel(dto.stock);
+      }
+
       const result = await this.databaseService.product.update({
-        data: { ...dto },
+        data: updateData,
         where: { product_id },
       });
       await this.updateCache();
@@ -355,6 +366,13 @@ export class ProductService {
         next: nextPage,
       },
     };
+  }
+
+  private calculateStockLevel(stock: number): StockLevel {
+    if (stock <= 0) return StockLevel.OutOfStock;
+    if (stock <= 10) return StockLevel.Low;
+    if (stock <= 50) return StockLevel.Medium;
+    return StockLevel.High;
   }
 
   private validateError(error: unknown): Error {

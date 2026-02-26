@@ -8,6 +8,8 @@ export class Product {
   urlBanner?: string;
   price?: number;
   discount?: number;
+  stock?: number;
+  stock_level?: 'OutOfStock' | 'Low' | 'Medium' | 'High';
   highlighted?: boolean;
   active?: boolean;
 

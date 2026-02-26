@@ -5,7 +5,7 @@ import { TestData } from '../../../../helpers/test-data';
 import { CreateAddressStandaloneDto } from '../../../../../src/application/dtos/address/create-address-standalone.dto';
 import { UpdateAddressDto } from '../../../../../src/application/dtos/address/update-address.dto';
 import { Address } from '../../../../../src/domain/entities/address/address.entity';
-import { AddressType } from '../../../../../src/application/dtos/sftech-user/create-address.dto';
+import { AddressPreference, AddressType } from '../../../../../src/application/dtos/sftech-user/create-address.dto';
 
 const mockAddressService = {
   create: jest.fn(),
@@ -21,7 +21,7 @@ const address_id = TestData.uuid();
 const createAddressDto: CreateAddressStandaloneDto = {
   user_id,
   address_type: AddressType.House,
-  address_preference: AddressType.House,
+  address_preference: AddressPreference.Primary,
   street: 'Test Street',
   number: '123',
   neighborhood: 'Test Neighborhood',
@@ -33,7 +33,7 @@ const address: Address = {
   address_id,
   user_id,
   address_type: 'House' as AddressType,
-  address_preference: 'House' as AddressType,
+  address_preference: 'Primary' as AddressPreference,
   street: 'Test Street',
   number: '123',
   neighborhood: 'Test Neighborhood',

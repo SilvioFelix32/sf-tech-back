@@ -34,6 +34,13 @@ model ProductCategory {
   @@map("product_category")
 }
 
+enum StockLevel {
+  OutOfStock
+  Low
+  Medium
+  High
+}
+
 model Product {
   product_id       String           @id @default(uuid()) @map("_id")
   product_category ProductCategory? @relation(fields: [category_id], references: [category_id], onDelete: Cascade, onUpdate: Cascade)
@@ -45,8 +52,10 @@ model Product {
   urlBanner        String?
   price            Float
   discount         Float?
-  highlighted      Boolean?         @default(false)
-  active           Boolean?         @default(true)
+  stock            Int              @default(0)
+  stock_level      StockLevel      @default(OutOfStock)
+  highlighted      Boolean?        @default(false)
+  active           Boolean?        @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -64,6 +73,11 @@ enum AddressType {
   House
   Work
   Temporary
+}
+
+enum AddressPreference {
+  Primary
+  Secondary
 }
 
 model SfTechUser {
@@ -88,7 +102,7 @@ model Address {
   user              SfTechUser  @relation(fields: [user_id], references: [user_id], onDelete: Cascade, onUpdate: Cascade)
   user_id           String
   address_type      AddressType @default(House)
-  address_preference AddressType @default(House)
+  address_preference AddressPreference @default(Primary)
   street            String
   number            String
   neighborhood      String

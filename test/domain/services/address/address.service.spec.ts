@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { TestData } from '../../../helpers/test-data';
 import { Address } from '../../../../src/domain/entities/address/address.entity';
-import { AddressType } from '../../../../src/application/dtos/sftech-user/create-address.dto';
+import { AddressPreference, AddressType } from '../../../../src/application/dtos/sftech-user/create-address.dto';
 
 const mockDatabaseService = {
   address: {
@@ -54,7 +54,7 @@ const mockAddress = (user_id: string, overrides?: Partial<Address>): Address => 
   address_id: TestData.uuid(),
   user_id,
   address_type: 'House' as AddressType,
-  address_preference: 'House' as AddressType,
+  address_preference: 'Primary' as AddressPreference,
   street: 'Test Street',
   number: '123',
   neighborhood: 'Test Neighborhood',
@@ -68,7 +68,7 @@ const mockAddress = (user_id: string, overrides?: Partial<Address>): Address => 
 const mockCreateAddressDto = (user_id: string, overrides?: Partial<CreateAddressStandaloneDto>): CreateAddressStandaloneDto => ({
   user_id,
   address_type: AddressType.House,
-  address_preference: AddressType.House,
+  address_preference: AddressPreference.Primary,
   street: 'Test Street',
   number: '123',
   neighborhood: 'Test Neighborhood',
