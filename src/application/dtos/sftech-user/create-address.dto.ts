@@ -10,14 +10,19 @@ export enum AddressType {
   Temporary = 'Temporary',
 }
 
+export enum AddressPreference {
+  Primary = 'Primary',
+  Secondary = 'Secondary',
+}
+
 export class CreateAddressDto {
   @IsEnum(AddressType)
   @IsNotEmpty()
   declare address_type: AddressType;
 
-  @IsEnum(AddressType)
+  @IsEnum(AddressPreference)
   @IsNotEmpty()
-  declare address_preference: AddressType;
+  declare address_preference: AddressPreference;
 
   @IsString()
   @IsNotEmpty()

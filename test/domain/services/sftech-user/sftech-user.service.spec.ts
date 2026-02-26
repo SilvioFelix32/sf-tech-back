@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SfTechUserService } from '../../../../src/domain/services/sftech-user/sftech-user.service';
 import { CreateSfTechUserDto, Gender } from '../../../../src/application/dtos/sftech-user/create-sftech-user.dto';
 import { UpdateSfTechUserDto } from '../../../../src/application/dtos/sftech-user/update-sftech-user.dto';
-import { AddressType } from '../../../../src/application/dtos/sftech-user/create-address.dto';
+import { AddressPreference, AddressType } from '../../../../src/application/dtos/sftech-user/create-address.dto';
 import { DatabaseService } from '../../../../src/domain/services/database/database.service';
 import { ErrorHandler } from '../../../../src/shared/errors/error-handler';
 import { Logger } from '../../../../src/shared/logger/logger.service';
@@ -63,7 +63,7 @@ const mockCreateUserDto = (overrides?: Partial<CreateSfTechUserDto>): CreateSfTe
   addresses: [
     {
       address_type: AddressType.House,
-      address_preference: AddressType.House,
+      address_preference: AddressPreference.Primary,
       street: 'Test Street',
       number: '123',
       neighborhood: 'Test Neighborhood',
@@ -78,7 +78,7 @@ const mockAddress = (user_id: string, overrides?: Partial<Address>): Address => 
   address_id: TestData.uuid(),
   user_id,
   address_type: 'House' as 'House' | 'Work' | 'Temporary',
-  address_preference: 'House' as 'House' | 'Work' | 'Temporary',
+  address_preference: 'Primary' as 'Primary' | 'Secondary',
   street: 'Test Street',
   number: '123',
   neighborhood: 'Test Neighborhood',

@@ -38,6 +38,10 @@ export class CreateProductDto {
   @IsOptional()
   declare discount: number;
 
+  @IsNumber()
+  @IsOptional()
+  declare stock: number;
+
   @IsBoolean()
   @IsOptional()
   declare highlighted: boolean;
